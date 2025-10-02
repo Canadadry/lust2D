@@ -1,60 +1,344 @@
 #include "../vendor/raylib/raylib.h"
+#include "../vendor/mujs/mujs.h"
+#include "../vendor/jsx_parser/jsx_parser.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include "ui.h"
+#include "dynamicarray.h"
+
+
+CREATE_ARRAY_TYPE(Node)
+WRITE_ARRAY_IMPL(Node)
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
-int main(void)
-{
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+ARRAY(Node)* ui_node= NULL;
 
-    InitWindow(screenWidth, screenHeight, "raylib [shapes] example - rectangle scaling");
+static const char *require_js =
+    "function require(name) {\n"
+    "    var cache = require.cache;\n"
+    "    if (name in cache) return cache[name];\n"
+    "    var exports = {};\n"
+    "    cache[name] = exports;\n"
+    "    var fcontent = \"\";\n"
+    "    if(file_exist(name+'.jsx')){\n"
+    "        fcontent = read(name+'.jsx');\n"
+    "        fcontent = parse_jsx(fcontent);\n"
+    "    }\n"
+    "    if(file_exist(name+'.js')){\n"
+    "        fcontent = read(name+'.js');\n"
+    "    }\n"
+    "    if(fcontent!=\"\"){\n"
+    "        Function('exports', fcontent)(exports);\n"
+    "    }\n"
+    "    return exports;\n"
+    "}\n"
+    "require.cache = Object.create(null);\n"
+    "\n"
+;
 
-    Rectangle rec = { 100, 100, 200, 80 };
+static const char *console_js =
+	"var console = { log: print, debug: print, warn: print, error: print };"
+;
 
-    Vector2 mousePosition = { 0 };
+static const char *window_js =
+    "var window = { width:100,height:100,title:'lust2D' };"
+;
 
-    bool mouseScaleReady = false;
-    bool mouseScaleMode = false;
+static void jsB_print(js_State *J){
+	int i, top = js_gettop(J);
+	for (i = 1; i < top; ++i) {
+		const char *s = js_tostring(J, i);
+		if (i > 1) putchar(' ');
+		fputs(s, stdout);
+	}
+	putchar('\n');
+	js_pushundefined(J);
+}
 
+static void jsB_read(js_State *J){
+	const char *filename = js_tostring(J, 1);
+	FILE *f;
+	char *s;
+	int n, t;
+
+	f = fopen(filename, "rb");
+	if (!f) {
+		js_error(J, "cannot open file '%s': %s", filename, strerror(errno));
+	}
+
+	if (fseek(f, 0, SEEK_END) < 0) {
+		fclose(f);
+		js_error(J, "cannot seek in file '%s': %s", filename, strerror(errno));
+	}
+
+	n = ftell(f);
+	if (n < 0) {
+		fclose(f);
+		js_error(J, "cannot tell in file '%s': %s", filename, strerror(errno));
+	}
+
+	if (fseek(f, 0, SEEK_SET) < 0) {
+		fclose(f);
+		js_error(J, "cannot seek in file '%s': %s", filename, strerror(errno));
+	}
+
+	s = malloc(n + 1);
+	if (!s) {
+		fclose(f);
+		js_error(J, "out of memory");
+	}
+
+	t = fread(s, 1, n, f);
+	if (t != n) {
+		free(s);
+		fclose(f);
+		js_error(J, "cannot read data from file '%s': %s", filename, strerror(errno));
+	}
+	s[n] = 0;
+
+	js_pushstring(J, s);
+	free(s);
+	fclose(f);
+}
+
+static void jsB_file_exist(js_State *J){
+    int exist = 0;
+	const char *filename = js_tostring(J, 1);
+	FILE *f = fopen(filename, "rb");
+	if (f) {
+	    exist=1;
+		fclose(f);
+	}
+	js_pushboolean(J, exist);
+}
+
+static inline void* user_realloc(void* userdata,void* ptr, size_t size){
+    return realloc(ptr,size);
+}
+
+static inline void user_free(void* userdata,void* ptr){
+    free(ptr);
+}
+
+static void parse_jsx(js_State *J){
+    const char* content = js_tostring(J, 1);
+	JSX_Compiler* compiler = jsx_new_compiler("ui_create(", (JSX_Allocator){
+		.realloc_fn = user_realloc,
+		.free_fn = user_free,
+	});
+	bool ok = jsx_compile(compiler, content, 0);
+	if(!ok){
+		js_error(J, "cannot compile jsx %s", jsx_get_last_error(compiler));
+		js_pushundefined(J);
+		jsx_free_compiler(compiler);
+		return;
+	}
+	const char* compiled = jsx_get_output(compiler);
+	//printf("compiling jsx %s \n", compiled);
+	js_pushstring(J, compiled);
+	jsx_free_compiler(compiler);
+}
+
+static double get_property_number_or(js_State *J, int idx,const char* name, double def){
+	if( js_hasproperty(J, idx, name) == 0) {
+		return def;
+	}
+	js_getproperty(J, idx, name);
+	double ret =js_tonumber(J, -1);
+	js_pop(J, -1);
+	return ret;
+}
+
+static const char*  get_property_string_or(js_State *J, int idx,const char* name, const char*  def){
+	if( js_hasproperty(J, idx, name) == 0) {
+		return def;
+	}
+	js_getproperty(J, idx, name);
+	const char*  ret =js_tostring(J, -1);
+	js_pop(J, -1);
+	return ret;
+}
+
+static Color get_color(js_State *J, int idx)  {
+	if (js_isobject(J, idx) == 0) {
+		return WHITE;
+	}
+	return (Color){
+		.r = (unsigned char)get_property_number_or(J, idx, "r", 255),
+		.g = (unsigned char)get_property_number_or(J, idx, "g", 255),
+		.b = (unsigned char)get_property_number_or(J, idx, "b", 255),
+		.a = (unsigned char)get_property_number_or(J, idx, "a", 255),
+	};
+}
+
+static Rectangle get_rectangle(js_State *J, int idx)  {
+    if (js_isobject(J, idx) == 0) {
+        return (Rectangle){.width = 100, .height = 100};
+	}
+	return (Rectangle){
+		.x =      (float)get_property_number_or(J, idx, "x", 0),
+		.y =      (float)get_property_number_or(J, idx, "y", 0),
+		.width =  (float)get_property_number_or(J, idx, "w", 100),
+		.height = (float)get_property_number_or(J, idx, "h", 100),
+	};
+}
+
+static void clear_background(js_State *J) {
+	ClearBackground(get_color(J, 1));
+}
+
+static void draw_rectangle_rec(js_State *J) {
+	DrawRectangleRec(get_rectangle(J, 1), get_color(J, 2));
+}
+
+typedef struct{
+    double width;
+    double height;
+    const char* title;
+} Window;
+
+static Window get_window(js_State *J) {
+	Window win = {0};
+	js_getglobal(J, "window");
+	js_getproperty(J, -1, "width");
+	win.width = get_property_number_or(J,-1,"width",800);
+	win.height = get_property_number_or(J,-1,"width",600);
+	win.title = get_property_string_or(J,-1,"title","no title");
+	return win;
+}
+
+static void js_ui_create(js_State *J) {
+	int top = js_gettop(J);
+	Node node = (Node){
+	    .rect=get_rectangle(J, 2),
+	};
+	if(js_isstring(J, 1) != 0){
+		const char* title = js_tostring(J, 1);
+		if(strncmp(title,"rectangle",8)==0){
+			node.painter.kind=PAINTER_RECT;
+			node.painter.value.rect = (PainterRect){
+				.color = get_color(J, 2),
+			};
+		}else{
+			js_error(J, "unknown base ui tag '%s'", title);
+			js_pushundefined(J);
+			return;
+		}
+	} else if(js_iscallable(J, 1) != 0){
+		js_error(J, "not implemented");
+		js_pushundefined(J);
+
+		// mujs.pushnull(J)
+		//    mujs.copy(J,2)
+		// if mujs.pcall(J, 2) {
+		//        mujs.error(J,"an exception occurred in the javascript callback")
+		//        mujs.pushundefined(J)
+		// 	return
+		// }
+
+		// if mujs.isuserdata(J, -1,"Node"){
+		//     append(children,cast(^UiNode)mujs.touserdata(J,-1,"Node")^)
+		//    }
+		// mujs.pop(J, 1)
+	} else {
+		js_error(J, "invalid param type");
+		js_pushundefined(J);
+	}
+
+	int idx=ui_node->len;
+	array_append_Node(ui_node, node);
+	int last_idx = idx;
+	for(int i= 3; i < top; i += 1){
+		if(last_idx >= ui_node->len) {
+			continue;
+		}
+		if(js_isnumber(J, i) != 0){
+			continue;
+		}
+		int child= js_tointeger(J, i);
+		ui_node->data[last_idx].children = child;
+		last_idx = child;
+	}
+	js_pushnumber(J, idx);
+}
+
+static void js_ui_draw(js_State *J){
+	if (ui_node->len<=0){
+		js_error(J, "empty ui_node, call create before calling draw");
+		js_pushundefined(J);
+		return;
+	}
+	if (js_isnumber(J, 1) == 0 ){
+		js_error(J, "node index passed to draw should be a number");
+		js_pushundefined(J);
+		return;
+	}
+	int idx = js_tointeger(J, 1);
+	if(idx >= ui_node->len) {
+		js_error(J, "node index passed to draw should lesser than ui_node len");
+		js_pushundefined(J);
+		return;
+	}
+
+	draw((Tree){.nodes = ui_node->data, }, idx);
+}
+
+int main(int argc, char** argv){
+    ARRAY(Node) loc_ui_node = array_create_Node((Allocator){
+		.realloc_fn = user_realloc,
+		.free_fn = user_free,
+	});
+    ui_node = &loc_ui_node;
+    js_State *J = js_newstate(NULL, NULL,  0);
+	if (!J) {
+		fprintf(stderr, "Could not initialize MuJS.\n");
+		exit(1);
+	}
+
+	js_newcfunction(J, jsB_print, "print", 0);
+	js_setglobal(J, "print");
+	js_newcfunction(J, jsB_read, "read", 0);
+	js_setglobal(J, "read");
+	js_newcfunction(J, jsB_file_exist, "file_exist", 0);
+	js_setglobal(J, "file_exist");
+	js_newcfunction(J, clear_background, "ClearBackground", 0);
+	js_setglobal(J, "ClearBackground");
+	js_newcfunction(J, draw_rectangle_rec, "DrawRectangleRec", 0);
+	js_setglobal(J, "DrawRectangleRec");
+	js_newcfunction(J, js_ui_create, "ui_create", 0);
+	js_setglobal(J, "ui_create");
+	js_newcfunction(J, js_ui_draw, "ui_draw", 0);
+	js_setglobal(J, "ui_draw");
+	js_newcfunction(J, parse_jsx, "parse_jsx", 0);
+	js_setglobal(J, "parse_jsx");
+	js_dostring(J, require_js);
+	if (js_dostring(J, console_js) != 0){
+	    return 1;
+	}
+	if (js_dostring(J, window_js) !=0){
+	    return 1;
+	}
+	if(js_dofile(J, "main.js") !=0){
+	    return 1;
+	}
+	if(js_dostring(J, "conf();") !=0){
+	    return 1;
+	}
+
+	Window window = get_window(J);
+	SetTraceLogLevel(LOG_WARNING);
+    InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
     {
-        mousePosition = GetMousePosition();
-
-        if (CheckCollisionPointRec(mousePosition, (Rectangle){ rec.x + rec.width - MOUSE_SCALE_MARK_SIZE, rec.y + rec.height - MOUSE_SCALE_MARK_SIZE, MOUSE_SCALE_MARK_SIZE, MOUSE_SCALE_MARK_SIZE }))
-        {
-            mouseScaleReady = true;
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) mouseScaleMode = true;
-        }
-        else mouseScaleReady = false;
-
-        if (mouseScaleMode)
-        {
-            mouseScaleReady = true;
-
-            rec.width = (mousePosition.x - rec.x);
-            rec.height = (mousePosition.y - rec.y);
-
-            if (rec.width < MOUSE_SCALE_MARK_SIZE) rec.width = MOUSE_SCALE_MARK_SIZE;
-            if (rec.height < MOUSE_SCALE_MARK_SIZE) rec.height = MOUSE_SCALE_MARK_SIZE;
-
-            if (rec.width > (GetScreenWidth() - rec.x)) rec.width = GetScreenWidth() - rec.x;
-            if (rec.height > (GetScreenHeight() - rec.y)) rec.height = GetScreenHeight() - rec.y;
-
-            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) mouseScaleMode = false;
-        }
         BeginDrawing();
-            ClearBackground(RAYWHITE);
-            DrawText("Scale rectangle dragging from bottom-right corner!", 10, 10, 20, GRAY);
-            DrawRectangleRec(rec, Fade(GREEN, 0.5f));
-            if (mouseScaleReady)
-            {
-                DrawRectangleLinesEx(rec, 1, RED);
-                DrawTriangle((Vector2){ rec.x + rec.width - MOUSE_SCALE_MARK_SIZE, rec.y + rec.height },
-                             (Vector2){ rec.x + rec.width, rec.y + rec.height },
-                             (Vector2){ rec.x + rec.width, rec.y + rec.height - MOUSE_SCALE_MARK_SIZE }, RED);
-            }
+        if(js_dostring(J, "render();")){
+            break;
+        }
         EndDrawing();
     }
     CloseWindow();

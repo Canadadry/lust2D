@@ -1,0 +1,32 @@
+var test = require("requiered");
+console.log("hello from js");
+console.log("test1", test.test);
+console.log("test2", test.create);
+var root_ui = test.create();
+console.log("test3", test.create());
+x = 10;
+y = 10;
+w = 100;
+h = 100;
+dx = 4;
+dy = 4;
+
+function conf() {
+  window.width = 800;
+  window.height = 600;
+  window.title = "from lust2D";
+}
+
+function render() {
+  ClearBackground({ r: 128, g: 128, b: 128 });
+  DrawRectangleRec({ x: x, y: y, w: w, h: h }, { r: 255, g: 0, b: 0 });
+  x += dx;
+  y += dy;
+  if (x < 0 || x + w > window.width) {
+    dx *= -1;
+  }
+  if (y < 0 || y + h > window.height) {
+    dy *= -1;
+  }
+  ui_draw(root_ui);
+}
