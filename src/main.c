@@ -214,6 +214,8 @@ static void js_ui_create(js_State *J) {
 	int top = js_gettop(J);
 	Node node = (Node){
 	    .rect=get_rectangle(J, 2),
+		.next=-1,
+		.children=-1,
 	};
 	if(js_isstring(J, 1) != 0){
 		const char* title = js_tostring(J, 1);
@@ -251,15 +253,30 @@ static void js_ui_create(js_State *J) {
 	int idx=ui_node->len;
 	array_append_Node(ui_node, node);
 	int last_idx = idx;
-	for(int i= 3; i < top; i += 1){
-		if(last_idx >= ui_node->len) {
-			continue;
-		}
+	if(top>=3){
+    	if(js_isnumber(J, 3) == 0){
+           	int child= js_tointeger(J, 3);
+            if(child <= ui_node->len && child>=0 && ui_node->data[child].next == -1) {
+               	ui_node->data[last_idx].children = child;
+                last_idx = child;
+            }else{
+                js_pushnumber(J, idx);
+                return;
+            }
+    	}
+	}
+	for(int i= 4; i < top; i += 1){
 		if(js_isnumber(J, i) != 0){
 			continue;
 		}
 		int child= js_tointeger(J, i);
-		ui_node->data[last_idx].children = child;
+		if(child >= ui_node->len||child<=0) {
+			break;
+		}
+		if (ui_node->data[child].next != -1){
+		    break;
+		}
+		ui_node->data[last_idx].next = child;
 		last_idx = child;
 	}
 	js_pushnumber(J, idx);
@@ -283,7 +300,7 @@ static void js_ui_draw(js_State *J){
 		return;
 	}
 
-	draw((Tree){.nodes = ui_node->data, }, idx);
+	draw((Tree){.nodes = ui_node->data,.nodes_len=ui_node->len, }, idx);
 }
 
 int main(int argc, char** argv){
