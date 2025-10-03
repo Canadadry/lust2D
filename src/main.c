@@ -6,15 +6,10 @@
 #include <string.h>
 #include <errno.h>
 #include "ui.h"
-#include "dynamicarray.h"
-
-
-CREATE_ARRAY_TYPE(Node)
-WRITE_ARRAY_IMPL(Node)
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
-ARRAY(Node)* ui_node= NULL;
+Tree* ui_tree= NULL;
 
 static const char *require_js =
     "function require(name) {\n"
@@ -215,7 +210,8 @@ static void js_ui_create(js_State *J) {
 	Node node = (Node){
 	    .rect=get_rectangle(J, 2),
 		.next=-1,
-		.children=-1,
+		.first_children=-1,
+		.last_children=-1,
 	};
 	if(js_isstring(J, 1) != 0){
 		const char* title = js_tostring(J, 1);
@@ -232,6 +228,7 @@ static void js_ui_create(js_State *J) {
 	} else if(js_iscallable(J, 1) != 0){
 		js_error(J, "not implemented");
 		js_pushundefined(J);
+		return;
 
 		// mujs.pushnull(J)
 		//    mujs.copy(J,2)
@@ -248,42 +245,26 @@ static void js_ui_create(js_State *J) {
 	} else {
 		js_error(J, "invalid param type");
 		js_pushundefined(J);
+		return;
 	}
 
-	int idx=ui_node->len;
-	array_append_Node(ui_node, node);
-	int last_idx = idx;
-	if(top>=3){
-    	if(js_isnumber(J, 3) == 0){
-           	int child= js_tointeger(J, 3);
-            if(child <= ui_node->len && child>=0 && ui_node->data[child].next == -1) {
-               	ui_node->data[last_idx].children = child;
-                last_idx = child;
-            }else{
-                js_pushnumber(J, idx);
-                return;
-            }
-    	}
-	}
-	for(int i= 4; i < top; i += 1){
-		if(js_isnumber(J, i) != 0){
+	int parent=ui_tree->nodes.len;
+	array_append_Node(&ui_tree->nodes, node);
+	for(int i= 3; i < top; i += 1){
+		if(js_isnumber(J, i) == 0){
 			continue;
 		}
 		int child= js_tointeger(J, i);
-		if(child >= ui_node->len||child<=0) {
+		if(child >= ui_tree->nodes.len||child<0) {
 			break;
 		}
-		if (ui_node->data[child].next != -1){
-		    break;
-		}
-		ui_node->data[last_idx].next = child;
-		last_idx = child;
+		link_child(ui_tree,parent,child);
 	}
-	js_pushnumber(J, idx);
+	js_pushnumber(J, parent);
 }
 
 static void js_ui_draw(js_State *J){
-	if (ui_node->len<=0){
+	if (ui_tree->nodes.len<=0){
 		js_error(J, "empty ui_node, call create before calling draw");
 		js_pushundefined(J);
 		return;
@@ -294,21 +275,23 @@ static void js_ui_draw(js_State *J){
 		return;
 	}
 	int idx = js_tointeger(J, 1);
-	if(idx >= ui_node->len) {
+	if(idx >= ui_tree->nodes.len) {
 		js_error(J, "node index passed to draw should lesser than ui_node len");
 		js_pushundefined(J);
 		return;
 	}
 
-	draw((Tree){.nodes = ui_node->data,.nodes_len=ui_node->len, }, idx);
+	draw(*ui_tree, idx);
 }
 
 int main(int argc, char** argv){
-    ARRAY(Node) loc_ui_node = array_create_Node((Allocator){
-		.realloc_fn = user_realloc,
-		.free_fn = user_free,
-	});
-    ui_node = &loc_ui_node;
+    Tree loc_ui_tree = (Tree){
+        .nodes  = array_create_Node((Allocator){
+    		.realloc_fn = user_realloc,
+    		.free_fn = user_free,
+    	})
+    };
+    ui_tree = &loc_ui_tree;
     js_State *J = js_newstate(NULL, NULL,  0);
 	if (!J) {
 		fprintf(stderr, "Could not initialize MuJS.\n");

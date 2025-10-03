@@ -1,14 +1,16 @@
 #include "ui.h"
 
+WRITE_ARRAY_IMPL(Node)
+
 void draw(Tree tree, NodeIndex idx){
-	if(idx >= tree.nodes_len|| idx<0) {
+	if(idx >= tree.nodes.len|| idx<0) {
 		return;
 	}
-	switch(tree.nodes[idx].painter.kind){
+	switch(tree.nodes.data[idx].painter.kind){
 	case PAINTER_NONE:
 	    break;
 	case PAINTER_RECT:
-		DrawRectangleRec(tree.nodes[idx].rect, tree.nodes[idx].painter.value.rect.color);
+		DrawRectangleRec(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
         break;
     // case ImagePainterData:
 	// 	rl.DrawTexturePro(
@@ -25,10 +27,35 @@ void draw(Tree tree, NodeIndex idx){
 	// 		rl.WHITE,
 	// 	)
 	}
-	if(tree.nodes[idx].children>=0){
-	    draw(tree, tree.nodes[idx].children);
+	if(tree.nodes.data[idx].first_children>=0){
+	    draw(tree, tree.nodes.data[idx].first_children);
 	}
-	if(tree.nodes[idx].next>=0){
-	    draw(tree, tree.nodes[idx].next);
+	if(tree.nodes.data[idx].next>=0){
+	    draw(tree, tree.nodes.data[idx].next);
 	}
+}
+
+
+void link_child(Tree *tree,NodeIndex parent,NodeIndex child){
+    if (parent==child){
+        return;
+    }
+   	if(parent >= tree->nodes.len|| parent<0) {
+		return;
+	}
+
+   	if(parent >= tree->nodes.len|| parent<0) {
+		return;
+	}
+    if(
+           tree->nodes.data[parent].first_children ==-1
+        && tree->nodes.data[parent].last_children  ==-1
+    ){
+        tree->nodes.data[parent].first_children=child;
+        tree->nodes.data[parent].last_children=child;
+        return;
+    }
+    NodeIndex last = tree->nodes.data[parent].last_children;
+    tree->nodes.data[last].next=child;
+    tree->nodes.data[parent].last_children=child;
 }

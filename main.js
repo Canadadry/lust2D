@@ -2,6 +2,7 @@ var test = require("requiered");
 console.log("hello from js");
 console.log("test1", test.test);
 console.log("test2", test.create);
+
 var root_ui = test.create();
 console.log("test3", root_ui);
 x = 10;

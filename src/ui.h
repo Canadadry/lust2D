@@ -2,6 +2,7 @@
 #define _UI_H
 
 #include "../vendor/raylib/raylib.h"
+#include "dynamicarray.h"
 
 typedef enum {
     PAINTER_NONE,
@@ -23,16 +24,20 @@ typedef int NodeIndex;
 typedef struct {
 	Painter   painter;
 	Rectangle rect;
-	NodeIndex children;
+	NodeIndex first_children;
+	NodeIndex last_children;
 	NodeIndex next;
 }Node;
 
+
+CREATE_ARRAY_TYPE(Node)
+
 typedef struct {
-	Node* nodes;
-	int nodes_len;
+	ARRAY(Node) nodes;
 	// images: map[cstring]rl.Texture,
 }Tree;
 
 void draw(Tree tree, NodeIndex idx);
+void link_child(Tree *tree,NodeIndex parent,NodeIndex child);
 
 #endif
