@@ -2,6 +2,11 @@
 
 WRITE_ARRAY_IMPL(Node)
 
+WRITE_ARRAY_IMPL(PainterCommand)
+
+void compute(Tree tree, NodeIndex idx){
+}
+
 void draw(Tree tree, NodeIndex idx){
 	if(idx >= tree.nodes.len|| idx<0) {
 		return;
@@ -10,7 +15,7 @@ void draw(Tree tree, NodeIndex idx){
 	case PAINTER_NONE:
 	    break;
 	case PAINTER_RECT:
-		DrawRectangleRec(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
+		// DrawRectangleRec(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
         break;
     // case ImagePainterData:
 	// 	rl.DrawTexturePro(

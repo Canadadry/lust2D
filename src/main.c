@@ -208,7 +208,7 @@ static Window get_window(js_State *J) {
 static void js_ui_create(js_State *J) {
 	int top = js_gettop(J);
 	Node node = (Node){
-	    .rect=get_rectangle(J, 2),
+	    // .rect=get_rectangle(J, 2),
 		.next=-1,
 		.first_children=-1,
 		.last_children=-1,
