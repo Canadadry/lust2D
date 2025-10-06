@@ -3,6 +3,9 @@
 
 #include "../vendor/raylib/raylib.h"
 #include "dynamicarray.h"
+#include "rectangle.h"
+#include "vector2.h"
+
 
 typedef enum {
     PAINTER_NONE,
@@ -56,19 +59,24 @@ typedef struct{
     int bottom;
 }Padding;
 
+CREATE_VECTOR2_TYPE(int)
+CREATE_VECTOR2_TYPE(Size)
+CREATE_VECTOR2_TYPE(Align)
+CREATE_RECTANGLE_TYPE(int)
+
 typedef int NodeIndex;
 typedef struct {
-	Painter   painter;
-	int       pos[2];
-	Size      size[2];
-	Layout    layout;
-	Align     align[2];
-	int       margin;
-	Padding   padding;
-	Rectangle computed_box;
-	NodeIndex first_children;
-	NodeIndex last_children;
-	NodeIndex next;
+	Painter         painter;
+	VECTOR2(int)    pos;
+	VECTOR2(Size)   size;
+	Layout          layout;
+	VECTOR2(Align)  align;
+	int             margin;
+	Padding         padding;
+	RECTANGLE(int)  computed_box;
+	NodeIndex       first_children;
+	NodeIndex       last_children;
+	NodeIndex       next;
 }Node;
 
 typedef struct {
@@ -82,13 +90,20 @@ typedef struct {
 CREATE_ARRAY_TYPE(Node)
 CREATE_ARRAY_TYPE(PainterCommand)
 
+typedef VECTOR2(int)(*MesureContentFn)(void* userdata,Painter painter);
+typedef int (*WrapContentFn)(void* userdata,Painter painter,int width);
+
 typedef struct {
 	ARRAY(Node) nodes;
 	ARRAY(PainterCommand) commands;
 	// images: map[cstring]rl.Texture,
+	MesureContentFn mesure_content_fn;
+	void* mesure_content_userdata;
+	WrapContentFn wrap_content_fn;
+	void* wrap_content_userdata;
 }Tree;
 
-void compute(Tree tree, NodeIndex idx);
+void compute(Tree* tree, NodeIndex idx);
 void draw(Tree tree, NodeIndex idx);
 void link_child(Tree *tree,NodeIndex parent,NodeIndex child);
 

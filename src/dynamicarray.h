@@ -1,7 +1,11 @@
+#ifndef _DYNAMIC_ARRAY_H
+#define _DYNAMIC_ARRAY_H
+
 #include <stdlib.h>
 #include "allocator.h"
 
 #define ARRAY(type) type##_array
+// #define ARRAY_APPEND(type) array_append_##type((arr),(value))
 
 #define CREATE_ARRAY_TYPE(type)                                    \
     typedef struct {                                               \
@@ -9,14 +13,14 @@
         int len;                                                   \
         int capacity;                                              \
         Allocator alloc;                                           \
-    } type##_array;                                                \
+    } ARRAY(type);                                                 \
                                                                    \
-    int array_append_##type(type##_array* a, type val);            \
-    type##_array array_create_##type(Allocator alloc);             \
+    int array_append_##type(ARRAY(type)* a, type val);            \
+    ARRAY(type) array_create_##type(Allocator alloc);             \
 
 #define WRITE_ARRAY_IMPL(type)                                     \
                                                                    \
-    int type##_array_grow_values(type##_array* a) {                \
+    int type##_array_grow_values(ARRAY(type)* a) {                 \
         if (a->alloc.realloc_fn == NULL) {                         \
             return 1;                                              \
         }                                                          \
@@ -39,7 +43,7 @@
         return 0;                                                  \
     }                                                              \
                                                                    \
-    int array_append_##type(type##_array* a, type val) {           \
+    int array_append_##type(ARRAY(type)* a, type val) {            \
         if (a->len >= a->capacity) {                               \
             int ok = type##_array_grow_values(a);                  \
             if (ok != 0) {                                         \
@@ -56,3 +60,5 @@
             .alloc=alloc,                                          \
         };                                                         \
     }                                                              \
+
+#endif // _DYNAMIC_ARRAY_H
