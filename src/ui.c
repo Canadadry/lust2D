@@ -9,6 +9,8 @@
 
 WRITE_ARRAY_IMPL(Node)
 WRITE_ARRAY_IMPL(PainterCommand)
+WRITE_ARRAY_IMPL(Growable)
+WRITE_ARRAY_IMPL(ptr_growable)
 
 VECTOR2(int) no_measure_content(void* userdata,Painter painter){
     return (VECTOR2(int)){0};
@@ -122,7 +124,6 @@ typedef enum{
 
 void set_growable(Tree *tree, NodeIndex parent_id, Direction dir ){
     tree->growables.len=0;
-	Node* parent = &tree->nodes.data[parent_id];
 	NodeIndex child_id=-1;
 	Node* child = NULL;
 	switch(dir){
