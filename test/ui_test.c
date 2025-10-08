@@ -336,6 +336,96 @@ void test_vertical_layout_with_spacing(TestCase* tc) {
     };
 }
 
+void test_horizontal_layout_with_margin_and_root_fitting(TestCase* tc) {
+    tc->name = __func__;
+    tc->expected.len = 3;
+    tc->expected.data[0] = (PainterCommand){.x = 0, .y = 0, .w = 180, .h = 120, .painter = {0}};
+    tc->expected.data[1] = (PainterCommand){.x = 10, .y = 10, .w = 50, .h = 100, .painter = {0}};
+    tc->expected.data[2] = (PainterCommand){.x = 70, .y = 10, .w = 100, .h = 50, .painter = {0}};
+    tc->tree.nodes.len = 3;
+    tc->tree.nodes.data[0] = (Node){
+        .layout = LayoutHorizontal,
+        .size = {
+            (Size){.kind = SizeKindFit},
+            (Size){.kind = SizeKindFit},
+        },
+        .padding = {
+            .top = 10,
+            .bottom = 10,
+            .left = 10,
+            .right = 10,
+        },
+        .margin = 10,
+        .first_children = 1,
+        .last_children = 2,
+        .children_count = 2,
+        .next = -1,
+    };
+    tc->tree.nodes.data[1] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 50},
+            (Size){.kind = SizeKindFixed, .size = 100},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .next = 2,
+    };
+    tc->tree.nodes.data[2] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 100},
+            (Size){.kind = SizeKindFixed, .size = 50},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .next = -1,
+    };
+}
+
+void test_vertical_layout_with_margin_and_root_fitting(TestCase* tc) {
+    tc->name = __func__;
+    tc->expected.len = 3;
+    tc->expected.data[0] = (PainterCommand){.x = 0, .y = 0, .w = 120, .h = 180, .painter = {0}};
+    tc->expected.data[1] = (PainterCommand){.x = 10, .y = 10, .w = 50, .h = 100, .painter = {0}};
+    tc->expected.data[2] = (PainterCommand){.x = 10, .y = 120, .w = 100, .h = 50, .painter = {0}};
+    tc->tree.nodes.len = 3;
+    tc->tree.nodes.data[0] = (Node){
+        .layout = LayoutVertical,
+        .size = {
+            (Size){.kind = SizeKindFit},
+            (Size){.kind = SizeKindFit},
+        },
+        .padding = {
+            .left = 10,
+            .right = 10,
+            .top = 10,
+            .bottom = 10,
+        },
+        .margin = 10,
+        .first_children = 1,
+        .last_children = 2,
+        .children_count = 2,
+        .next = -1,
+    };
+    tc->tree.nodes.data[1] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 50},
+            (Size){.kind = SizeKindFixed, .size = 100},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .next = 2,
+    };
+    tc->tree.nodes.data[2] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 100},
+            (Size){.kind = SizeKindFixed, .size = 50},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .next = -1,
+    };
+}
+
 
 void test_ui_compute(){
     void(*cases[])(TestCase* tc) = {
@@ -347,6 +437,7 @@ void test_ui_compute(){
         test_nested_children_fixed_positions_and_padding,
         test_horizontal_layout_with_margin,
         test_vertical_layout_with_spacing,
+        test_horizontal_layout_with_margin_and_root_fitting,
     };
 
     int test_count = sizeof(cases) / sizeof(cases[0]);
