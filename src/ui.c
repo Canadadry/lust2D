@@ -26,6 +26,19 @@ void fit_width_sizing(Node* el, int min,int max) {
 	}
 }
 
+void fit_height_sizing(Node* el, int min,int max) {
+	el->computed_box.h += el->padding.top + el->padding.bottom;
+	if(el->layout == LayoutVertical) {
+		el->computed_box.h += (el->children_count - 1) * el->margin;
+	}
+	if(el->computed_box.h < min){
+		el->computed_box.h = min;
+	}
+	if(el->computed_box.h > max && max > 0){
+		el->computed_box.h = max;
+	}
+}
+
 void compute_fit_size_width(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 {
    	Node* el = &tree->nodes.data[idx];
@@ -58,11 +71,6 @@ void compute_fit_size_width(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 		tree->nodes.data[parent_id].computed_box.w += el->computed_box.w;
 		break;
 	case LayoutVertical:
-		tree->nodes.data[parent_id].computed_box.w = MAX(
-		    el->computed_box.w,
-			tree->nodes.data[parent_id].computed_box.w
-		);
-		break;
 	case LayoutStack:
     	tree->nodes.data[parent_id].computed_box.w = MAX(
     	    el->computed_box.w,
@@ -86,6 +94,44 @@ void compute_wrap(Tree* tree, NodeIndex idx)
 
 void compute_fit_size_height(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 {
+   	Node* el = &tree->nodes.data[idx];
+    NodeIndex child_id = tree->nodes.data[idx].first_children;
+	SAFE_WHILE(child_id >=0){
+	    compute_fit_size_height(tree,child_id,idx);
+	    child_id = tree->nodes.data[child_id].next;
+	}
+
+	switch(el->size.x.kind) {
+	case SizeKindFixed:
+		el->computed_box.h = el->size.y.size;
+		break;
+	case SizeKindFit:
+		fit_height_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
+		break;
+	case SizeKindGrow:
+	    fit_height_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
+		el->computed_box.h = MAX(
+		    el->computed_box.h,
+			tree->mesure_content_fn(tree->mesure_content_userdata, el->painter).y
+		);
+		break;
+	}
+
+	if(parent_id<0){
+		return;
+	}
+	switch(tree->nodes.data[parent_id].layout){
+	case LayoutVertical:
+		tree->nodes.data[parent_id].computed_box.h += el->computed_box.h;
+		break;
+	case LayoutHorizontal:
+	case LayoutStack:
+    	tree->nodes.data[parent_id].computed_box.h = MAX(
+    	    el->computed_box.h,
+    		tree->nodes.data[parent_id].computed_box.h
+    	);
+		break;
+	}
 }
 
 void compute_shrink_size_height(Tree* tree, NodeIndex idx)
@@ -94,6 +140,7 @@ void compute_shrink_size_height(Tree* tree, NodeIndex idx)
 
 void compute_grow_size_height(Tree* tree, NodeIndex idx)
 {
+
 }
 
 VECTOR2(int) get_remaining(Tree* tree,NodeIndex idx){
