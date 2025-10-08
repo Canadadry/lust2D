@@ -4,6 +4,7 @@
 #define MAX_ITER 100
 #define SAFE_WHILE(cond) \
     for (int _sw_guard = 0; (cond) && _sw_guard < (MAX_ITER); _sw_guard++)
+#define MAX(x,y) ((x)>(y)?(x):(y))
 
 WRITE_ARRAY_IMPL(Node)
 WRITE_ARRAY_IMPL(PainterCommand)
@@ -12,9 +13,63 @@ VECTOR2(int) no_measure_content(void* userdata,Painter painter){
     return (VECTOR2(int)){0};
 }
 
+void fit_width_sizing(Node* el, int min,int max) {
+	el->computed_box.w += el->padding.left + el->padding.right;
+	if(el->layout == LayoutHorizontal) {
+		el->computed_box.w += (el->children_count - 1) * el->margin;
+	}
+	if(el->computed_box.w < min){
+		el->computed_box.w = min;
+	}
+	if(el->computed_box.w > max && max > 0){
+		el->computed_box.w = max;
+	}
+}
 
 void compute_fit_size_width(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 {
+   	Node* el = &tree->nodes.data[idx];
+    NodeIndex child_id = tree->nodes.data[idx].first_children;
+	SAFE_WHILE(child_id >=0){
+	    compute_fit_size_width(tree,child_id,idx);
+	    child_id = tree->nodes.data[child_id].next;
+	}
+
+	switch(el->size.x.kind) {
+	case SizeKindFixed:
+		el->computed_box.w = el->size.x.size;
+		break;
+	case SizeKindFit:
+		fit_width_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
+		break;
+	case SizeKindGrow:
+	    fit_width_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
+		el->computed_box.w = MAX(
+		    el->computed_box.w,
+			tree->mesure_content_fn(tree->mesure_content_userdata, el->painter).x
+		);
+	}
+
+	if(parent_id<0){
+		return;
+	}
+	switch(tree->nodes.data[parent_id].layout){
+	case LayoutHorizontal:
+		tree->nodes.data[parent_id].computed_box.w += el->computed_box.w;
+		break;
+	case LayoutVertical:
+		tree->nodes.data[parent_id].computed_box.w = MAX(
+		    el->computed_box.w,
+			tree->nodes.data[parent_id].computed_box.w
+		);
+		break;
+	case LayoutStack:
+    	tree->nodes.data[parent_id].computed_box.w = MAX(
+    	    el->computed_box.w,
+    		tree->nodes.data[parent_id].computed_box.w
+    	);
+		break;
+	}
 }
 
 void compute_shrink_size_width(Tree* tree, NodeIndex idx)
@@ -123,7 +178,7 @@ void compute_draw_command(Tree* tree, NodeIndex idx,NodeIndex command_idx)
         .h       = tree->nodes.data[idx].computed_box.h,
         .painter = tree->nodes.data[idx].painter,
     });
-    NodeIndex child_id = self->first_children;
+    NodeIndex child_id = tree->nodes.data[idx].first_children;
 	SAFE_WHILE(child_id >=0){
 	    compute_draw_command(tree,child_id,command_idx+1);
 	    child_id = tree->nodes.data[child_id].next;
@@ -196,6 +251,7 @@ void link_child(Tree *tree,NodeIndex parent,NodeIndex child){
            tree->nodes.data[parent].first_children ==-1
         && tree->nodes.data[parent].last_children  ==-1
     ){
+        tree->nodes.data[parent].children_count=1;
         tree->nodes.data[parent].first_children=child;
         tree->nodes.data[parent].last_children=child;
         return;
@@ -203,4 +259,5 @@ void link_child(Tree *tree,NodeIndex parent,NodeIndex child){
     NodeIndex last = tree->nodes.data[parent].last_children;
     tree->nodes.data[last].next=child;
     tree->nodes.data[parent].last_children=child;
+    tree->nodes.data[parent].children_count++;
 }

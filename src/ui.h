@@ -77,6 +77,7 @@ typedef struct {
 	NodeIndex       first_children;
 	NodeIndex       last_children;
 	NodeIndex       next;
+	int             children_count;
 }Node;
 
 typedef struct {
