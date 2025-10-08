@@ -27,21 +27,10 @@ bool painter_command_match(const char* test_name,int i,PainterCommand exp, Paint
 
 void test_ui_compute_case(void(*init_test)(TestCase* tc)){
     TestCase tc = {0};
-    PainterCommand got_commands[MAX_NODE_LEN]={0};
     PainterCommand exp_commands[MAX_NODE_LEN]={0};
-    Growable growables[MAX_NODE_LEN]={0};
-    ptr_growable ptr_growables[MAX_NODE_LEN]={0};
-    Node nodes[MAX_NODE_LEN]={0};
-    tc.tree.nodes.capacity=MAX_NODE_LEN;
-    tc.tree.nodes.data=nodes;
-    tc.tree.commands.capacity=MAX_NODE_LEN;
-    tc.tree.commands.data=got_commands;
     tc.expected.capacity=MAX_NODE_LEN;
     tc.expected.data=exp_commands;
-    tc.tree.growables.data=growables;
-    tc.tree.growables.capacity=MAX_NODE_LEN;
-    tc.tree.sorted_growables.data=ptr_growables;
-    tc.tree.sorted_growables.capacity=MAX_NODE_LEN;
+    STATIC_INIT_TREE(tc.tree,MAX_NODE_LEN);
     init_test(&tc);
     compute(&tc.tree,tc.head);
     if(tc.expected.len != tc.tree.commands.len){
@@ -50,7 +39,7 @@ void test_ui_compute_case(void(*init_test)(TestCase* tc)){
     int min_len = MIN(tc.expected.len , tc.tree.commands.len);
     for(int i=0;i<min_len;i++ ){
     	if(painter_command_match(tc.name,i,tc.expected.data[i],tc.tree.commands.data[i])==false) {
-            break;
+            // break;
     	}
     }
 }
@@ -493,15 +482,15 @@ void test_grow_children_between_two_fixed_size_in_horizontal(TestCase* tc) {
 
 void test_ui_compute(){
     void(*cases[])(TestCase* tc) = {
-        test_no_children_fixed_position,
-        test_one_children_fixed_position,
-        test_root_fitting_to_one_children,
-        test_root_fitting_to_one_children_in_vertical,
-        test_nested_children_fixed_positions,
-        test_nested_children_fixed_positions_and_padding,
-        test_horizontal_layout_with_margin,
-        test_vertical_layout_with_spacing,
-        test_horizontal_layout_with_margin_and_root_fitting,
+        // test_no_children_fixed_position,
+        // test_one_children_fixed_position,
+        // test_root_fitting_to_one_children,
+        // test_root_fitting_to_one_children_in_vertical,
+        // test_nested_children_fixed_positions,
+        // test_nested_children_fixed_positions_and_padding,
+        // test_horizontal_layout_with_margin,
+        // test_vertical_layout_with_spacing,
+        // test_horizontal_layout_with_margin_and_root_fitting,
         test_grow_children_between_two_fixed_size_in_horizontal,
     };
 

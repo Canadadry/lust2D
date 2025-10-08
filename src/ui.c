@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "vector2.h"
+#include <stdio.h>
 
 #define MAX_ITER 100
 #define SAFE_WHILE(cond) \
@@ -132,12 +133,15 @@ void set_growable(Tree *tree, NodeIndex parent_id, Direction dir ){
 		SAFE_WHILE(child_id >=0){
 		    child = &tree->nodes.data[child_id];
 			if(child->size.x.kind == SizeKindGrow){
-    			array_append_Growable(&tree->growables, (Growable){
+    			if(array_append_Growable(&tree->growables, (Growable){
     			    .id=child_id,
     				.val=child->computed_box.w,
     				.min=child->size.x.bound.min,
     				.max=child->size.x.bound.max,
-    			});
+    			})!=0){
+                    printf("failed to append to growable\n");
+                    exit(1);
+                }
 			}
             child_id = tree->nodes.data[child_id].next;
         }
@@ -147,13 +151,16 @@ void set_growable(Tree *tree, NodeIndex parent_id, Direction dir ){
         SAFE_WHILE(child_id >=0){
             child = &tree->nodes.data[child_id];
             if(child->size.y.kind == SizeKindGrow){
-                array_append_Growable(&tree->growables, (Growable){
+                if(array_append_Growable(&tree->growables, (Growable){
                     .id=child_id,
                     .val=child->computed_box.h,
                     .min=child->size.y.bound.min,
                     .max=child->size.y.bound.max,
                     .to_remove=false,
-                });
+                })!=0){
+                    printf("failed to append to growable\n");
+                    exit(1);
+                }
             }
             child_id = tree->nodes.data[child_id].next;
         }
@@ -173,7 +180,10 @@ int cmp_ptr_growable(const void* left, const void* right){
 void build_sorted_growable(Tree *tree){
     tree->sorted_growables.len=0;
     for(int i=0;i<tree->growables.len;i++){
-        array_append_ptr_growable(&tree->sorted_growables,&tree->growables.data[i]);
+        if(array_append_ptr_growable(&tree->sorted_growables,&tree->growables.data[i])!=0){
+            printf("failed to append to ptr_growable\n");
+            exit(1);
+        }
     }
     qsort(
         tree->sorted_growables.data,
@@ -431,13 +441,16 @@ void compute_position(Tree* tree, NodeIndex idx,int x, int y)
 
 void compute_draw_command(Tree* tree, NodeIndex idx,NodeIndex command_idx)
 {
-    array_append_PainterCommand(&tree->commands,(PainterCommand){
+    if(array_append_PainterCommand(&tree->commands,(PainterCommand){
         .x       = tree->nodes.data[idx].computed_box.x,
         .y       = tree->nodes.data[idx].computed_box.y,
         .w       = tree->nodes.data[idx].computed_box.w,
         .h       = tree->nodes.data[idx].computed_box.h,
         .painter = tree->nodes.data[idx].painter,
-    });
+    })!=0){
+        printf("failed to append to painter command\n");
+        exit(1);
+    }
     NodeIndex child_id = tree->nodes.data[idx].first_children;
 	SAFE_WHILE(child_id >=0){
 	    compute_draw_command(tree,child_id,command_idx+1);

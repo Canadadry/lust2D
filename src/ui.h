@@ -2,6 +2,7 @@
 #define _UI_H
 
 #include "../vendor/raylib/raylib.h"
+#include "allocator.h"
 #include "dynamicarray.h"
 #include "rectangle.h"
 #include "vector2.h"
@@ -118,6 +119,21 @@ typedef struct {
 	void* wrap_content_userdata;
 }Tree;
 
+#define STATIC_INIT_TREE(tree,max_size) \
+    PainterCommand commands[max_size]={0}; \
+    Growable growables[max_size]={0}; \
+    ptr_growable ptr_growables[max_size]={0}; \
+    Node nodes[max_size]={0}; \
+    tree.nodes.capacity=max_size; \
+    tree.nodes.data=nodes; \
+    tree.commands.capacity=max_size; \
+    tree.commands.data=commands; \
+    tree.growables.data=growables; \
+    tree.growables.capacity=max_size; \
+    tree.sorted_growables.data=ptr_growables; \
+    tree.sorted_growables.capacity=max_size
+
+void tree_init(Tree *tree,Allocator alloc);
 void compute(Tree* tree, NodeIndex idx);
 void draw(Tree tree, NodeIndex idx);
 void link_child(Tree *tree,NodeIndex parent,NodeIndex child);
