@@ -29,6 +29,8 @@ void test_ui_compute_case(void(*init_test)(TestCase* tc)){
     TestCase tc = {0};
     PainterCommand got_commands[MAX_NODE_LEN]={0};
     PainterCommand exp_commands[MAX_NODE_LEN]={0};
+    Growable growables[MAX_NODE_LEN]={0};
+    ptr_growable ptr_growables[MAX_NODE_LEN]={0};
     Node nodes[MAX_NODE_LEN]={0};
     tc.tree.nodes.capacity=MAX_NODE_LEN;
     tc.tree.nodes.data=nodes;
@@ -36,6 +38,10 @@ void test_ui_compute_case(void(*init_test)(TestCase* tc)){
     tc.tree.commands.data=got_commands;
     tc.expected.capacity=MAX_NODE_LEN;
     tc.expected.data=exp_commands;
+    tc.tree.growables.data=growables;
+    tc.tree.growables.capacity=MAX_NODE_LEN;
+    tc.tree.sorted_growables.data=ptr_growables;
+    tc.tree.sorted_growables.capacity=MAX_NODE_LEN;
     init_test(&tc);
     compute(&tc.tree,tc.head);
     if(tc.expected.len != tc.tree.commands.len){
@@ -435,7 +441,7 @@ void test_grow_children_between_two_fixed_size_in_horizontal(TestCase* tc) {
     tc->expected.data[3] = (PainterCommand){.x = 340, .y = 10, .w = 100, .h = 50, .painter = {0}};
     tc->tree.nodes.len = 4;
     tc->tree.nodes.data[0] = (Node){
-        .layout = LayoutStack,
+        .layout = LayoutHorizontal,
         .size = {
             (Size){.kind = SizeKindFixed, .size = 450},
             (Size){.kind = SizeKindFit},
@@ -449,6 +455,7 @@ void test_grow_children_between_two_fixed_size_in_horizontal(TestCase* tc) {
         .margin = 10,
         .first_children = 1,
         .last_children = 3,
+        .children_count = 3,
         .next = -1,
     };
     tc->tree.nodes.data[1] = (Node){
@@ -458,6 +465,7 @@ void test_grow_children_between_two_fixed_size_in_horizontal(TestCase* tc) {
         },
         .first_children = -1,
         .last_children = -1,
+        .children_count = 0,
         .next = 2,
     };
     tc->tree.nodes.data[2] = (Node){
@@ -467,6 +475,7 @@ void test_grow_children_between_two_fixed_size_in_horizontal(TestCase* tc) {
         },
         .first_children = -1,
         .last_children = -1,
+        .children_count = 0,
         .next = 3,
     };
     tc->tree.nodes.data[3] = (Node){
@@ -476,6 +485,7 @@ void test_grow_children_between_two_fixed_size_in_horizontal(TestCase* tc) {
         },
         .first_children = -1,
         .last_children = -1,
+        .children_count = 0,
         .next = -1,
     };
 }

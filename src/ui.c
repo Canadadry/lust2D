@@ -171,6 +171,7 @@ int cmp_ptr_growable(const void* left, const void* right){
 }
 
 void build_sorted_growable(Tree *tree){
+    tree->sorted_growables.len=0;
     for(int i=0;i<tree->growables.len;i++){
         array_append_ptr_growable(&tree->sorted_growables,&tree->growables.data[i]);
     }
