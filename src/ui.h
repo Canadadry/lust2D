@@ -88,8 +88,20 @@ typedef struct {
     Painter	painter;
 } PainterCommand;
 
+typedef struct {
+	NodeIndex id;
+	int val;
+	int min;
+	int max;
+	bool to_remove;
+} Growable;
+
 CREATE_ARRAY_TYPE(Node)
 CREATE_ARRAY_TYPE(PainterCommand)
+CREATE_ARRAY_TYPE(Growable)
+
+typedef Growable* ptr_growable;
+CREATE_ARRAY_TYPE(ptr_growable)
 
 typedef VECTOR2(int)(*MesureContentFn)(void* userdata,Painter painter);
 typedef int (*WrapContentFn)(void* userdata,Painter painter,int width);
@@ -97,6 +109,8 @@ typedef int (*WrapContentFn)(void* userdata,Painter painter,int width);
 typedef struct {
 	ARRAY(Node) nodes;
 	ARRAY(PainterCommand) commands;
+	ARRAY(Growable) growables;
+	ARRAY(ptr_growable) sorted_growables;
 	// images: map[cstring]rl.Texture,
 	MesureContentFn mesure_content_fn;
 	void* mesure_content_userdata;

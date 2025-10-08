@@ -10,7 +10,7 @@ typedef struct{
 }TestCase;
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
-#define MAX_NODE_LEN 3
+#define MAX_NODE_LEN 4
 
 bool painter_command_match(const char* test_name,int i,PainterCommand exp, PainterCommand got){
     if (memcmp(&exp, &got, sizeof(PainterCommand))==0){
@@ -426,6 +426,60 @@ void test_vertical_layout_with_margin_and_root_fitting(TestCase* tc) {
     };
 }
 
+void test_grow_children_between_two_fixed_size_in_horizontal(TestCase* tc) {
+    tc->name = __func__;
+    tc->expected.len = 4;
+    tc->expected.data[0] = (PainterCommand){.x = 0, .y = 0, .w = 450, .h = 120, .painter = {0}};
+    tc->expected.data[1] = (PainterCommand){.x = 10, .y = 10, .w = 50, .h = 100, .painter = {0}};
+    tc->expected.data[2] = (PainterCommand){.x = 70, .y = 10, .w = 260, .h = 100, .painter = {0}};
+    tc->expected.data[3] = (PainterCommand){.x = 340, .y = 10, .w = 100, .h = 50, .painter = {0}};
+    tc->tree.nodes.len = 4;
+    tc->tree.nodes.data[0] = (Node){
+        .layout = LayoutStack,
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 450},
+            (Size){.kind = SizeKindFit},
+        },
+        .padding = {
+            .left = 10,
+            .right = 10,
+            .top = 10,
+            .bottom = 10,
+        },
+        .margin = 10,
+        .first_children = 1,
+        .last_children = 3,
+        .next = -1,
+    };
+    tc->tree.nodes.data[1] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 50},
+            (Size){.kind = SizeKindFixed, .size = 100},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .next = 2,
+    };
+    tc->tree.nodes.data[2] = (Node){
+        .size = {
+            (Size){.kind = SizeKindGrow},
+            (Size){.kind = SizeKindGrow},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .next = 3,
+    };
+    tc->tree.nodes.data[3] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 100},
+            (Size){.kind = SizeKindFixed, .size = 50},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .next = -1,
+    };
+}
+
 
 void test_ui_compute(){
     void(*cases[])(TestCase* tc) = {
@@ -438,6 +492,7 @@ void test_ui_compute(){
         test_horizontal_layout_with_margin,
         test_vertical_layout_with_spacing,
         test_horizontal_layout_with_margin_and_root_fitting,
+        test_grow_children_between_two_fixed_size_in_horizontal,
     };
 
     int test_count = sizeof(cases) / sizeof(cases[0]);
