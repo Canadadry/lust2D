@@ -138,6 +138,7 @@ void set_growable(Tree *tree, NodeIndex parent_id, Direction dir ){
     				.val=child->computed_box.w,
     				.min=child->size.x.bound.min,
     				.max=child->size.x.bound.max,
+                    .to_remove=false,
     			})!=0){
                     printf("failed to append to growable\n");
                     exit(1);
@@ -310,15 +311,15 @@ void compute_fit_size_height(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 	    child_id = tree->nodes.data[child_id].next;
 	}
 
-	switch(el->size.x.kind) {
+	switch(el->size.y.kind) {
 	case SizeKindFixed:
 		el->computed_box.h = el->size.y.size;
 		break;
 	case SizeKindFit:
-		fit_height_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
+		fit_height_sizing(el, el->size.y.bound.min, el->size.y.bound.max);
 		break;
 	case SizeKindGrow:
-	    fit_height_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
+	    fit_height_sizing(el, el->size.y.bound.min, el->size.y.bound.max);
 		el->computed_box.h = MAX(
 		    el->computed_box.h,
 			tree->mesure_content_fn(tree->mesure_content_userdata, el->painter).y
@@ -361,13 +362,13 @@ void compute_grow_size_height(Tree* tree, NodeIndex parent_id)
 		grow_across_axis(tree, remaining.y);break;
 	}
 
-	apply_grow_values(tree, DIR_X);
+	apply_grow_values(tree, DIR_Y);
 
-       NodeIndex child_id = tree->nodes.data[parent_id].first_children;
-       SAFE_WHILE(child_id >=0){
-           compute_grow_size_width(tree,child_id);
-           child_id = tree->nodes.data[child_id].next;
-       }
+    NodeIndex child_id = tree->nodes.data[parent_id].first_children;
+    SAFE_WHILE(child_id >=0){
+        compute_grow_size_width(tree,child_id);
+        child_id = tree->nodes.data[child_id].next;
+    }
 }
 
 int compute_align( Align a, int remaining){
