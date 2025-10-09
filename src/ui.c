@@ -486,6 +486,9 @@ void draw(Tree tree, NodeIndex idx){
 	case PAINTER_RECT:
 		// DrawRectangleRec(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
         break;
+    case PAINTER_IMG:
+		// DrawTexturePro(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
+           break;
     // case ImagePainterData:
 	// 	rl.DrawTexturePro(
 	// 		tree.images[p.source],

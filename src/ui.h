@@ -6,21 +6,33 @@
 #include "dynamicarray.h"
 #include "rectangle.h"
 #include "vector2.h"
-
+#include <stdbool.h>
 
 typedef enum {
     PAINTER_NONE,
     PAINTER_RECT,
+    PAINTER_IMG,
 } PainterKind;
 
+typedef union{
+    Color rgba;
+    int value;
+} UiColor;
+
 typedef struct{
-    Color color;
+    UiColor color;
 }PainterRect;
+
+typedef struct{
+    UiColor color;
+    const char* source;
+}PainterImage;
 
 typedef struct{
     PainterKind kind;
     union{
         PainterRect rect;
+        PainterImage img;
     } value;
 }Painter;
 

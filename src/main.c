@@ -157,15 +157,17 @@ static const char*  get_property_string_or(js_State *J, int idx,const char* name
 	return ret;
 }
 
-static Color get_color(js_State *J, int idx)  {
+static UiColor get_color(js_State *J, int idx)  {
 	if (js_isobject(J, idx) == 0) {
-		return WHITE;
-	}
-	return (Color){
-		.r = (unsigned char)get_property_number_or(J, idx, "r", 255),
-		.g = (unsigned char)get_property_number_or(J, idx, "g", 255),
-		.b = (unsigned char)get_property_number_or(J, idx, "b", 255),
-		.a = (unsigned char)get_property_number_or(J, idx, "a", 255),
+		return (UiColor){.rgba=WHITE};
+	};
+	return (UiColor){
+    	.rgba=(Color){
+    		.r = (unsigned char)get_property_number_or(J, idx, "r", 255),
+    		.g = (unsigned char)get_property_number_or(J, idx, "g", 255),
+    		.b = (unsigned char)get_property_number_or(J, idx, "b", 255),
+    		.a = (unsigned char)get_property_number_or(J, idx, "a", 255),
+    	},
 	};
 }
 
@@ -182,11 +184,11 @@ static Rectangle get_rectangle(js_State *J, int idx)  {
 }
 
 static void clear_background(js_State *J) {
-	ClearBackground(get_color(J, 1));
+	ClearBackground(get_color(J, 1).rgba);
 }
 
 static void draw_rectangle_rec(js_State *J) {
-	DrawRectangleRec(get_rectangle(J, 1), get_color(J, 2));
+	DrawRectangleRec(get_rectangle(J, 1), get_color(J, 2).rgba);
 }
 
 typedef struct{
