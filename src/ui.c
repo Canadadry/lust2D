@@ -271,8 +271,34 @@ void apply_grow_values(Tree *tree, Direction dir) {
 	}
 }
 
-void compute_shrink_size_width(Tree* tree, NodeIndex idx)
+void shrink_along_axis_to_min(Tree *tree){
+    for(int i=0;i<tree->growables.len;i++){
+		tree->growables.data[i].val = tree->growables.data[i].min;
+	}
+}
+
+void compute_shrink_size_width(Tree* tree, NodeIndex parent_id)
 {
+   	Node* parent = &tree->nodes.data[parent_id];
+	VECTOR2(int) remaining = get_remaining(tree, parent_id);
+	set_growable(tree, parent_id, DIR_X);
+
+	switch(parent->layout){
+	case LayoutHorizontal:
+		shrink_along_axis_to_min(tree);break;
+	case LayoutVertical:
+		grow_across_axis(tree, remaining.x);break;
+	case LayoutStack:
+		grow_across_axis(tree, remaining.x);break;
+	}
+
+	apply_grow_values(tree, DIR_X);
+
+    NodeIndex child_id = parent->first_children;
+    SAFE_WHILE(child_id >=0){
+        compute_shrink_size_width(tree,child_id);
+        child_id = tree->nodes.data[child_id].next;
+    }
 }
 
 void compute_grow_size_width(Tree* tree, NodeIndex parent_id)
@@ -300,6 +326,13 @@ void compute_grow_size_width(Tree* tree, NodeIndex parent_id)
 
 void compute_wrap(Tree* tree, NodeIndex idx)
 {
+    Node* el = &tree->nodes.data[idx];
+	el->computed_box.h = tree->wrap_content_fn(tree->wrap_content_userdata, el->painter, el->computed_box.w);
+	NodeIndex child_id = el->first_children;
+    SAFE_WHILE(child_id >=0){
+        compute_wrap(tree,child_id);
+        child_id = tree->nodes.data[child_id].next;
+    }
 }
 
 void compute_fit_size_height(Tree* tree, NodeIndex idx,NodeIndex parent_id)
@@ -344,8 +377,28 @@ void compute_fit_size_height(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 	}
 }
 
-void compute_shrink_size_height(Tree* tree, NodeIndex idx)
+void compute_shrink_size_height(Tree* tree, NodeIndex parent_id)
 {
+   	Node* parent = &tree->nodes.data[parent_id];
+	VECTOR2(int) remaining = get_remaining(tree, parent_id);
+	set_growable(tree, parent_id, DIR_Y);
+
+	switch(parent->layout) {
+	case LayoutHorizontal:
+		grow_across_axis(tree, remaining.y);break;
+	case LayoutVertical:
+		shrink_along_axis_to_min(tree);break;
+	case LayoutStack:
+		grow_across_axis(tree, remaining.y);break;
+	}
+
+	apply_grow_values(tree, DIR_Y);
+
+	NodeIndex child_id = tree->nodes.data[parent_id].first_children;
+    SAFE_WHILE(child_id >=0){
+        compute_shrink_size_height(tree,child_id);
+        child_id = tree->nodes.data[child_id].next;
+    }
 }
 
 void compute_grow_size_height(Tree* tree, NodeIndex parent_id)
