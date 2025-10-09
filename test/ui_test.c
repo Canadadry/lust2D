@@ -1362,7 +1362,7 @@ void test_two_line_basic_table_example(TestCase* tc) {
     tc->expected.data[5] = (PainterCommand){.x = 20, .y = 75, .w = 100, .h = 25, .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "25x25"}}}};
     tc->expected.data[6] = (PainterCommand){.x = 130, .y = 75, .w = 25, .h = 25, .painter = {0}};
 
-    tc->tree.nodes.len = 4;
+    tc->tree.nodes.len = 7;
     tc->tree.nodes.data[0] = (Node){
         .layout = LayoutVertical,
         .size = {
@@ -1377,15 +1377,92 @@ void test_two_line_basic_table_example(TestCase* tc) {
         },
         .margin = 10,
         .first_children = 1,
-        .last_children = 3,
+        .last_children = 4,
+        .children_count = 2,
+        .next = -1,
+    };
+
+    int child_index = 1;
+    for (int i = 0; i < 2; i++) {
+        tc->tree.nodes.data[child_index] = (Node){
+            .size = {
+                (Size){.kind = SizeKindGrow},
+                (Size){.kind = SizeKindFit},
+            },
+            .padding = {
+                .left = 10,
+                .right = 10,
+                .top = 10,
+                .bottom = 10,
+            },
+            .margin = 10,
+            .first_children = child_index + 1,
+            .last_children = child_index + 2,
+            .children_count = 2,
+            .next = i==0?child_index+3:-1,
+        };
+
+        tc->tree.nodes.data[child_index + 1] = (Node){
+            .size = {
+                (Size){.kind = SizeKindGrow},
+                (Size){.kind = SizeKindGrow},
+            },
+            .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = (i == 0) ? "100x25" : "25x25"}}},
+            .first_children = -1,
+            .last_children = -1,
+            .children_count = 0,
+            .next = child_index + 2,
+        };
+
+        tc->tree.nodes.data[child_index + 2] = (Node){
+            .size = {
+                (Size){.kind = SizeKindFixed, .size = 25},
+                (Size){.kind = SizeKindFixed, .size = 25},
+            },
+            .first_children = -1,
+            .last_children = -1,
+            .children_count = 0,
+            .next = -1,
+        };
+
+        child_index += 3;
+    }
+}
+
+void test_one_line_basic_table_example_in_vertical(TestCase* tc) {
+    tc->name = __func__;
+    tc->expected.len = 6;
+    tc->expected.data[0] = (PainterCommand){.x = 0, .y = 0, .w = 65, .h = 175, .painter = {0}};
+    tc->expected.data[1] = (PainterCommand){.x = 10, .y = 10, .w = 45, .h = 155, .painter = {0}};
+    tc->expected.data[2] = (PainterCommand){.x = 20, .y = 20, .w = 25, .h = 100, .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "25x100"}}}};
+    tc->expected.data[3] = (PainterCommand){.x = 20, .y = 130, .w = 25, .h = 25, .painter = {0}};
+    tc->expected.data[4] = (PainterCommand){.x = 10, .y = 10, .w = 45, .h = 155, .painter = {0}};
+    tc->expected.data[5] = (PainterCommand){.x = 20, .y = 20, .w = 25, .h = 100, .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "25x100"}}}};
+
+    tc->tree.nodes.len = 6;
+    tc->tree.nodes.data[0] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFit},
+            (Size){.kind = SizeKindFit},
+        },
+        .padding = {
+            .left = 10,
+            .right = 10,
+            .top = 10,
+            .bottom = 10,
+        },
+        .margin = 10,
+        .first_children = 1,
+        .last_children = 2,
         .children_count = 2,
         .next = -1,
     };
 
     tc->tree.nodes.data[1] = (Node){
+        .layout = LayoutVertical,
         .size = {
-            (Size){.kind = SizeKindGrow},
             (Size){.kind = SizeKindFit},
+            (Size){.kind = SizeKindGrow},
         },
         .padding = {
             .left = 10,
@@ -1405,7 +1482,7 @@ void test_two_line_basic_table_example(TestCase* tc) {
             (Size){.kind = SizeKindGrow},
             (Size){.kind = SizeKindGrow},
         },
-        .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "100x25"}}},
+        .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "25x100"}}},
         .first_children = -1,
         .last_children = -1,
         .children_count = 0,
@@ -1416,6 +1493,175 @@ void test_two_line_basic_table_example(TestCase* tc) {
         .size = {
             (Size){.kind = SizeKindFixed, .size = 25},
             (Size){.kind = SizeKindFixed, .size = 25},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .children_count = 0,
+        .next = -1,
+    };
+
+    tc->tree.nodes.data[4] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFit},
+            (Size){.kind = SizeKindGrow},
+        },
+        .padding = {
+            .left = 10,
+            .right = 10,
+            .top = 10,
+            .bottom = 10,
+        },
+        .margin = 10,
+        .first_children = 5,
+        .last_children = 6,
+        .children_count = 2,
+        .next = -1,
+    };
+
+    tc->tree.nodes.data[5] = (Node){
+        .size = {
+            (Size){.kind = SizeKindGrow},
+            (Size){.kind = SizeKindGrow},
+        },
+        .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "25x100"}}},
+        .first_children = -1,
+        .last_children = -1,
+        .children_count = 0,
+        .next = 6,
+    };
+
+    tc->tree.nodes.data[6] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 25},
+            (Size){.kind = SizeKindFixed, .size = 25},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .children_count = 0,
+        .next = -1,
+    };
+}
+
+void test_two_line_basic_table_example_reverse_order(TestCase* tc) {
+    tc->name = __func__;
+    tc->expected.len = 7;
+    tc->expected.data[0] = (PainterCommand){.x = 0, .y = 0, .w = 175, .h = 120, .painter = {0}};
+    tc->expected.data[1] = (PainterCommand){.x = 10, .y = 10, .w = 155, .h = 45, .painter = {0}};
+    tc->expected.data[2] = (PainterCommand){.x = 20, .y = 20, .w = 100, .h = 25, .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "100x25"}}}};
+    tc->expected.data[3] = (PainterCommand){.x = 130, .y = 20, .w = 25, .h = 25, .painter = {0}};
+    tc->expected.data[4] = (PainterCommand){.x = 10, .y = 65, .w = 155, .h = 45, .painter = {0}};
+    tc->expected.data[5] = (PainterCommand){.x = 20, .y = 75, .w = 100, .h = 25, .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = "25x25"}}}};
+    tc->expected.data[6] = (PainterCommand){.x = 130, .y = 75, .w = 25, .h = 25, .painter = {0}};
+
+    tc->tree.nodes.len = 7;
+    tc->tree.nodes.data[0] = (Node){
+        .layout = LayoutVertical,
+        .size = {
+            (Size){.kind = SizeKindFit},
+            (Size){.kind = SizeKindFit},
+        },
+        .padding = {
+            .left = 10,
+            .right = 10,
+            .top = 10,
+            .bottom = 10,
+        },
+        .margin = 10,
+        .first_children = 1,
+        .last_children = 4,
+        .children_count = 2,
+        .next = -1,
+    };
+
+    int child_index = 1;
+    for (int i = 0; i < 2; i++) {
+        tc->tree.nodes.data[child_index] = (Node){
+            .size = {
+                (Size){.kind = SizeKindGrow},
+                (Size){.kind = SizeKindFit},
+            },
+            .padding = {
+                .left = 10,
+                .right = 10,
+                .top = 10,
+                .bottom = 10,
+            },
+            .margin = 10,
+            .first_children = child_index + 1,
+            .last_children = child_index + 2,
+            .children_count = 2,
+            .next = i==0?child_index+3:-1,
+        };
+
+        tc->tree.nodes.data[child_index + 1] = (Node){
+            .size = {
+                (Size){.kind = SizeKindGrow},
+                (Size){.kind = SizeKindGrow},
+            },
+            .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = (i != 0) ? "100x25" : "25x25"}}},
+            .first_children = -1,
+            .last_children = -1,
+            .children_count = 0,
+            .next = child_index + 2,
+        };
+
+        tc->tree.nodes.data[child_index + 2] = (Node){
+            .size = {
+                (Size){.kind = SizeKindFixed, .size = 25},
+                (Size){.kind = SizeKindFixed, .size = 25},
+            },
+            .first_children = -1,
+            .last_children = -1,
+            .children_count = 0,
+            .next = -1,
+        };
+
+        child_index += 3;
+    }
+}
+
+void test_stack_layout(TestCase* tc) {
+    tc->name = __func__;
+    tc->expected.len = 3;
+    tc->expected.data[0] = (PainterCommand){.x = 0, .y = 0, .w = 120, .h = 120, .painter = {0}};
+    tc->expected.data[1] = (PainterCommand){.x = 10, .y = 10, .w = 100, .h = 50, .painter = {0}};
+    tc->expected.data[2] = (PainterCommand){.x = 10, .y = 10, .w = 50, .h = 100, .painter = {0}};
+
+    tc->tree.nodes.len = 3;
+    tc->tree.nodes.data[0] = (Node){
+        .layout = LayoutStack,
+        .size = {
+            (Size){.kind = SizeKindFit},
+            (Size){.kind = SizeKindFit},
+        },
+        .padding = {
+            .left = 10,
+            .right = 10,
+            .top = 10,
+            .bottom = 10,
+        },
+        .margin = 10,
+        .first_children = 1,
+        .last_children = 2,
+        .children_count = 2,
+        .next = -1,
+    };
+
+    tc->tree.nodes.data[1] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 100},
+            (Size){.kind = SizeKindFixed, .size = 50},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .children_count = 0,
+        .next = 2,
+    };
+
+    tc->tree.nodes.data[2] = (Node){
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 50},
+            (Size){.kind = SizeKindFixed, .size = 100},
         },
         .first_children = -1,
         .last_children = -1,
@@ -1451,6 +1697,8 @@ void test_ui_compute(){
         test_dont_fit_over_max_width_size,
         test_one_line_basic_table_example,
         test_two_line_basic_table_example,
+        test_two_line_basic_table_example_reverse_order,
+        test_stack_layout,
     };
 
     int test_count = sizeof(cases) / sizeof(cases[0]);
