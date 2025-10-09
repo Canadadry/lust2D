@@ -533,11 +533,16 @@ void draw(Tree tree, NodeIndex idx){
 	if(idx >= tree.nodes.len|| idx<0) {
 		return;
 	}
-	switch(tree.nodes.data[idx].painter.kind){
+	Rectangle rect =(Rectangle){0};
+    switch(tree.nodes.data[idx].painter.kind){
 	case PAINTER_NONE:
 	    break;
 	case PAINTER_RECT:
-		// DrawRectangleRec(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
+	    rect.x      = tree.nodes.data[idx].computed_box.x;
+	    rect.y      = tree.nodes.data[idx].computed_box.y;
+	    rect.width  = tree.nodes.data[idx].computed_box.w;
+	    rect.height = tree.nodes.data[idx].computed_box.h;
+		DrawRectangleRec(rect, tree.nodes.data[idx].painter.value.rect.color.rgba);
         break;
     case PAINTER_IMG:
 		// DrawTexturePro(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
@@ -590,4 +595,11 @@ void link_child(Tree *tree,NodeIndex parent,NodeIndex child){
     tree->nodes.data[last].next=child;
     tree->nodes.data[parent].last_children=child;
     tree->nodes.data[parent].children_count++;
+}
+
+void tree_init(Tree *tree,Allocator alloc){
+    tree->nodes =  array_create_Node(alloc);
+    tree->commands =  array_create_PainterCommand(alloc);
+    tree->growables =  array_create_Growable(alloc);
+    tree->sorted_growables =  array_create_ptr_growable(alloc);
 }

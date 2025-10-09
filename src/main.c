@@ -6,6 +6,7 @@
 #include <string.h>
 #include <errno.h>
 #include "ui.h"
+#include "vector2.h"
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
@@ -209,8 +210,13 @@ static Window get_window(js_State *J) {
 
 static void js_ui_create(js_State *J) {
 	int top = js_gettop(J);
+	Rectangle rect =  get_rectangle(J, 2);
 	Node node = (Node){
-	    // .rect=get_rectangle(J, 2),
+	    .pos=(VECTOR2(int)){rect.x,rect.y},
+		.size=(VECTOR2(Size)){
+		    .x=(Size){.kind=SizeKindFixed,.size=rect.width},
+		    .y=(Size){.kind=SizeKindFixed,.size=rect.height},
+		},
 		.next=-1,
 		.first_children=-1,
 		.last_children=-1,
@@ -283,16 +289,16 @@ static void js_ui_draw(js_State *J){
 		return;
 	}
 
+	compute(ui_tree, idx);
 	draw(*ui_tree, idx);
 }
 
 int main(int argc, char** argv){
-    Tree loc_ui_tree = (Tree){
-        .nodes  = array_create_Node((Allocator){
+    Tree loc_ui_tree = (Tree){0};
+    tree_init(&loc_ui_tree,(Allocator){
     		.realloc_fn = user_realloc,
     		.free_fn = user_free,
-    	})
-    };
+    });
     ui_tree = &loc_ui_tree;
     js_State *J = js_newstate(NULL, NULL,  0);
 	if (!J) {
