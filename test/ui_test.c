@@ -1,5 +1,6 @@
 #include "minitest.h"
 #include "../src/ui.h"
+#include <stdio.h>
 #include <string.h>
 
 typedef struct{
@@ -65,11 +66,27 @@ bool painter_command_match(const char* test_name,int i,PainterCommand exp, Paint
     return false;
 }
 
+VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
+    VECTOR2(int) ret = {0};
+    if(p.kind==PAINTER_IMG){
+        scanf("%dx%d",&ret.x,&ret.y);
+    }
+    return ret;
+}
+
+int wrap_content_fn(void *userdata,Painter p,int width){
+    VECTOR2(int) content = mesure_content_fn(userdata,p);
+    int height = content.x + content.y - width;
+    return height < 0 ? 0 : height;
+}
+
 void test_ui_compute_case(void(*init_test)(TestCase* tc)){
     TestCase tc = {0};
     PainterCommand exp_commands[MAX_NODE_LEN]={0};
     tc.expected.capacity=MAX_NODE_LEN;
     tc.expected.data=exp_commands;
+    tc.tree.mesure_content_userdata=mesure_content_fn;
+    tc.tree.wrap_content_userdata=wrap_content_fn;
     STATIC_INIT_TREE(tc.tree,MAX_NODE_LEN);
     init_test(&tc);
     compute(&tc.tree,tc.head);
@@ -78,9 +95,7 @@ void test_ui_compute_case(void(*init_test)(TestCase* tc)){
     }
     int min_len = MIN(tc.expected.len , tc.tree.commands.len);
     for(int i=0;i<min_len;i++ ){
-    	if(painter_command_match(tc.name,i,tc.expected.data[i],tc.tree.commands.data[i])==false) {
-            // break;
-    	}
+    	painter_command_match(tc.name,i,tc.expected.data[i],tc.tree.commands.data[i]);
     }
 }
 
@@ -825,6 +840,7 @@ void test_ui_compute(){
         test_grow_children_between_two_fixed_size_in_vertical,
         test_two_grow_children_between_two_fixed_size_in_horizontal_with_starting_size,
         test_two_grow_children_between_two_fixed_size_in_vertical_with_starting_size,
+        test_two_grow_children_between_two_fixed_size_in_horizontal_with_one_shrinking,
     };
 
     int test_count = sizeof(cases) / sizeof(cases[0]);
