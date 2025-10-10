@@ -150,11 +150,11 @@ static inline OPTIONAL(double) get_property_number(js_State *J, int idx,const ch
 	}
     js_getproperty(J, idx, name);
     if(js_isnumber(J,-1)==0){
-       	js_pop(J, -1);
+       	js_pop(J, 1);
         return (OPTIONAL(double)){0};
     }
 	double ret =js_tonumber(J, -1);
-	js_pop(J, -1);
+	js_pop(J, 1);
 	return (OPTIONAL(double)){.value=ret,.ok=true};
 }
 
@@ -180,11 +180,11 @@ static inline OPTIONAL(string) get_property_string(js_State *J, int idx,const ch
 	}
     js_getproperty(J, idx, name);
     if(js_isstring(J,-1)==0){
-       	js_pop(J, -1);
+       	js_pop(J, 1);
         return (OPTIONAL(string)){0};
     }
 	const char* ret =js_tostring(J, -1);
-	js_pop(J, -1);
+	js_pop(J, 1);
 	return (OPTIONAL(string)){.value=ret,.ok=true};
 }
 
@@ -217,17 +217,17 @@ static inline Size get_property_size(js_State *J, int idx,const char* name){
     js_getproperty(J, idx, name);
     if(js_isnumber(J,-1)!=0){
         double val = js_tonumber(J,-1);
-        js_pop(J, -1);
+        js_pop(J, 1);
         return (Size){.kind=SizeKindFixed,.size=(int)val};
     }
     if(js_isobject(J,-1)==0){
-        js_pop(J, -1);
+        js_pop(J, 1);
         return (Size){0};
     }
     int top = js_gettop(J);
 	OPTIONAL(string) kind =get_property_string(J,top,"kind");
 	if(kind.ok ==false){
-	    js_pop(J, -1);
+	    js_pop(J, 1);
 		return (Size){0};
 	}
 	if(strncmp(kind.value, "fit", 3)==0){
@@ -238,7 +238,7 @@ static inline Size get_property_size(js_State *J, int idx,const char* name){
                 .max=get_property_int_or(J,top,"max",0),
             },
         };
-        js_pop(J, -1);
+        js_pop(J, 1);
         return ret;
 	}
 	if(strncmp(kind.value, "grow", 3)==0){
@@ -249,10 +249,10 @@ static inline Size get_property_size(js_State *J, int idx,const char* name){
                 .max=get_property_int_or(J,top,"max",0),
             },
         };
-        js_pop(J, -1);
+        js_pop(J, 1);
         return ret;
 	}
-	js_pop(J, -1);
+	js_pop(J, 1);
 	return (Size){0};
 }
 
@@ -317,13 +317,15 @@ typedef struct{
 } Window;
 
 static Window get_window(js_State *J) {
-	Window win = {0};
+	Window win = {.width=800,.height=600,.title="no title"};
+	int top = js_gettop(J);
 	js_getglobal(J, "window");
-	int top =js_gettop(J);
-	win.width = get_property_int_or(J,top,"width",800);
-	win.height = get_property_int_or(J,top,"height",600);
-	win.title = get_property_string_or(J,top,"title","no title");
-	js_pop(J,-1);
+	if(js_isobject(J, top)){
+    	win.width = get_property_int_or(J,top,"width",win.width);
+    	win.height = get_property_int_or(J,top,"height",win.height);
+    	win.title = get_property_string_or(J,top,"title",win.title);
+    	js_pop(J,1);
+	}
 	return win;
 }
 
@@ -456,7 +458,9 @@ int main(int argc, char** argv){
 	js_setglobal(J, "ui_draw");
 	js_newcfunction(J, parse_jsx, "parse_jsx", 0);
 	js_setglobal(J, "parse_jsx");
-	js_dostring(J, require_js);
+	if (js_dostring(J, require_js) != 0){
+	    return 1;
+	}
 	if (js_dostring(J, console_js) != 0){
 	    return 1;
 	}

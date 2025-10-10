@@ -17,7 +17,7 @@ void build_lib(int debug){
         build_add_entry_point(&ctx, "main.c",TARGET);
     }else{
         build_set_cflags(&ctx, "-Wall -Werror -g -fsanitize=address");
-        build_set_ldflags(&ctx, "-fsanitize=address -Lvendor/raylib/macos -lraylib -Lvendor/mujs/macos -lmujs -Lvendor/jsx_parser/macos -ljsx_parser "MACOS_FLAGS);
+        build_set_ldflags(&ctx, "-fsanitize=address -Lvendor/raylib/macos -lraylib -Lvendor/mujs/macos -lmujsd -Lvendor/jsx_parser/macos -ljsx_parser "MACOS_FLAGS);
         build_add_static_lib(&ctx, "lib"TARGET"d.a");
         build_add_entry_point(&ctx, "main.c",TARGET"d");
     }
