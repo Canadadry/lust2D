@@ -49,6 +49,19 @@ static const char *window_js =
     "var window = { width:100,height:100,title:'lust2D' };"
 ;
 
+static const char *ui_helper_js =
+    "function fit(min,max){"
+    "    min = (min === undefined) ? 0 : min;"
+    "    max = (max === undefined) ? 0 : max;"
+    "    return {kind:\"fit\"};"
+    "}"
+    "function grow(min,max){"
+    "    min = (min === undefined) ? 0 : min;"
+    "    max = (max === undefined) ? 0 : max;"
+    "    return {kind:\"grow\", min:min, max:max};"
+    "}"
+;
+
 static void jsB_print(js_State *J){
 	int i, top = js_gettop(J);
 	for (i = 1; i < top; ++i) {
@@ -139,7 +152,7 @@ static void parse_jsx(js_State *J){
 		return;
 	}
 	const char* compiled = jsx_get_output(compiler);
-	//printf("compiling jsx %s \n", compiled);
+	// printf("compiling jsx %s \n", compiled);
 	js_pushstring(J, compiled);
 	jsx_free_compiler(compiler);
 }
@@ -214,6 +227,7 @@ static inline Size get_property_size(js_State *J, int idx,const char* name){
    	if( js_hasproperty(J, idx, name) == 0) {
 		return (Size){0};
 	}
+    int top = js_gettop(J);
     js_getproperty(J, idx, name);
     if(js_isnumber(J,-1)!=0){
         double val = js_tonumber(J,-1);
@@ -224,7 +238,6 @@ static inline Size get_property_size(js_State *J, int idx,const char* name){
         js_pop(J, 1);
         return (Size){0};
     }
-    int top = js_gettop(J);
 	OPTIONAL(string) kind =get_property_string(J,top,"kind");
 	if(kind.ok ==false){
 	    js_pop(J, 1);
@@ -407,6 +420,26 @@ static void js_ui_create(js_State *J) {
 	js_pushnumber(J, parent);
 }
 
+static void js_ui_compute(js_State *J){
+	if (ui_tree->nodes.len<=0){
+		js_error(J, "empty ui_node, call create before calling draw");
+		js_pushundefined(J);
+		return;
+	}
+	if (js_isnumber(J, 1) == 0 ){
+		js_error(J, "node index passed to draw should be a number");
+		js_pushundefined(J);
+		return;
+	}
+	int idx = js_tointeger(J, 1);
+	if(idx >= ui_tree->nodes.len) {
+		js_error(J, "node index passed to draw should lesser than ui_node len");
+		js_pushundefined(J);
+		return;
+	}
+	compute(ui_tree, idx);
+}
+
 static void js_ui_draw(js_State *J){
 	if (ui_tree->nodes.len<=0){
 		js_error(J, "empty ui_node, call create before calling draw");
@@ -424,9 +457,7 @@ static void js_ui_draw(js_State *J){
 		js_pushundefined(J);
 		return;
 	}
-
-	compute(ui_tree, idx);
-	draw(*ui_tree, idx);
+	draw(*ui_tree);
 }
 
 int main(int argc, char** argv){
@@ -454,6 +485,8 @@ int main(int argc, char** argv){
 	js_setglobal(J, "DrawRectangleRec");
 	js_newcfunction(J, js_ui_create, "ui_create", 0);
 	js_setglobal(J, "ui_create");
+	js_newcfunction(J, js_ui_compute, "ui_compute", 0);
+	js_setglobal(J, "ui_compute");
 	js_newcfunction(J, js_ui_draw, "ui_draw", 0);
 	js_setglobal(J, "ui_draw");
 	js_newcfunction(J, parse_jsx, "parse_jsx", 0);
@@ -467,10 +500,15 @@ int main(int argc, char** argv){
 	if (js_dostring(J, window_js) !=0){
 	    return 1;
 	}
+	if (js_dostring(J, ui_helper_js) !=0){
+	    return 1;
+	}
 	if(js_dofile(J, "main.js") !=0){
+	    printf("failed while running main.js\n");
 	    return 1;
 	}
 	if(js_dostring(J, "conf();") !=0){
+	    printf("failed while running conf()\n");
 	    return 1;
 	}
 

@@ -529,20 +529,18 @@ void compute(Tree* tree, NodeIndex idx){
     compute_draw_command(tree,idx,0);
 }
 
-void draw(Tree tree, NodeIndex idx){
-	if(idx >= tree.nodes.len|| idx<0) {
-		return;
-	}
+void draw(Tree tree){
 	Rectangle rect =(Rectangle){0};
-    switch(tree.nodes.data[idx].painter.kind){
+	for(int i=0;i<tree.commands.len;i++){
+	    switch(tree.commands.data[i].painter.kind){
 	case PAINTER_NONE:
 	    break;
 	case PAINTER_RECT:
-	    rect.x      = tree.nodes.data[idx].computed_box.x;
-	    rect.y      = tree.nodes.data[idx].computed_box.y;
-	    rect.width  = tree.nodes.data[idx].computed_box.w;
-	    rect.height = tree.nodes.data[idx].computed_box.h;
-		DrawRectangleRec(rect, tree.nodes.data[idx].painter.value.rect.color.rgba);
+	    rect.x      = tree.commands.data[i].x;
+	    rect.y      = tree.commands.data[i].y;
+	    rect.width  = tree.commands.data[i].w;
+	    rect.height = tree.commands.data[i].h;
+		DrawRectangleRec(rect, tree.commands.data[i].painter.value.rect.color.rgba);
         break;
     case PAINTER_IMG:
 		// DrawTexturePro(tree.nodes.data[idx].rect, tree.nodes.data[idx].painter.value.rect.color);
@@ -562,11 +560,6 @@ void draw(Tree tree, NodeIndex idx){
 	// 		rl.WHITE,
 	// 	)
 	}
-	if(tree.nodes.data[idx].first_children>=0){
-	    draw(tree, tree.nodes.data[idx].first_children);
-	}
-	if(tree.nodes.data[idx].next>=0){
-	    draw(tree, tree.nodes.data[idx].next);
 	}
 }
 

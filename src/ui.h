@@ -147,7 +147,7 @@ typedef struct {
 
 void tree_init(Tree *tree,Allocator alloc);
 void compute(Tree* tree, NodeIndex idx);
-void draw(Tree tree, NodeIndex idx);
+void draw(Tree tree);
 void link_child(Tree *tree,NodeIndex parent,NodeIndex child);
 
 #endif
