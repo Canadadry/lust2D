@@ -7,7 +7,23 @@
 #include <errno.h>
 #include "ui.h"
 #include "vector2.h"
-#include "optionnal.h"
+#include "optional.h"
+#include "hashmap.h"
+#include "splitter.h"
+
+typedef void (*init_node_fn)(Node*);
+
+CREATE_HASHMAP(init_node_fn);
+WRITE_HASHMAP_IMPL(init_node_fn);
+
+void init_node_fn_set_fit_x(Node* n){
+    n->size.x.kind=SizeKindFit;
+}
+void init_node_fn_set_fit_y(Node* n){
+    n->size.y.kind=SizeKindFit;
+}
+
+HASHMAP(init_node_fn)* hmap_init_node_fn;
 
 typedef const char* string;
 
@@ -370,6 +386,20 @@ static void js_ui_create(js_State *J) {
 		.first_children=-1,
 		.last_children=-1,
 	};
+	const char* class = get_property_string_or(J,2,"class",NULL);
+	if(class!=NULL){
+        Splitter splitter = {0};
+        init_splitter(&splitter,class, ' ');
+        SplitterSlice slice={0};
+        while ((slice = next_slice(&splitter)).data != NULL) {
+            char classname[128]={0};
+            strncpy(classname,slice.data,slice.len);
+            init_node_fn* fn = init_node_fn_upsert(hmap_init_node_fn,classname,UpsertActionUpdate);
+            if(fn!=NULL && (*fn)!=NULL){
+                (*fn)(&node);
+            }
+        }
+	}
 	if(js_isstring(J, 1) != 0){
 		const char* title = js_tostring(J, 1);
 		if(strncmp(title,"rectangle",8)==0){
@@ -461,6 +491,15 @@ static void js_ui_draw(js_State *J){
 }
 
 int main(int argc, char** argv){
+    HASHMAP(init_node_fn) loc_hmap_init_node_fn={0};
+    loc_hmap_init_node_fn.data.alloc=(Allocator){
+    		.realloc_fn = user_realloc,
+    		.free_fn = user_free,
+    };
+    *(init_node_fn_upsert(&loc_hmap_init_node_fn,"fit_x",UpsertActionCreate))=init_node_fn_set_fit_x;
+    *(init_node_fn_upsert(&loc_hmap_init_node_fn,"fit_y",UpsertActionCreate))=init_node_fn_set_fit_y;
+    hmap_init_node_fn = &loc_hmap_init_node_fn;
+
     Tree loc_ui_tree = (Tree){0};
     tree_init(&loc_ui_tree,(Allocator){
     		.realloc_fn = user_realloc,
