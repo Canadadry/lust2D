@@ -31,7 +31,7 @@ void build_test(){
     build_set_src_dir(&ctx, "test");
     build_set_build_dir(&ctx, "build/tests");
     build_set_cflags(&ctx, "-Wall -g -fsanitize=address");
-    build_set_ldflags(&ctx, "-Lbuild -fsanitize=address -l"TARGET"d");
+    build_set_ldflags(&ctx, "-Lbuild -fsanitize=address -Lvendor/raylib/macos -lraylib -l"TARGET"d "MACOS_FLAGS);
 
     build_make_dir(ctx.build_dir);
 

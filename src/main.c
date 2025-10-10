@@ -7,6 +7,12 @@
 #include <errno.h>
 #include "ui.h"
 #include "vector2.h"
+#include "optionnal.h"
+
+typedef const char* string;
+
+CREATE_OPTIONAL_TYPE(double)
+CREATE_OPTIONAL_TYPE(string)
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
@@ -138,24 +144,56 @@ static void parse_jsx(js_State *J){
 	jsx_free_compiler(compiler);
 }
 
-static double get_property_number_or(js_State *J, int idx,const char* name, double def){
-	if( js_hasproperty(J, idx, name) == 0) {
-		return def;
+static inline OPTIONAL(double) get_property_number(js_State *J, int idx,const char* name){
+   	if( js_hasproperty(J, idx, name) == 0) {
+		return (OPTIONAL(double)){0};
 	}
-	js_getproperty(J, idx, name);
+    js_getproperty(J, idx, name);
+    if(js_isnumber(J,-1)==0){
+       	js_pop(J, -1);
+        return (OPTIONAL(double)){0};
+    }
 	double ret =js_tonumber(J, -1);
 	js_pop(J, -1);
-	return ret;
+	return (OPTIONAL(double)){.value=ret,.ok=true};
+}
+
+static double get_property_number_or(js_State *J, int idx,const char* name, double def){
+    OPTIONAL(double) ret = get_property_number(J,idx,name);
+    if(ret.ok == false){
+        return def;
+    }
+    return ret.value;
+}
+
+static double get_property_int_or(js_State *J, int idx,const char* name, int def){
+    OPTIONAL(double) ret = get_property_number(J,idx,name);
+    if(ret.ok == false){
+        return def;
+    }
+    return (int)ret.value;
+}
+
+static inline OPTIONAL(string) get_property_string(js_State *J, int idx,const char* name){
+   	if( js_hasproperty(J, idx, name) == 0) {
+		return (OPTIONAL(string)){0};
+	}
+    js_getproperty(J, idx, name);
+    if(js_isstring(J,-1)==0){
+       	js_pop(J, -1);
+        return (OPTIONAL(string)){0};
+    }
+	const char* ret =js_tostring(J, -1);
+	js_pop(J, -1);
+	return (OPTIONAL(string)){.value=ret,.ok=true};
 }
 
 static const char*  get_property_string_or(js_State *J, int idx,const char* name, const char*  def){
-	if( js_hasproperty(J, idx, name) == 0) {
-		return def;
-	}
-	js_getproperty(J, idx, name);
-	const char*  ret =js_tostring(J, -1);
-	js_pop(J, -1);
-	return ret;
+    OPTIONAL(string) ret = get_property_string(J,idx,name);
+    if(ret.ok == false){
+        return def;
+    }
+    return ret.value;
 }
 
 static UiColor get_color(js_State *J, int idx)  {
@@ -170,6 +208,86 @@ static UiColor get_color(js_State *J, int idx)  {
     		.a = (unsigned char)get_property_number_or(J, idx, "a", 255),
     	},
 	};
+}
+
+static inline Size get_property_size(js_State *J, int idx,const char* name){
+   	if( js_hasproperty(J, idx, name) == 0) {
+		return (Size){0};
+	}
+    js_getproperty(J, idx, name);
+    if(js_isnumber(J,-1)!=0){
+        double val = js_tonumber(J,-1);
+        js_pop(J, -1);
+        return (Size){.kind=SizeKindFixed,.size=(int)val};
+    }
+    if(js_isobject(J,-1)==0){
+        js_pop(J, -1);
+        return (Size){0};
+    }
+    int top = js_gettop(J);
+	OPTIONAL(string) kind =get_property_string(J,top,"kind");
+	if(kind.ok ==false){
+	    js_pop(J, -1);
+		return (Size){0};
+	}
+	if(strncmp(kind.value, "fit", 3)==0){
+        Size ret= (Size){
+            .kind=SizeKindFit,
+            .bound={
+                .min=get_property_int_or(J,top,"min",0),
+                .max=get_property_int_or(J,top,"max",0),
+            },
+        };
+        js_pop(J, -1);
+        return ret;
+	}
+	if(strncmp(kind.value, "grow", 3)==0){
+        Size ret= (Size){
+            .kind=SizeKindGrow,
+            .bound={
+                .min=get_property_int_or(J,top,"min",0),
+                .max=get_property_int_or(J,top,"max",0),
+            },
+        };
+        js_pop(J, -1);
+        return ret;
+	}
+	js_pop(J, -1);
+	return (Size){0};
+}
+
+static inline Layout get_property_layout(js_State *J, int idx,const char* name){
+    OPTIONAL(string) val = get_property_string(J, idx, name);
+    if(val.ok==false){
+        return LayoutHorizontal;
+    }
+   	if(strncmp(val.value, "h", 1)==0){
+        return LayoutHorizontal;
+    }
+   	if(strncmp(val.value, "v", 1)==0){
+        return LayoutVertical;
+    }
+   	if(strncmp(val.value, "s", 1)==0){
+        return LayoutStack;
+    }
+    return LayoutHorizontal;
+}
+
+static inline Align get_property_align(js_State *J, int idx,const char* name){
+    OPTIONAL(string) val = get_property_string(J, idx, name);
+    if(val.ok==false){
+        return AlignBegin;
+    }
+   	if(strncmp(val.value, "b", 1)==0){
+        return AlignBegin;
+    }
+   	if(strncmp(val.value, "m", 1)==0){
+        return AlignMiddle;
+    }
+   	if(strncmp(val.value, "e", 1)==0){
+        return AlignEnd;
+    }
+    return AlignBegin;
 }
 
 static Rectangle get_rectangle(js_State *J, int idx)  {
@@ -193,29 +311,45 @@ static void draw_rectangle_rec(js_State *J) {
 }
 
 typedef struct{
-    double width;
-    double height;
+    int width;
+    int height;
     const char* title;
 } Window;
 
 static Window get_window(js_State *J) {
 	Window win = {0};
 	js_getglobal(J, "window");
-	js_getproperty(J, -1, "width");
-	win.width = get_property_number_or(J,-1,"width",800);
-	win.height = get_property_number_or(J,-1,"width",600);
-	win.title = get_property_string_or(J,-1,"title","no title");
+	int top =js_gettop(J);
+	win.width = get_property_int_or(J,top,"width",800);
+	win.height = get_property_int_or(J,top,"height",600);
+	win.title = get_property_string_or(J,top,"title","no title");
+	js_pop(J,-1);
 	return win;
 }
 
 static void js_ui_create(js_State *J) {
 	int top = js_gettop(J);
-	Rectangle rect =  get_rectangle(J, 2);
+	int p = get_property_int_or(J,2,"padding",0);
 	Node node = (Node){
-	    .pos=(VECTOR2(int)){rect.x,rect.y},
+	    .pos=(VECTOR2(int)){
+    		.x=get_property_int_or(J,2,"x",0),
+    		.y=get_property_int_or(J,2,"y",0),
+		},
 		.size=(VECTOR2(Size)){
-		    .x=(Size){.kind=SizeKindFixed,.size=rect.width},
-		    .y=(Size){.kind=SizeKindFixed,.size=rect.height},
+		    .x=get_property_size(J,2,"w"),
+		    .y=get_property_size(J,2,"h"),
+		},
+		.margin=get_property_int_or(J,2,"margin",0),
+		.layout=get_property_layout(J,2,"layout"),
+		.padding=(Padding){
+           	.left=p,
+           	.right=p,
+           	.top=p,
+           	.bottom=p,
+		},
+		.align=(VECTOR2(Align)){
+    		.x=get_property_align(J, 2, "h_align"),
+    		.y=get_property_align(J, 2, "v_align"),
 		},
 		.next=-1,
 		.first_children=-1,
