@@ -10,18 +10,7 @@
 #include "optional.h"
 #include "hashmap.h"
 #include "splitter.h"
-
-typedef void (*init_node_fn)(Node*);
-
-CREATE_HASHMAP(init_node_fn);
-WRITE_HASHMAP_IMPL(init_node_fn);
-
-void init_node_fn_set_fit_x(Node* n){
-    n->size.x.kind=SizeKindFit;
-}
-void init_node_fn_set_fit_y(Node* n){
-    n->size.y.kind=SizeKindFit;
-}
+#include "jsx_class.h"
 
 HASHMAP(init_node_fn)* hmap_init_node_fn;
 
@@ -496,9 +485,8 @@ int main(int argc, char** argv){
     		.realloc_fn = user_realloc,
     		.free_fn = user_free,
     };
-    *(init_node_fn_upsert(&loc_hmap_init_node_fn,"fit_x",UpsertActionCreate))=init_node_fn_set_fit_x;
-    *(init_node_fn_upsert(&loc_hmap_init_node_fn,"fit_y",UpsertActionCreate))=init_node_fn_set_fit_y;
     hmap_init_node_fn = &loc_hmap_init_node_fn;
+    init_init_node_fn_hashmap(hmap_init_node_fn);
 
     Tree loc_ui_tree = (Tree){0};
     tree_init(&loc_ui_tree,(Allocator){
