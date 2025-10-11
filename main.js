@@ -7,6 +7,8 @@ w = 100;
 h = 100;
 dx = 4;
 dy = 4;
+color_red = { r: 255, g: 0, b: 0 };
+color_green = { r: 255, g: 0, b: 0 };
 
 function conf() {
   window.width = 800;
@@ -21,7 +23,11 @@ function init(){
 
 function render() {
   ClearBackground({ r: 128, g: 128, b: 128 });
-  DrawRectangleRec({ x: x, y: y, w: w, h: h }, { r: 255, g: 0, b: 0 });
+  if(is_key_down("space")){
+    DrawRectangleRec({ x: x, y: y, w: w, h: h }, color_red);
+  }else{
+    DrawRectangleRec({ x: x, y: y, w: w, h: h }, color_green);
+  }
   x += dx;
   y += dy;
   if (x < 0 || x + w > window.width) {

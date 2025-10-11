@@ -7,6 +7,6 @@
 
 CREATE_HASHMAP(Texture)
 
-void bind_raylib_func(js_State *J);
+void bind_raylib_func(js_State *J,Allocator alloc);
 
 #endif //_JSX_CLASS_H

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include "allocator.h"
 #include "ui.h"
 #include "vector2.h"
 #include "hashmap.h"
@@ -204,25 +205,20 @@ int wrap_content_fn(void *userdata,Painter p,int width){
 }
 
 int main(int argc, char** argv){
-    HASHMAP(Texture) loc_hmap_texture={0};
-    loc_hmap_texture.data.alloc=(Allocator){
+    Allocator alloc = (Allocator){
     		.realloc_fn = user_realloc,
     		.free_fn = user_free,
     };
+    HASHMAP(Texture) loc_hmap_texture={0};
+    loc_hmap_texture.data.alloc=alloc;
     hmap_texture = &loc_hmap_texture;
     HASHMAP(init_node_fn) loc_hmap_init_node_fn={0};
-    loc_hmap_init_node_fn.data.alloc=(Allocator){
-    		.realloc_fn = user_realloc,
-    		.free_fn = user_free,
-    };
+    loc_hmap_init_node_fn.data.alloc=alloc;
     hmap_init_node_fn = &loc_hmap_init_node_fn;
     init_init_node_fn_hashmap(hmap_init_node_fn);
 
     Tree loc_ui_tree = (Tree){0};
-    tree_init(&loc_ui_tree,(Allocator){
-    		.realloc_fn = user_realloc,
-    		.free_fn = user_free,
-    });
+    tree_init(&loc_ui_tree,alloc);
     loc_ui_tree.wrap_content_fn=wrap_content_fn;
     loc_ui_tree.mesure_content_fn=mesure_content_fn;
     ui_tree = &loc_ui_tree;
@@ -240,7 +236,7 @@ int main(int argc, char** argv){
 	js_setglobal(J, "file_exist");
 	js_newcfunction(J, parse_jsx, "parse_jsx", 0);
 	js_setglobal(J, "parse_jsx");
-	bind_raylib_func(J);
+	bind_raylib_func(J,alloc);
 	bind_ui_func(J);
 	if (js_dostring(J, require_js) != 0){
 	    return 1;
