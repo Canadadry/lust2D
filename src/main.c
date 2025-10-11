@@ -7,21 +7,16 @@
 #include <errno.h>
 #include "ui.h"
 #include "vector2.h"
-#include "optional.h"
 #include "hashmap.h"
-#include "splitter.h"
 #include "jsx_class.h"
+#include "js_helper.h"
+#include "raylib_js.h"
+#include "ui_js.h"
 
-CREATE_HASHMAP(Texture)
-WRITE_HASHMAP_IMPL(Texture)
 
 HASHMAP(init_node_fn)* hmap_init_node_fn;
 HASHMAP(Texture)* hmap_texture;
 
-typedef const char* string;
-
-CREATE_OPTIONAL_TYPE(double)
-CREATE_OPTIONAL_TYPE(string)
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
@@ -166,171 +161,6 @@ static void parse_jsx(js_State *J){
 	jsx_free_compiler(compiler);
 }
 
-static inline OPTIONAL(double) get_property_number(js_State *J, int idx,const char* name){
-   	if( js_hasproperty(J, idx, name) == 0) {
-		return (OPTIONAL(double)){0};
-	}
-    js_getproperty(J, idx, name);
-    if(js_isnumber(J,-1)==0){
-       	js_pop(J, 1);
-        return (OPTIONAL(double)){0};
-    }
-	double ret =js_tonumber(J, -1);
-	js_pop(J, 1);
-	return (OPTIONAL(double)){.value=ret,.ok=true};
-}
-
-static double get_property_number_or(js_State *J, int idx,const char* name, double def){
-    OPTIONAL(double) ret = get_property_number(J,idx,name);
-    if(ret.ok == false){
-        return def;
-    }
-    return ret.value;
-}
-
-static double get_property_int_or(js_State *J, int idx,const char* name, int def){
-    OPTIONAL(double) ret = get_property_number(J,idx,name);
-    if(ret.ok == false){
-        return def;
-    }
-    return (int)ret.value;
-}
-
-static inline OPTIONAL(string) get_property_string(js_State *J, int idx,const char* name){
-   	if( js_hasproperty(J, idx, name) == 0) {
-		return (OPTIONAL(string)){0};
-	}
-    js_getproperty(J, idx, name);
-    if(js_isstring(J,-1)==0){
-       	js_pop(J, 1);
-        return (OPTIONAL(string)){0};
-    }
-	const char* ret =js_tostring(J, -1);
-	js_pop(J, 1);
-	return (OPTIONAL(string)){.value=ret,.ok=true};
-}
-
-static const char*  get_property_string_or(js_State *J, int idx,const char* name, const char*  def){
-    OPTIONAL(string) ret = get_property_string(J,idx,name);
-    if(ret.ok == false){
-        return def;
-    }
-    return ret.value;
-}
-
-static UiColor get_color(js_State *J, int idx)  {
-	if (js_isobject(J, idx) == 0) {
-		return (UiColor){.rgba=WHITE};
-	};
-	return (UiColor){
-    	.rgba=(Color){
-    		.r = (unsigned char)get_property_number_or(J, idx, "r", 255),
-    		.g = (unsigned char)get_property_number_or(J, idx, "g", 255),
-    		.b = (unsigned char)get_property_number_or(J, idx, "b", 255),
-    		.a = (unsigned char)get_property_number_or(J, idx, "a", 255),
-    	},
-	};
-}
-
-static inline Size get_property_size(js_State *J, int idx,const char* name){
-   	if( js_hasproperty(J, idx, name) == 0) {
-		return (Size){0};
-	}
-    int top = js_gettop(J);
-    js_getproperty(J, idx, name);
-    if(js_isnumber(J,-1)!=0){
-        double val = js_tonumber(J,-1);
-        js_pop(J, 1);
-        return (Size){.kind=SizeKindFixed,.size=(int)val};
-    }
-    if(js_isobject(J,-1)==0){
-        js_pop(J, 1);
-        return (Size){0};
-    }
-	OPTIONAL(string) kind =get_property_string(J,top,"kind");
-	if(kind.ok ==false){
-	    js_pop(J, 1);
-		return (Size){0};
-	}
-	if(strncmp(kind.value, "fit", 3)==0){
-        Size ret= (Size){
-            .kind=SizeKindFit,
-            .bound={
-                .min=get_property_int_or(J,top,"min",0),
-                .max=get_property_int_or(J,top,"max",0),
-            },
-        };
-        js_pop(J, 1);
-        return ret;
-	}
-	if(strncmp(kind.value, "grow", 3)==0){
-        Size ret= (Size){
-            .kind=SizeKindGrow,
-            .bound={
-                .min=get_property_int_or(J,top,"min",0),
-                .max=get_property_int_or(J,top,"max",0),
-            },
-        };
-        js_pop(J, 1);
-        return ret;
-	}
-	js_pop(J, 1);
-	return (Size){0};
-}
-
-static inline Layout get_property_layout(js_State *J, int idx,const char* name){
-    OPTIONAL(string) val = get_property_string(J, idx, name);
-    if(val.ok==false){
-        return LayoutHorizontal;
-    }
-   	if(strncmp(val.value, "h", 1)==0){
-        return LayoutHorizontal;
-    }
-   	if(strncmp(val.value, "v", 1)==0){
-        return LayoutVertical;
-    }
-   	if(strncmp(val.value, "s", 1)==0){
-        return LayoutStack;
-    }
-    return LayoutHorizontal;
-}
-
-static inline Align get_property_align(js_State *J, int idx,const char* name){
-    OPTIONAL(string) val = get_property_string(J, idx, name);
-    if(val.ok==false){
-        return AlignBegin;
-    }
-   	if(strncmp(val.value, "b", 1)==0){
-        return AlignBegin;
-    }
-   	if(strncmp(val.value, "m", 1)==0){
-        return AlignMiddle;
-    }
-   	if(strncmp(val.value, "e", 1)==0){
-        return AlignEnd;
-    }
-    return AlignBegin;
-}
-
-static Rectangle get_rectangle(js_State *J, int idx)  {
-    if (js_isobject(J, idx) == 0) {
-        return (Rectangle){.width = 100, .height = 100};
-	}
-	return (Rectangle){
-		.x =      (float)get_property_number_or(J, idx, "x", 0),
-		.y =      (float)get_property_number_or(J, idx, "y", 0),
-		.width =  (float)get_property_number_or(J, idx, "w", 100),
-		.height = (float)get_property_number_or(J, idx, "h", 100),
-	};
-}
-
-static void clear_background(js_State *J) {
-	ClearBackground(get_color(J, 1).rgba);
-}
-
-static void draw_rectangle_rec(js_State *J) {
-	DrawRectangleRec(get_rectangle(J, 1), get_color(J, 2).rgba);
-}
 
 typedef struct{
     int width;
@@ -349,175 +179,6 @@ static Window get_window(js_State *J) {
     	js_pop(J,1);
 	}
 	return win;
-}
-
-static void js_ui_create(js_State *J) {
-	int top = js_gettop(J);
-	int p = get_property_int_or(J,2,"padding",0);
-	Node node = (Node){
-	    .pos=(VECTOR2(int)){
-    		.x=get_property_int_or(J,2,"x",0),
-    		.y=get_property_int_or(J,2,"y",0),
-		},
-		.size=(VECTOR2(Size)){
-		    .x=get_property_size(J,2,"w"),
-		    .y=get_property_size(J,2,"h"),
-		},
-		.margin=get_property_int_or(J,2,"margin",0),
-		.layout=get_property_layout(J,2,"layout"),
-		.padding=(Padding){
-           	.left=p,
-           	.right=p,
-           	.top=p,
-           	.bottom=p,
-		},
-		.align=(VECTOR2(Align)){
-    		.x=get_property_align(J, 2, "h_align"),
-    		.y=get_property_align(J, 2, "v_align"),
-		},
-		.next=-1,
-		.first_children=-1,
-		.last_children=-1,
-	};
-	const char* class = get_property_string_or(J,2,"class",NULL);
-	if(class!=NULL){
-        Splitter splitter = {0};
-        init_splitter(&splitter,class, ' ');
-        SplitterSlice slice={0};
-        while ((slice = next_slice(&splitter)).data != NULL) {
-            char classname[128]={0};
-            strncpy(classname,slice.data,slice.len);
-            init_node_fn* fn = init_node_fn_upsert(hmap_init_node_fn,classname,UpsertActionUpdate);
-            if(fn!=NULL && (*fn)!=NULL){
-                (*fn)(&node);
-            }
-        }
-	}
-	if(js_isstring(J, 1) != 0){
-		const char* title = js_tostring(J, 1);
-		if(strncmp(title,"rectangle",9)==0){
-			node.painter.kind=PAINTER_RECT;
-			node.painter.value.rect = (PainterRect){
-				.color = get_color(J, 2),
-			};
-		}else if(strncmp(title,"item",4)==0){
-			node.painter.kind=PAINTER_NONE;
-		}else if(strncmp(title,"img",3)==0){
-			node.painter.kind=PAINTER_IMG;
-			node.painter.value.img.source=get_property_string_or(J,2,"src",NULL);
-			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
-			if(t!=NULL){
-			    *t = LoadTexture(node.painter.value.img.source);
-			}
-		}else{
-			js_error(J, "unknown base ui tag '%s'", title);
-			js_pushundefined(J);
-			return;
-		}
-	} else if(js_iscallable(J, 1) != 0){
-		js_error(J, "not implemented");
-		js_pushundefined(J);
-		return;
-
-		// mujs.pushnull(J)
-		//    mujs.copy(J,2)
-		// if mujs.pcall(J, 2) {
-		//        mujs.error(J,"an exception occurred in the javascript callback")
-		//        mujs.pushundefined(J)
-		// 	return
-		// }
-
-		// if mujs.isuserdata(J, -1,"Node"){
-		//     append(children,cast(^UiNode)mujs.touserdata(J,-1,"Node")^)
-		//    }
-		// mujs.pop(J, 1)
-	} else {
-		js_error(J, "invalid param type");
-		js_pushundefined(J);
-		return;
-	}
-
-	int parent=ui_tree->nodes.len;
-	array_append_Node(&ui_tree->nodes, node);
-	for(int i= 3; i < top; i += 1){
-		if(js_isnumber(J, i) == 0){
-			continue;
-		}
-		int child= js_tointeger(J, i);
-		if(child >= ui_tree->nodes.len||child<0) {
-			break;
-		}
-		link_child(ui_tree,parent,child);
-	}
-	js_pushnumber(J, parent);
-}
-
-static void js_ui_compute(js_State *J){
-	if (ui_tree->nodes.len<=0){
-		js_error(J, "empty ui_node, call create before calling draw");
-		js_pushundefined(J);
-		return;
-	}
-	if (js_isnumber(J, 1) == 0 ){
-		js_error(J, "node index passed to draw should be a number");
-		js_pushundefined(J);
-		return;
-	}
-	int idx = js_tointeger(J, 1);
-	if(idx >= ui_tree->nodes.len) {
-		js_error(J, "node index passed to draw should lesser than ui_node len");
-		js_pushundefined(J);
-		return;
-	}
-	compute(ui_tree, idx);
-}
-
-void draw(Tree tree){
-	Rectangle rect =(Rectangle){0};
-	Texture* t;
-	for(int i=0;i<tree.commands.len;i++){
-	    rect.x      = tree.commands.data[i].x;
-	    rect.y      = tree.commands.data[i].y;
-	    rect.width  = tree.commands.data[i].w;
-	    rect.height = tree.commands.data[i].h;
-	    switch(tree.commands.data[i].painter.kind){
-    	case PAINTER_NONE:
-    	    break;
-    	case PAINTER_RECT:
-    		DrawRectangleRec(rect, tree.commands.data[i].painter.value.rect.color.rgba);
-            break;
-        case PAINTER_IMG:
-            t = Texture_upsert(hmap_texture,tree.commands.data[i].painter.value.img.source , UpsertActionUpdate);
-            if(t!=NULL){
-                DrawTexturePro(*t, (Rectangle){
-                    .x=0,.y=0,
-                    .width=(float)t->width,
-                    .height=(float)t->height,
-                },rect, (Vector2){0} , 0, WHITE);
-    		}
-            break;
-		}
-	}
-}
-
-static void js_ui_draw(js_State *J){
-	if (ui_tree->nodes.len<=0){
-		js_error(J, "empty ui_node, call create before calling draw");
-		js_pushundefined(J);
-		return;
-	}
-	if (js_isnumber(J, 1) == 0 ){
-		js_error(J, "node index passed to draw should be a number");
-		js_pushundefined(J);
-		return;
-	}
-	int idx = js_tointeger(J, 1);
-	if(idx >= ui_tree->nodes.len) {
-		js_error(J, "node index passed to draw should lesser than ui_node len");
-		js_pushundefined(J);
-		return;
-	}
-	draw(*ui_tree);
 }
 
 VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
@@ -577,18 +238,10 @@ int main(int argc, char** argv){
 	js_setglobal(J, "read");
 	js_newcfunction(J, jsB_file_exist, "file_exist", 0);
 	js_setglobal(J, "file_exist");
-	js_newcfunction(J, clear_background, "ClearBackground", 0);
-	js_setglobal(J, "ClearBackground");
-	js_newcfunction(J, draw_rectangle_rec, "DrawRectangleRec", 0);
-	js_setglobal(J, "DrawRectangleRec");
-	js_newcfunction(J, js_ui_create, "ui_create", 0);
-	js_setglobal(J, "ui_create");
-	js_newcfunction(J, js_ui_compute, "ui_compute", 0);
-	js_setglobal(J, "ui_compute");
-	js_newcfunction(J, js_ui_draw, "ui_draw", 0);
-	js_setglobal(J, "ui_draw");
 	js_newcfunction(J, parse_jsx, "parse_jsx", 0);
 	js_setglobal(J, "parse_jsx");
+	bind_raylib_func(J);
+	bind_ui_func(J);
 	if (js_dostring(J, require_js) != 0){
 	    return 1;
 	}
