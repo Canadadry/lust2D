@@ -12,7 +12,11 @@
 #include "splitter.h"
 #include "jsx_class.h"
 
+CREATE_HASHMAP(Texture)
+WRITE_HASHMAP_IMPL(Texture)
+
 HASHMAP(init_node_fn)* hmap_init_node_fn;
+HASHMAP(Texture)* hmap_texture;
 
 typedef const char* string;
 
@@ -391,11 +395,20 @@ static void js_ui_create(js_State *J) {
 	}
 	if(js_isstring(J, 1) != 0){
 		const char* title = js_tostring(J, 1);
-		if(strncmp(title,"rectangle",8)==0){
+		if(strncmp(title,"rectangle",9)==0){
 			node.painter.kind=PAINTER_RECT;
 			node.painter.value.rect = (PainterRect){
 				.color = get_color(J, 2),
 			};
+		}else if(strncmp(title,"item",4)==0){
+			node.painter.kind=PAINTER_NONE;
+		}else if(strncmp(title,"img",3)==0){
+			node.painter.kind=PAINTER_IMG;
+			node.painter.value.img.source=get_property_string_or(J,2,"src",NULL);
+			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
+			if(t!=NULL){
+			    *t = LoadTexture(node.painter.value.img.source);
+			}
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
 			js_pushundefined(J);
@@ -459,6 +472,34 @@ static void js_ui_compute(js_State *J){
 	compute(ui_tree, idx);
 }
 
+void draw(Tree tree){
+	Rectangle rect =(Rectangle){0};
+	Texture* t;
+	for(int i=0;i<tree.commands.len;i++){
+	    rect.x      = tree.commands.data[i].x;
+	    rect.y      = tree.commands.data[i].y;
+	    rect.width  = tree.commands.data[i].w;
+	    rect.height = tree.commands.data[i].h;
+	    switch(tree.commands.data[i].painter.kind){
+    	case PAINTER_NONE:
+    	    break;
+    	case PAINTER_RECT:
+    		DrawRectangleRec(rect, tree.commands.data[i].painter.value.rect.color.rgba);
+            break;
+        case PAINTER_IMG:
+            t = Texture_upsert(hmap_texture,tree.commands.data[i].painter.value.img.source , UpsertActionUpdate);
+            if(t!=NULL){
+                DrawTexturePro(*t, (Rectangle){
+                    .x=0,.y=0,
+                    .width=(float)t->width,
+                    .height=(float)t->height,
+                },rect, (Vector2){0} , 0, WHITE);
+    		}
+            break;
+		}
+	}
+}
+
 static void js_ui_draw(js_State *J){
 	if (ui_tree->nodes.len<=0){
 		js_error(J, "empty ui_node, call create before calling draw");
@@ -479,7 +520,35 @@ static void js_ui_draw(js_State *J){
 	draw(*ui_tree);
 }
 
+VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
+    VECTOR2(int) ret = {0};
+    Texture* t;
+    if(p.kind==PAINTER_IMG){
+        t = Texture_upsert(hmap_texture,p.value.img.source , UpsertActionUpdate);
+        if(t!=NULL){
+            ret.x = t->width;
+            ret.y = t->height;
+        }
+    }
+    return ret;
+}
+
+int wrap_content_fn(void *userdata,Painter p,int width){
+    VECTOR2(int) content = {0};
+    if(p.kind==PAINTER_IMG){
+        content = mesure_content_fn(userdata,p);
+        return (int)((float)width*(float)content.y/(float)content.x);
+    }
+    return 0;
+}
+
 int main(int argc, char** argv){
+    HASHMAP(Texture) loc_hmap_texture={0};
+    loc_hmap_texture.data.alloc=(Allocator){
+    		.realloc_fn = user_realloc,
+    		.free_fn = user_free,
+    };
+    hmap_texture = &loc_hmap_texture;
     HASHMAP(init_node_fn) loc_hmap_init_node_fn={0};
     loc_hmap_init_node_fn.data.alloc=(Allocator){
     		.realloc_fn = user_realloc,
@@ -493,6 +562,8 @@ int main(int argc, char** argv){
     		.realloc_fn = user_realloc,
     		.free_fn = user_free,
     });
+    loc_ui_tree.wrap_content_fn=wrap_content_fn;
+    loc_ui_tree.mesure_content_fn=mesure_content_fn;
     ui_tree = &loc_ui_tree;
     js_State *J = js_newstate(NULL, NULL,  0);
 	if (!J) {
@@ -543,6 +614,11 @@ int main(int argc, char** argv){
 	SetTraceLogLevel(LOG_WARNING);
     InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);
+
+   	if(js_dostring(J, "init();") !=0){
+	    printf("failed while running init()\n");
+	    return 1;
+	}
 
     while (!WindowShouldClose())
     {

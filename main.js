@@ -1,11 +1,6 @@
 var test = require("requiered");
-console.log("hello from js");
-console.log("test2", test.create);
 
-
-var root_ui = test.create();
-ui_compute(root_ui);
-console.log("test3", root_ui);
+var root_ui = -1;
 x = 10;
 y = 10;
 w = 100;
@@ -17,6 +12,11 @@ function conf() {
   window.width = 800;
   window.height = 600;
   window.title = "from lust2D";
+}
+
+function init(){
+  root_ui = test.create();
+  ui_compute(root_ui);
 }
 
 function render() {
