@@ -8,7 +8,7 @@ h = 100;
 dx = 4;
 dy = 4;
 color_red = { r: 255, g: 0, b: 0 };
-color_green = { r: 255, g: 0, b: 0 };
+color_green = { r: 0, g: 255, b: 0 };
 
 function conf() {
   window.width = 800;
@@ -35,6 +35,10 @@ function render() {
   }
   if (y < 0 || y + h > window.height) {
     dy *= -1;
+  }
+  var node = ui_pick(get_mouse_x(), get_mouse_y());
+  if(node != null){
+    console.log("picked", node);
   }
   ui_draw(root_ui);
 }

@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "vector2.h"
 #include <stdio.h>
+#include <string.h>
 
 #define MAX_ITER 100
 #define SAFE_WHILE(cond) \
@@ -495,13 +496,14 @@ void compute_position(Tree* tree, NodeIndex idx,int x, int y)
 
 void compute_draw_command(Tree* tree, NodeIndex idx,NodeIndex command_idx)
 {
-    if(array_append_PainterCommand(&tree->commands,(PainterCommand){
-        .x       = tree->nodes.data[idx].computed_box.x,
-        .y       = tree->nodes.data[idx].computed_box.y,
-        .w       = tree->nodes.data[idx].computed_box.w,
-        .h       = tree->nodes.data[idx].computed_box.h,
-        .painter = tree->nodes.data[idx].painter,
-    })!=0){
+    PainterCommand pc = {0};
+    pc.x       = tree->nodes.data[idx].computed_box.x;
+    pc.y       = tree->nodes.data[idx].computed_box.y;
+    pc.w       = tree->nodes.data[idx].computed_box.w;
+    pc.h       = tree->nodes.data[idx].computed_box.h;
+    pc.painter = tree->nodes.data[idx].painter;
+    memcpy(pc.id,tree->nodes.data[idx].id,ID_LEN);
+    if(array_append_PainterCommand(&tree->commands,pc)!=0){
         printf("failed to append to painter command\n");
         exit(1);
     }

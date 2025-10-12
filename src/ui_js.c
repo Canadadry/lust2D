@@ -6,6 +6,7 @@
 #include "jsx_class.h"
 #include "hashmap.h"
 #include "raylib_js.h"
+#include <stdio.h>
 
 extern HASHMAP(init_node_fn)* hmap_init_node_fn;
 extern HASHMAP(Texture)* hmap_texture;
@@ -132,7 +133,12 @@ static void js_ui_create(js_State *J) {
 		.next=-1,
 		.first_children=-1,
 		.last_children=-1,
+		.id={0},
 	};
+	const char* node_id= get_property_string_or(J,2,"id",NULL);
+	if(node_id!=NULL){
+	    snprintf(node.id, ID_LEN, "%s",node_id);
+	}
 	const char* class = get_property_string_or(J,2,"class",NULL);
 	if(class!=NULL){
         Splitter splitter = {0};
@@ -255,7 +261,6 @@ void draw(Tree tree){
 	}
 }
 
-
 static void js_ui_draw(js_State *J){
 	if (ui_tree->nodes.len<=0){
 		js_error(J, "empty ui_node, call create before calling draw");
@@ -276,11 +281,46 @@ static void js_ui_draw(js_State *J){
 	draw(*ui_tree);
 }
 
+bool intersect(PainterCommand *pc, int x, int y){
+    if(pc->id[0]==0){
+        return false;
+    }
+    return !(x < pc->x|| y < pc->y || x>(pc->x+pc->w) || y>(pc->y+pc->h)) ;
+}
+
+static void js_pick_node(js_State *J){
+    if(ui_tree->commands.len <= 0){
+        js_pushnull(J);
+		return;
+    }
+    if (js_isnumber(J, 1) == 0 ){
+		js_error(J, "first arg passed to ui_pick should be a number");
+		js_pushnull(J);
+		return;
+	}
+    if (js_isnumber(J, 2) == 0 ){
+		js_error(J, "second arg passed to ui_pick should be a number");
+		js_pushnull(J);
+		return;
+	}
+    int x = js_tointeger(J, 1);
+    int y = js_tointeger(J, 2);
+    for(int i = ui_tree->commands.len-1;i>=0;i--){
+        if(intersect(&ui_tree->commands.data[i],x,y)){
+            js_pushstring(J, ui_tree->commands.data[i].id);
+            return;
+        }
+    }
+    js_pushnull(J);
+}
+
 void bind_ui_func(js_State *J){
-    js_newcfunction(J, js_ui_create, "ui_create", 0);
+    js_newcfunction(J, js_ui_create, "ui_create", 2);
 	js_setglobal(J, "ui_create");
-	js_newcfunction(J, js_ui_compute, "ui_compute", 0);
+	js_newcfunction(J, js_ui_compute, "ui_compute", 1);
 	js_setglobal(J, "ui_compute");
-	js_newcfunction(J, js_ui_draw, "ui_draw", 0);
+	js_newcfunction(J, js_ui_draw, "ui_draw", 1);
 	js_setglobal(J, "ui_draw");
+	js_newcfunction(J, js_pick_node, "ui_pick", 2);
+	js_setglobal(J, "ui_pick");
 }

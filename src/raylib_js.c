@@ -3,6 +3,7 @@
 #include "allocator.h"
 #include "hashmap.h"
 #include "js_helper.h"
+#include <string.h>
 
 WRITE_HASHMAP_IMPL(Texture)
 
@@ -197,6 +198,50 @@ void init_keyboard_key_hmap(Allocator alloc){
     *KeyboardKey_upsert(&hmap_keyboard_key, "volume_down", UpsertActionCreate)=KEY_VOLUME_DOWN;
 }
 
+void is_mouse_button_pressed(js_State *J){
+    if(!js_isstring(J, 1)){
+        js_pushboolean(J,false);
+        return;
+    }
+    MouseButton mouse_button = {0};
+    const char * button = js_tostring(J,1);
+    if(strcmp(button, "left")){
+        mouse_button = MOUSE_LEFT_BUTTON;
+    }else if(strcmp(button, "right")){
+        mouse_button = MOUSE_RIGHT_BUTTON;
+    }else{
+        js_pushboolean(J,false);
+        return;
+    }
+    js_pushboolean(J,IsMouseButtonPressed(mouse_button));
+}
+
+void is_mouse_button_realsed(js_State *J){
+    if(!js_isstring(J, 1)){
+        js_pushboolean(J,false);
+        return;
+    }
+    MouseButton mouse_button = {0};
+    const char * button = js_tostring(J,1);
+    if(strcmp(button, "left")){
+        mouse_button = MOUSE_LEFT_BUTTON;
+    }else if(strcmp(button, "right")){
+        mouse_button = MOUSE_RIGHT_BUTTON;
+    }else{
+        js_pushboolean(J,false);
+        return;
+    }
+    js_pushboolean(J,IsMouseButtonReleased(mouse_button));
+}
+
+void get_mouse_x(js_State *J){
+    js_pushnumber(J,GetMouseX());
+}
+
+void get_mouse_y(js_State *J){
+    js_pushnumber(J,GetMouseY());
+}
+
 void bind_raylib_func(js_State *J,Allocator alloc){
     init_keyboard_key_hmap(alloc);
     js_newcfunction(J, clear_background, "ClearBackground", 1);
@@ -211,4 +256,12 @@ void bind_raylib_func(js_State *J,Allocator alloc){
 	js_setglobal(J, "is_key_up");
 	js_newcfunction(J, is_key_down, "is_key_down", 1);
 	js_setglobal(J, "is_key_down");
+	js_newcfunction(J, is_mouse_button_pressed, "is_mouse_button_pressed", 1);
+	js_setglobal(J, "is_mouse_button_pressed");
+	js_newcfunction(J, is_mouse_button_realsed, "is_mouse_button_realsed", 1);
+	js_setglobal(J, "is_mouse_button_realsed");
+	js_newcfunction(J, get_mouse_x, "get_mouse_x", 1);
+	js_setglobal(J, "get_mouse_x");
+	js_newcfunction(J, get_mouse_y, "get_mouse_y", 1);
+	js_setglobal(J, "get_mouse_y");
 }

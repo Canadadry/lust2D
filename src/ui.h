@@ -8,6 +8,8 @@
 #include "vector2.h"
 #include <stdbool.h>
 
+#define ID_LEN 32
+
 typedef enum {
     PAINTER_NONE,
     PAINTER_RECT,
@@ -79,6 +81,7 @@ CREATE_RECTANGLE_TYPE(int)
 
 typedef int NodeIndex;
 typedef struct {
+    char            id[ID_LEN];
 	Painter         painter;
 	VECTOR2(int)    pos;
 	VECTOR2(Size)   size;
@@ -99,6 +102,7 @@ typedef struct {
     int w;
     int h;
     Painter	painter;
+    char id[ID_LEN];
 } PainterCommand;
 
 typedef struct {
