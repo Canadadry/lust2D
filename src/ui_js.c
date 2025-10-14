@@ -107,19 +107,22 @@ static inline Align get_property_align(js_State *J, int idx,const char* name){
 }
 
 static void js_ui_create(js_State *J) {
-	int top = js_gettop(J);
-	int p = get_property_int_or(J,2,"padding",0);
+    const int name=1;
+    const int props=2;
+    const int children=3;
+
+	int p = get_property_int_or(J,props,"padding",0);
 	Node node = (Node){
 	    .pos=(VECTOR2(int)){
-    		.x=get_property_int_or(J,2,"x",0),
-    		.y=get_property_int_or(J,2,"y",0),
+    		.x=get_property_int_or(J,props,"x",0),
+    		.y=get_property_int_or(J,props,"y",0),
 		},
 		.size=(VECTOR2(Size)){
-		    .x=get_property_size(J,2,"w"),
-		    .y=get_property_size(J,2,"h"),
+		    .x=get_property_size(J,props,"w"),
+		    .y=get_property_size(J,props,"h"),
 		},
-		.margin=get_property_int_or(J,2,"margin",0),
-		.layout=get_property_layout(J,2,"layout"),
+		.margin=get_property_int_or(J,props,"margin",0),
+		.layout=get_property_layout(J,props,"layout"),
 		.padding=(Padding){
            	.left=p,
            	.right=p,
@@ -127,19 +130,19 @@ static void js_ui_create(js_State *J) {
            	.bottom=p,
 		},
 		.align=(VECTOR2(Align)){
-    		.x=get_property_align(J, 2, "h_align"),
-    		.y=get_property_align(J, 2, "v_align"),
+    		.x=get_property_align(J, props, "h_align"),
+    		.y=get_property_align(J, props, "v_align"),
 		},
 		.next=-1,
 		.first_children=-1,
 		.last_children=-1,
 		.id={0},
 	};
-	const char* node_id= get_property_string_or(J,2,"id",NULL);
+	const char* node_id= get_property_string_or(J,props,"id",NULL);
 	if(node_id!=NULL){
 	    snprintf(node.id, ID_LEN, "%s",node_id);
 	}
-	const char* class = get_property_string_or(J,2,"class",NULL);
+	const char* class = get_property_string_or(J,props,"class",NULL);
 	if(class!=NULL){
         Splitter splitter = {0};
         init_splitter(&splitter,class, ' ');
@@ -153,18 +156,18 @@ static void js_ui_create(js_State *J) {
             }
         }
 	}
-	if(js_isstring(J, 1) != 0){
-		const char* title = js_tostring(J, 1);
+	if(js_isstring(J, name) != 0){
+		const char* title = js_tostring(J, name);
 		if(strncmp(title,"rectangle",9)==0){
 			node.painter.kind=PAINTER_RECT;
 			node.painter.value.rect = (PainterRect){
-				.color = get_color(J, 2),
+				.color = get_color(J, props),
 			};
 		}else if(strncmp(title,"item",4)==0){
 			node.painter.kind=PAINTER_NONE;
 		}else if(strncmp(title,"img",3)==0){
 			node.painter.kind=PAINTER_IMG;
-			node.painter.value.img.source=get_property_string_or(J,2,"src",NULL);
+			node.painter.value.img.source=get_property_string_or(J,props,"src",NULL);
 			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
 			if(t!=NULL){
 			    *t = LoadTexture(node.painter.value.img.source);
@@ -174,7 +177,7 @@ static void js_ui_create(js_State *J) {
 			js_pushundefined(J);
 			return;
 		}
-	} else if(js_iscallable(J, 1) != 0){
+	} else if(js_iscallable(J, name) != 0){
 		js_error(J, "not implemented");
 		js_pushundefined(J);
 		return;
@@ -199,15 +202,22 @@ static void js_ui_create(js_State *J) {
 
 	int parent=ui_tree->nodes.len;
 	array_append_Node(&ui_tree->nodes, node);
-	for(int i= 3; i < top; i += 1){
-		if(js_isnumber(J, i) == 0){
-			continue;
-		}
-		int child= js_tointeger(J, i);
-		if(child >= ui_tree->nodes.len||child<0) {
-			break;
-		}
-		link_child(ui_tree,parent,child);
+
+	if(js_isarray(J,children)!=0){
+	    int len = js_getlength(J,children);
+    	for(int i= 0; i < len; i += 1){
+            js_getindex(J, children,  i);
+    		if(js_isnumber(J, -1) == 0){
+    		    js_pop(J,1);
+    			continue;
+    		}
+    		int child= js_tointeger(J, -1);
+    		if(child >= ui_tree->nodes.len||child<0) {
+    			break;
+    		}
+    		link_child(ui_tree,parent,child);
+    		js_pop(J,1);
+    	}
 	}
 	js_pushnumber(J, parent);
 }
@@ -315,7 +325,7 @@ static void js_pick_node(js_State *J){
 }
 
 void bind_ui_func(js_State *J){
-    js_newcfunction(J, js_ui_create, "ui_create", 2);
+    js_newcfunction(J, js_ui_create, "ui_create", 3);
 	js_setglobal(J, "ui_create");
 	js_newcfunction(J, js_ui_compute, "ui_compute", 1);
 	js_setglobal(J, "ui_compute");
