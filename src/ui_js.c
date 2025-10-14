@@ -106,6 +106,30 @@ static inline Align get_property_align(js_State *J, int idx,const char* name){
     return AlignBegin;
 }
 
+bool walk_children(js_State *J,int idx,int parent){
+    if(js_isarray(J,idx)==0){
+        return false;
+    }
+    int len = js_getlength(J,idx);
+   	for(int i= 0; i < len; i += 1){
+        js_getindex(J, idx,  i);
+        if(walk_children(J, js_gettop(J)-1,parent)){
+            continue;
+        }
+        if(js_isnumber(J, -1) == 0){
+            js_pop(J,1);
+            continue;
+        }
+        int child= js_tointeger(J, -1);
+        if(child >= ui_tree->nodes.len||child<0) {
+            break;
+        }
+        link_child(ui_tree,parent,child);
+        js_pop(J,1);
+   	}
+    return true;
+}
+
 static void js_ui_create(js_State *J) {
     const int name=1;
     const int props=2;
@@ -181,19 +205,6 @@ static void js_ui_create(js_State *J) {
 		js_error(J, "not implemented");
 		js_pushundefined(J);
 		return;
-
-		// mujs.pushnull(J)
-		//    mujs.copy(J,2)
-		// if mujs.pcall(J, 2) {
-		//        mujs.error(J,"an exception occurred in the javascript callback")
-		//        mujs.pushundefined(J)
-		// 	return
-		// }
-
-		// if mujs.isuserdata(J, -1,"Node"){
-		//     append(children,cast(^UiNode)mujs.touserdata(J,-1,"Node")^)
-		//    }
-		// mujs.pop(J, 1)
 	} else {
 		js_error(J, "invalid param type");
 		js_pushundefined(J);
@@ -202,25 +213,11 @@ static void js_ui_create(js_State *J) {
 
 	int parent=ui_tree->nodes.len;
 	array_append_Node(&ui_tree->nodes, node);
-
-	if(js_isarray(J,children)!=0){
-	    int len = js_getlength(J,children);
-    	for(int i= 0; i < len; i += 1){
-            js_getindex(J, children,  i);
-    		if(js_isnumber(J, -1) == 0){
-    		    js_pop(J,1);
-    			continue;
-    		}
-    		int child= js_tointeger(J, -1);
-    		if(child >= ui_tree->nodes.len||child<0) {
-    			break;
-    		}
-    		link_child(ui_tree,parent,child);
-    		js_pop(J,1);
-    	}
-	}
+	walk_children(J,children,parent);
 	js_pushnumber(J, parent);
 }
+
+
 
 
 static void js_ui_compute(js_State *J){
