@@ -263,7 +263,6 @@ int main(int argc, char** argv){
     InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);
 
-
    	if(js_dostring(J, "init();") !=0){
 	    printf("failed while running init()\n");
 	    return 1;
@@ -272,24 +271,10 @@ int main(int argc, char** argv){
 	const char * txt ="";
     while (!WindowShouldClose())
     {
-
-        if      (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))    txt = "MOUSE_BUTTON_LEFT";
-        else if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE))  txt = "MOUSE_BUTTON_MIDDLE";
-        else if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))   txt = "MOUSE_BUTTON_RIGHT";
-        else if (IsMouseButtonPressed(MOUSE_BUTTON_SIDE))    txt = "MOUSE_BUTTON_SIDE";
-        else if (IsMouseButtonPressed(MOUSE_BUTTON_EXTRA))   txt = "MOUSE_BUTTON_EXTRA";
-        else if (IsMouseButtonPressed(MOUSE_BUTTON_FORWARD)) txt = "MOUSE_BUTTON_FORWARD";
-        else if (IsMouseButtonPressed(MOUSE_BUTTON_BACK))    txt = "MOUSE_BUTTON_BACK";
-        else                                                 txt = "NOTHING";
-
         BeginDrawing();
-        ClearBackground(RAYWHITE);
-
         if(js_dostring(J, "render();")){
             break;
         }
-        DrawText(txt, 10, 10, 20, DARKGRAY);
-
         EndDrawing();
     }
     CloseWindow();

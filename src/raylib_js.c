@@ -199,11 +199,11 @@ void init_keyboard_key_hmap(Allocator alloc){
     *KeyboardKey_upsert(&hmap_keyboard_key, "volume_down", UpsertActionCreate)=KEY_VOLUME_DOWN;
 }
 
-void is_mouse_button_pressed(js_State *J){
+int get_mouse_button(js_State *J){
     if(!js_isstring(J, 1)){
         js_pushboolean(J,false);
         js_error(J, "function is_mouse_button_pressed want one string agument");
-        return;
+        return -1;
     }
     MouseButton mouse_button = {0};
     const char * button = js_tostring(J,1);
@@ -214,31 +214,42 @@ void is_mouse_button_pressed(js_State *J){
     }else{
         js_pushboolean(J,false);
         js_error(J, "function is_mouse_button_pressed want one string agument which could be ['left'|'right']");
+        return -1;
+    }
+    return mouse_button;
+}
+
+void is_mouse_button_pressed(js_State *J){
+    int mouse_button = get_mouse_button(J);
+    if(mouse_button<0){
         return;
     }
-    bool ret = IsMouseButtonPressed(mouse_button);
-    // printf("is_mouse_button_pressed %s : %d = %d\n",button,mouse_button,ret);
-    js_pushboolean(J,ret);
+    js_pushboolean(J,IsMouseButtonPressed(mouse_button));
 }
 
 void is_mouse_button_released(js_State *J){
-    if(!js_isstring(J, 1)){
-        js_pushboolean(J,false);
-        js_error(J, "function is_mouse_button_released want one string agument");
-        return;
-    }
-    MouseButton mouse_button = {0};
-    const char * button = js_tostring(J,1);
-    if(strcmp(button, "left")==0){
-        mouse_button = MOUSE_LEFT_BUTTON;
-    }else if(strcmp(button, "right")==0){
-        mouse_button = MOUSE_RIGHT_BUTTON;
-    }else{
-        js_pushboolean(J,false);
-        js_error(J, "function is_mouse_button_released want one string agument which could be ['left'|'right']");
+    int mouse_button = get_mouse_button(J);
+    if(mouse_button<0){
         return;
     }
     js_pushboolean(J,IsMouseButtonReleased(mouse_button));
+}
+
+
+void is_mouse_button_up(js_State *J){
+    int mouse_button = get_mouse_button(J);
+    if(mouse_button<0){
+        return;
+    }
+    js_pushboolean(J,IsMouseButtonUp(mouse_button));
+}
+
+void is_mouse_button_down(js_State *J){
+    int mouse_button = get_mouse_button(J);
+    if(mouse_button<0){
+        return;
+    }
+    js_pushboolean(J,IsMouseButtonDown(mouse_button));
 }
 
 void get_mouse_x(js_State *J){
@@ -267,6 +278,10 @@ void bind_raylib_func(js_State *J,Allocator alloc){
 	js_setglobal(J, "is_mouse_button_pressed");
 	js_newcfunction(J, is_mouse_button_released, "is_mouse_button_released", 1);
 	js_setglobal(J, "is_mouse_button_released");
+	js_newcfunction(J, is_mouse_button_down, "is_mouse_button_down", 1);
+	js_setglobal(J, "is_mouse_button_down");
+	js_newcfunction(J, is_mouse_button_up, "is_mouse_button_up", 1);
+	js_setglobal(J, "is_mouse_button_up");
 	js_newcfunction(J, get_mouse_x, "get_mouse_x", 1);
 	js_setglobal(J, "get_mouse_x");
 	js_newcfunction(J, get_mouse_y, "get_mouse_y", 1);
