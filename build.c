@@ -2,7 +2,7 @@
 
 #define TARGET "lust2D"
 
-#define MACOS_FLAGS "-framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL"
+#define MACOS_FLAGS "-framework CoreVideo -framework CoreAudio -framework IOKit -framework Cocoa -framework OpenGL"
 
 void build_lib(int debug){
     BuildCtx ctx = build_init();

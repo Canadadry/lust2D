@@ -321,7 +321,15 @@ static void js_pick_node(js_State *J){
     js_pushnull(J);
 }
 
+void js_ui_clear(js_State *J){
+    ui_tree->nodes.len=0;
+    ui_tree->commands.len=0;
+    js_pushundefined(J);
+}
+
 void bind_ui_func(js_State *J){
+    js_newcfunction(J, js_ui_clear, "ui_clear", 0);
+	js_setglobal(J, "ui_clear");
     js_newcfunction(J, js_ui_create, "ui_create", 3);
 	js_setglobal(J, "ui_create");
 	js_newcfunction(J, js_ui_compute, "ui_compute", 1);

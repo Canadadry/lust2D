@@ -3,6 +3,7 @@
 #include "allocator.h"
 #include "hashmap.h"
 #include "js_helper.h"
+#include <stdio.h>
 #include <string.h>
 
 WRITE_HASHMAP_IMPL(Texture)
@@ -201,34 +202,40 @@ void init_keyboard_key_hmap(Allocator alloc){
 void is_mouse_button_pressed(js_State *J){
     if(!js_isstring(J, 1)){
         js_pushboolean(J,false);
+        js_error(J, "function is_mouse_button_pressed want one string agument");
         return;
     }
     MouseButton mouse_button = {0};
     const char * button = js_tostring(J,1);
-    if(strcmp(button, "left")){
+    if(strcmp(button, "left")==0){
         mouse_button = MOUSE_LEFT_BUTTON;
-    }else if(strcmp(button, "right")){
+    }else if(strcmp(button, "right")==0){
         mouse_button = MOUSE_RIGHT_BUTTON;
     }else{
         js_pushboolean(J,false);
+        js_error(J, "function is_mouse_button_pressed want one string agument which could be ['left'|'right']");
         return;
     }
-    js_pushboolean(J,IsMouseButtonPressed(mouse_button));
+    bool ret = IsMouseButtonPressed(mouse_button);
+    // printf("is_mouse_button_pressed %s : %d = %d\n",button,mouse_button,ret);
+    js_pushboolean(J,ret);
 }
 
-void is_mouse_button_realsed(js_State *J){
+void is_mouse_button_released(js_State *J){
     if(!js_isstring(J, 1)){
         js_pushboolean(J,false);
+        js_error(J, "function is_mouse_button_released want one string agument");
         return;
     }
     MouseButton mouse_button = {0};
     const char * button = js_tostring(J,1);
-    if(strcmp(button, "left")){
+    if(strcmp(button, "left")==0){
         mouse_button = MOUSE_LEFT_BUTTON;
-    }else if(strcmp(button, "right")){
+    }else if(strcmp(button, "right")==0){
         mouse_button = MOUSE_RIGHT_BUTTON;
     }else{
         js_pushboolean(J,false);
+        js_error(J, "function is_mouse_button_released want one string agument which could be ['left'|'right']");
         return;
     }
     js_pushboolean(J,IsMouseButtonReleased(mouse_button));
@@ -258,8 +265,8 @@ void bind_raylib_func(js_State *J,Allocator alloc){
 	js_setglobal(J, "is_key_down");
 	js_newcfunction(J, is_mouse_button_pressed, "is_mouse_button_pressed", 1);
 	js_setglobal(J, "is_mouse_button_pressed");
-	js_newcfunction(J, is_mouse_button_realsed, "is_mouse_button_realsed", 1);
-	js_setglobal(J, "is_mouse_button_realsed");
+	js_newcfunction(J, is_mouse_button_released, "is_mouse_button_released", 1);
+	js_setglobal(J, "is_mouse_button_released");
 	js_newcfunction(J, get_mouse_x, "get_mouse_x", 1);
 	js_setglobal(J, "get_mouse_x");
 	js_newcfunction(J, get_mouse_y, "get_mouse_y", 1);
