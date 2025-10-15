@@ -260,8 +260,10 @@ int main(int argc, char** argv){
 
 	Window window = get_window(J);
 	SetTraceLogLevel(LOG_WARNING);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);
+    SetWindowFocused();
 
    	if(js_dostring(J, "init();") !=0){
 	    printf("failed while running init()\n");
@@ -271,6 +273,18 @@ int main(int argc, char** argv){
 	const char * txt ="";
     while (!WindowShouldClose())
     {
+        if(IsWindowResized()){
+            char txt[1024]={0};
+            Vector2 scale = GetWindowScaleDPI();
+            snprintf(txt, 1024, "window.width = %d/%f;window.height = %d/%f;",
+                GetRenderWidth(),scale.x,
+                GetRenderHeight(),scale.y
+            );
+           	if(js_dostring(J, txt) !=0){
+           	    printf("failed while updating  window size\n");
+           	    return 1;
+           	}
+        }
         BeginDrawing();
         if(js_dostring(J, "render();")){
             break;
