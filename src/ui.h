@@ -15,6 +15,7 @@ typedef enum {
     PAINTER_RECT,
     PAINTER_IMG,
     PAINTER_TILE,
+    PAINTER_TEXT,
 } PainterKind;
 
 typedef union{
@@ -33,6 +34,12 @@ typedef struct{
 
 typedef struct{
     UiColor color;
+    const char* msg;
+    int font_size;
+}PainterText;
+
+typedef struct{
+    UiColor color;
     const char* source;
    	VECTOR2(int) at;
     VECTOR2(int) padding;
@@ -45,6 +52,7 @@ typedef struct{
         PainterRect rect;
         PainterImage img;
         PainterTile tile;
+        PainterText text;
     } value;
 }Painter;
 

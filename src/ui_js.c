@@ -261,6 +261,11 @@ static void js_ui_create(js_State *J) {
     			.x=get_property_int_or(J,props,"tile_size_x",0),
     			.y=get_property_int_or(J,props,"tile_size_y",0),
 		    };
+		}else if(strncmp(title,"txt",4)==0){
+			node.painter.kind=PAINTER_TEXT;
+			node.painter.value.text.msg=get_property_string_or(J,props,"msg",NULL);
+			node.painter.value.text.color=get_color(J, props);
+			node.painter.value.text.font_size=get_property_int_or(J,props,"font_size",10);
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
 			js_pushundefined(J);
@@ -339,6 +344,8 @@ void draw(Tree tree){
     			WHITE
     		);
             break;
+        case PAINTER_TEXT:
+            DrawText(p.value.text.msg, rect.x,rect.y, p.value.text.font_size, p.value.text.color.rgba);
 		}
 	}
 }

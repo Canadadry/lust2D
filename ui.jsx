@@ -20,10 +20,14 @@ var Icon = function(props,children){
 }
 
 exports.init = function(){
-  return { w:800,h:600,x: 0, y: 0 , offset_x:0,offset_y:0,pressed:false};
+  return { w:800,h:600,x: 0, y: 0 , offset_x:0,offset_y:0,pressed:false,at_x:3,at_y:4};
 }
 
 exports.update = function(model,event){
+  if(is_key_pressed("left")) {model.at_x -= 1;}
+  if(is_key_pressed("right")){model.at_x += 1;}
+  if(is_key_pressed("up"))   {model.at_y -= 1;}
+  if(is_key_pressed("down")) {model.at_y += 1;}
   if(event.name=="mouse_pressed" && event.target=="root"){
     model.pressed = true;
     model.offset_x = event.mouse_x - model.x;
@@ -44,10 +48,11 @@ exports.update = function(model,event){
 exports.render = function (props) {
   return (
     <Button id="root" x={props.x} y={props.y} color={"#0F0"}>
-      <Icon at_x={3} at_y={4}></Icon>
+      <Icon at_x={props.at_x} at_y={props.at_y}></Icon>
       <rectangle id="first" w={50} h={50} color={"#FFFF00"}></rectangle>
       <rectangle id="second" w={10} h={150} color={"#FFFF00"}></rectangle>
       <img src="spritesheet.png" class="grow"></img>
+      <txt msg="hello wlord" font_size={40} color="#000"></txt>
     </Button>
   );
 };
