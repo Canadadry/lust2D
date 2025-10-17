@@ -88,32 +88,26 @@ static inline void build_run_cmd(const char *first, ...) {
 }
 
 
-static inline int build_has_arg(int argc, char **argv, int n, ...) {
-    if (n < 1) {
-        fprintf(stderr, "build_has_arg: need at least one alias\n");
-        exit(1);
-    }
+#define build_has_arg(argc,argv,...) __build_has_arg((argc),(argv),__VA_ARGS__, NULL)
 
+static inline int __build_has_arg(int argc, char **argv, ...) {
     va_list args;
-    va_start(args, n);
+    va_start(args, argv);
 
-    for (int i = 1; i < argc; i++) {
-        va_list args_copy;
-        va_copy(args_copy, args);
-        for (int j = 0; j < n; j++) {
-            const char *alias = va_arg(args_copy, const char*);
-            if (strcmp(argv[i], alias) == 0) {
-                va_end(args_copy);
+    const char *alias = NULL;
+    while ((alias = va_arg(args, const char*))) {
+        for (int i = 1; i < argc; i++) {
+            const char * arg_val =argv[i];
+            if (strcmp(arg_val, alias) == 0) {
                 va_end(args);
                 return 1;
             }
         }
-        va_end(args_copy);
     }
-
     va_end(args);
     return 0;
 }
+
 
 static inline void build_compile(BuildCtx *ctx, const char *pattern) {
     char path[BUILD_PATH_MAX];

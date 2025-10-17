@@ -43,18 +43,18 @@ void build_test(){
 
 int main(int argc, char **argv) {
 
-    if (build_has_arg(argc, argv, 1, "clean")){
+    if (build_has_arg(argc, argv,  "clean")){
         BUILD_RUN_CMD("rm", "-rf", "build");
     }
 
-    build_lib(build_has_arg(argc, argv, 2, "debug","test"));
-    if (build_has_arg(argc, argv, 1, "test")){
+    build_lib(build_has_arg(argc, argv,  "debug","test"));
+    if (build_has_arg(argc, argv,  "test")){
         build_test();
         BUILD_RUN_CMD("./build/tests/run_testsd");
     }
 
-    if (build_has_arg(argc, argv, 1, "run")){
-        if(build_has_arg(argc, argv, 2, "debug","test")){
+    if (build_has_arg(argc, argv,  "run")){
+        if(build_has_arg(argc, argv, "debug","test")){
             BUILD_RUN_CMD("./build/"TARGET"d","example.jsx");
         }else{
             BUILD_RUN_CMD("./build/"TARGET,"example.jsx");
