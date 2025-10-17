@@ -1,11 +1,25 @@
 var Button = function (props,children) {
-  return <rectangle id={props.id} class="fit m-2 p-2" x={props.x} y={props.y} r={props.r} g={props.g} b={props.b}>
+  return <rectangle id={props.id} class="fit m-2 p-2" x={props.x} y={props.y} color={props.color} r={props.r} g={props.g} b={props.b}>
     {children}
   </rectangle>
 };
 
+exports.line = {
+  init:function(){
+    return {};
+  },
+  update:function(model,event){
+    return model;
+  },
+  view:function(props,children){
+    return  <rectangle class="grow-x" h={50} r={0} g={0} b={255}>
+      {children}
+    </rectangle>
+  }
+}
+
 exports.init = function(){
-  return { x: 0, y: 0 , offset_x:0,offset_y:0,pressed:false};
+  return { w:800,h:600,x: 0, y: 0 , offset_x:0,offset_y:0,pressed:false};
 }
 
 exports.update = function(model,event){
@@ -28,9 +42,9 @@ exports.update = function(model,event){
 
 exports.render = function (props) {
   return (
-    <Button id="root" x={props.x} y={props.y} r={0} g={255} b={0}>
-      <rectangle id="first" w={50} h={50} r={0} g={0} b={255}></rectangle>
-      <rectangle id="second" w={10} h={150} r={255} g={0} b={255}></rectangle>
+    <Button id="root" x={props.x} y={props.y} color={"#0F0"}>
+      <rectangle id="first" w={50} h={50} color={"#FFFF00"}></rectangle>
+      <rectangle id="second" w={10} h={150} color={"#FFFF00"}></rectangle>
       <img src="spritesheet.png" class="grow"></img>
     </Button>
   );

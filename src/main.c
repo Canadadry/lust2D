@@ -270,7 +270,6 @@ int main(int argc, char** argv){
 	    return 1;
 	}
 
-	const char * txt ="";
     while (!WindowShouldClose())
     {
         if(IsWindowResized()){

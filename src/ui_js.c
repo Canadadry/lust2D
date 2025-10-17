@@ -12,10 +12,55 @@ extern HASHMAP(init_node_fn)* hmap_init_node_fn;
 extern HASHMAP(Texture)* hmap_texture;
 extern Tree* ui_tree;
 
+UiColor hex_to_rgba(js_State *J,const char *hex) {
+    Color color = {0, 0, 0, 255};
+
+    if (hex[0] != '#') {
+        js_error(J, "invalid color format");
+        return (UiColor){.rgba=color};
+    }
+
+    size_t len = strlen(hex);
+    if (len == 4) {
+        unsigned int r, g, b;
+        sscanf(hex + 1, "%1x%1x%1x", &r, &g, &b);
+        color.r = (unsigned char)(r * 17);
+        color.g = (unsigned char)(g * 17);
+        color.b = (unsigned char)(b * 17);
+    } else if (len == 5) {
+        unsigned int r, g, b;
+        sscanf(hex + 1, "%2x%2x%2x", &r, &g, &b);
+        color.r = (unsigned char)(r);
+        color.g = (unsigned char)(g);
+        color.b = (unsigned char)(b);
+    } else if (len == 7) {
+        unsigned int r, g, b;
+        sscanf(hex + 1, "%2x%2x%2x", &r, &g, &b);
+        color.r = (unsigned char)(r);
+        color.g = (unsigned char)(g);
+        color.b = (unsigned char)(b);
+    } else if (len == 9) {
+        unsigned int r, g, b, a;
+        sscanf(hex + 1, "%2x%2x%2x%2x", &r, &g, &b, &a);
+        color.r = (unsigned char)(r);
+        color.g = (unsigned char)(g);
+        color.b = (unsigned char)(b);
+        color.a = (unsigned char)(a);
+    } else {
+        js_error(J, "invalid color format");
+    }
+
+    return (UiColor){.rgba=color};;
+}
+
 static UiColor get_color(js_State *J, int idx)  {
 	if (js_isobject(J, idx) == 0) {
 		return (UiColor){.rgba=WHITE};
 	};
+	if (js_hasproperty(J, idx, "color")){
+	    const char* hex_color = get_property_string_or(J,idx,"color","#FFF");
+		return hex_to_rgba(J,hex_color);
+	}
 	return (UiColor){
     	.rgba=(Color){
     		.r = (unsigned char)get_property_number_or(J, idx, "r", 255),
