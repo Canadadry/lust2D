@@ -11,7 +11,7 @@ CREATE_OPTIONAL_TYPE(string)
 
 OPTIONAL(double) get_property_number(js_State *J, int idx,const char* name);
 double get_property_number_or(js_State *J, int idx,const char* name, double def);
-double get_property_int_or(js_State *J, int idx,const char* name, int def);
+int get_property_int_or(js_State *J, int idx,const char* name, int def);
 OPTIONAL(string) get_property_string(js_State *J, int idx,const char* name);
 const char*  get_property_string_or(js_State *J, int idx,const char* name, const char*  def);
 

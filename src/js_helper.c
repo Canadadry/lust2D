@@ -22,7 +22,7 @@ double get_property_number_or(js_State *J, int idx,const char* name, double def)
     return ret.value;
 }
 
-double get_property_int_or(js_State *J, int idx,const char* name, int def){
+int get_property_int_or(js_State *J, int idx,const char* name, int def){
     OPTIONAL(double) ret = get_property_number(J,idx,name);
     if(ret.ok == false){
         return def;

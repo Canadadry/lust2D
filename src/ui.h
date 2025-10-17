@@ -36,6 +36,8 @@ typedef struct{
     UiColor color;
     const char* msg;
     int font_size;
+    int spacing;
+    bool wordwrap;
 }PainterText;
 
 typedef struct{
