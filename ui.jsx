@@ -4,18 +4,19 @@ var Button = function (props,children) {
   </rectangle>
 };
 
-exports.line = {
-  init:function(){
-    return {};
-  },
-  update:function(model,event){
-    return model;
-  },
-  view:function(props,children){
-    return  <rectangle class="grow-x" h={50} r={0} g={0} b={255}>
-      {children}
-    </rectangle>
-  }
+
+var Icon = function(props,children){
+  return <tile
+    src="spritesheet.png"
+    at_x={props.at_x || 0}
+    at_y={props.at_y || 0}
+    w={26}
+    h={26}
+    tile_padding_x={0}
+    tile_padding_y={0}
+    tile_size_x={26}
+    tile_size_y={26}
+  ></tile>;
 }
 
 exports.init = function(){
@@ -43,6 +44,7 @@ exports.update = function(model,event){
 exports.render = function (props) {
   return (
     <Button id="root" x={props.x} y={props.y} color={"#0F0"}>
+      <Icon at_x={3} at_y={4}></Icon>
       <rectangle id="first" w={50} h={50} color={"#FFFF00"}></rectangle>
       <rectangle id="second" w={10} h={150} color={"#FFFF00"}></rectangle>
       <img src="spritesheet.png" class="grow"></img>

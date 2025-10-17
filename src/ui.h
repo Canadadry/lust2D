@@ -14,6 +14,7 @@ typedef enum {
     PAINTER_NONE,
     PAINTER_RECT,
     PAINTER_IMG,
+    PAINTER_TILE,
 } PainterKind;
 
 typedef union{
@@ -31,10 +32,19 @@ typedef struct{
 }PainterImage;
 
 typedef struct{
+    UiColor color;
+    const char* source;
+   	VECTOR2(int) at;
+    VECTOR2(int) padding;
+    VECTOR2(int) size;
+}PainterTile;
+
+typedef struct{
     PainterKind kind;
     union{
         PainterRect rect;
         PainterImage img;
+        PainterTile tile;
     } value;
 }Painter;
 
@@ -74,7 +84,6 @@ typedef struct{
     int bottom;
 }Padding;
 
-CREATE_VECTOR2_TYPE(int)
 CREATE_VECTOR2_TYPE(Size)
 CREATE_VECTOR2_TYPE(Align)
 CREATE_RECTANGLE_TYPE(int)

@@ -6,6 +6,7 @@
 #include "jsx_class.h"
 #include "hashmap.h"
 #include "raylib_js.h"
+#include "vector2.h"
 #include <stdio.h>
 
 extern HASHMAP(init_node_fn)* hmap_init_node_fn;
@@ -166,11 +167,11 @@ bool walk_children(js_State *J,int idx,int parent){
             continue;
         }
         int child= js_tointeger(J, -1);
+        js_pop(J,1);
         if(child >= ui_tree->nodes.len||child<0) {
             break;
         }
         link_child(ui_tree,parent,child);
-        js_pop(J,1);
    	}
     return true;
 }
@@ -241,15 +242,30 @@ static void js_ui_create(js_State *J) {
 			if(t!=NULL){
 			    *t = LoadTexture(node.painter.value.img.source);
 			}
+		}else if(strncmp(title,"tile",4)==0){
+			node.painter.kind=PAINTER_TILE;
+			node.painter.value.tile.source=get_property_string_or(J,props,"src",NULL);
+			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
+			if(t!=NULL){
+			    *t = LoadTexture(node.painter.value.tile.source);
+			}
+			node.painter.value.tile.at = (VECTOR2(int)){
+    			.x=get_property_int_or(J,props,"at_x",0),
+    			.y=get_property_int_or(J,props,"at_y",0),
+		    };
+			node.painter.value.tile.padding = (VECTOR2(int)){
+    			.x=get_property_int_or(J,props,"tile_padding_x",0),
+    			.y=get_property_int_or(J,props,"tile_padding_y",0),
+		    };
+			node.painter.value.tile.size = (VECTOR2(int)){
+    			.x=get_property_int_or(J,props,"tile_size_x",0),
+    			.y=get_property_int_or(J,props,"tile_size_y",0),
+		    };
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
 			js_pushundefined(J);
 			return;
 		}
-	} else if(js_iscallable(J, name) != 0){
-		js_error(J, "not implemented");
-		js_pushundefined(J);
-		return;
 	} else {
 		js_error(J, "invalid param type");
 		js_pushundefined(J);
@@ -261,9 +277,6 @@ static void js_ui_create(js_State *J) {
 	walk_children(J,children,parent);
 	js_pushnumber(J, parent);
 }
-
-
-
 
 static void js_ui_compute(js_State *J){
 	if (ui_tree->nodes.len<=0){
@@ -282,7 +295,8 @@ static void js_ui_compute(js_State *J){
 		js_pushundefined(J);
 		return;
 	}
-	compute(ui_tree, idx);
+	Tree* t = ui_tree;
+	compute(t, idx);
 }
 
 void draw(Tree tree){
@@ -293,14 +307,15 @@ void draw(Tree tree){
 	    rect.y      = tree.commands.data[i].y;
 	    rect.width  = tree.commands.data[i].w;
 	    rect.height = tree.commands.data[i].h;
-	    switch(tree.commands.data[i].painter.kind){
+		Painter p =tree.commands.data[i].painter;
+	    switch(p.kind){
     	case PAINTER_NONE:
     	    break;
     	case PAINTER_RECT:
-    		DrawRectangleRec(rect, tree.commands.data[i].painter.value.rect.color.rgba);
+    		DrawRectangleRec(rect, p.value.rect.color.rgba);
             break;
         case PAINTER_IMG:
-            t = Texture_upsert(hmap_texture,tree.commands.data[i].painter.value.img.source , UpsertActionUpdate);
+            t = Texture_upsert(hmap_texture,p.value.img.source , UpsertActionUpdate);
             if(t!=NULL){
                 DrawTexturePro(*t, (Rectangle){
                     .x=0,.y=0,
@@ -309,24 +324,28 @@ void draw(Tree tree){
                 },rect, (Vector2){0} , 0, WHITE);
     		}
             break;
+        case PAINTER_TILE:
+            t = Texture_upsert(hmap_texture,p.value.tile.source , UpsertActionUpdate);
+    		VECTOR2(int) pos = {
+    		    .x=(p.value.tile.padding.x+p.value.tile.size.x)*p.value.tile.at.x+p.value.tile.padding.x,
+    			.y=(p.value.tile.padding.y+p.value.tile.size.y)*p.value.tile.at.y+p.value.tile.padding.y
+    		};
+    		DrawTexturePro(
+    			*t,
+    			(Rectangle){.x=pos.x, .y=pos.y, .width=p.value.tile.size.x, .height=p.value.tile.size.y},
+    			rect,
+    			(Vector2){0,0},
+    			0,
+    			WHITE
+    		);
+            break;
 		}
 	}
 }
 
 static void js_ui_draw(js_State *J){
-	if (ui_tree->nodes.len<=0){
-		js_error(J, "empty ui_node, call create before calling draw");
-		js_pushundefined(J);
-		return;
-	}
-	if (js_isnumber(J, 1) == 0 ){
-		js_error(J, "node index passed to draw should be a number");
-		js_pushundefined(J);
-		return;
-	}
-	int idx = js_tointeger(J, 1);
-	if(idx >= ui_tree->nodes.len) {
-		js_error(J, "node index passed to draw should lesser than ui_node len");
+	if (ui_tree->commands.len<=0){
+		js_error(J, "empty ui_node, call create and compute before calling draw");
 		js_pushundefined(J);
 		return;
 	}
@@ -379,7 +398,7 @@ void bind_ui_func(js_State *J){
 	js_setglobal(J, "ui_create");
 	js_newcfunction(J, js_ui_compute, "ui_compute", 1);
 	js_setglobal(J, "ui_compute");
-	js_newcfunction(J, js_ui_draw, "ui_draw", 1);
+	js_newcfunction(J, js_ui_draw, "ui_draw",0);
 	js_setglobal(J, "ui_draw");
 	js_newcfunction(J, js_pick_node, "ui_pick", 2);
 	js_setglobal(J, "ui_pick");

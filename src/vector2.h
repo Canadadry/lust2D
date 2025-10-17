@@ -10,4 +10,6 @@
         type y;                                          \
     } VECTOR2(type);
 
+CREATE_VECTOR2_TYPE(int)
+
 #endif // _VECTOR2_H
