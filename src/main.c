@@ -13,6 +13,7 @@
 #include "js_helper.h"
 #include "raylib_js.h"
 #include "ui_js.h"
+#include "text.h"
 
 
 HASHMAP(init_node_fn)* hmap_init_node_fn;
@@ -184,21 +185,60 @@ static Window get_window(js_State *J) {
 VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
     VECTOR2(int) ret = {0};
     Texture* t;
-    if(p.kind==PAINTER_IMG){
+    Font f = GetFontDefault();
+    switch(p.kind){
+    case PAINTER_NONE:
+        break;
+    case PAINTER_RECT:
+        break;
+    case PAINTER_IMG:
         t = Texture_upsert(hmap_texture,p.value.img.source , UpsertActionUpdate);
         if(t!=NULL){
             ret.x = t->width;
             ret.y = t->height;
         }
+        break;
+    case PAINTER_TILE:
+        ret =p.value.tile.size;
+        break;
+    case PAINTER_TEXT:
+        ret = mesure_text(p.value.text.msg,0,(FontParam){
+            .Font=(void*)&f,
+            .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
+            .color=p.value.text.color,
+            .line_spacing=p.value.text.spacing,
+            .spacing=p.value.text.spacing,
+            .size=p.value.text.font_size,
+        });
+        break;
     }
     return ret;
 }
 
 int wrap_content_fn(void *userdata,Painter p,int width){
     VECTOR2(int) content = {0};
-    if(p.kind==PAINTER_IMG){
+    Font f = GetFontDefault();
+    switch(p.kind){
+    case PAINTER_NONE:
+        break;
+    case PAINTER_RECT:
+        break;
+    case PAINTER_IMG:
         content = mesure_content_fn(userdata,p);
         return (int)((float)width*(float)content.y/(float)content.x);
+    case PAINTER_TILE:
+        content = mesure_content_fn(userdata,p);
+        return (int)((float)width*(float)content.y/(float)content.x);
+    case PAINTER_TEXT:
+        content = mesure_text(p.value.text.msg,width,(FontParam){
+            .Font=(void*)&f,
+            .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
+            .color=p.value.text.color,
+            .line_spacing=p.value.text.spacing,
+            .spacing=p.value.text.spacing,
+            .size=p.value.text.font_size,
+        });
+        return content.y;
     }
     return 0;
 }
@@ -292,4 +332,29 @@ int main(int argc, char** argv){
     }
     CloseWindow();
     return 0;
+}
+
+VECTOR2(float) sizer(FontParam param, int codepoint) {
+    Font* font = (Font*)param.Font;
+	int index = GetGlyphIndex(*font, codepoint);
+	float scaleFactor = (float)param.size / (float)(font->baseSize);
+	float glyphWidth = 0.0;
+	if (codepoint != '\n') {
+		glyphWidth = (float)(font->glyphs[index].advanceX);
+		if(glyphWidth == 0){
+			glyphWidth = font->recs[index].width;
+		}
+		glyphWidth *= scaleFactor;
+	}
+	return (VECTOR2(float)){.x=glyphWidth, .y=(float)(font->baseSize) * scaleFactor};
+}
+
+void drawer(FontParam param, int codepoint, VECTOR2(int) pos) {
+   	DrawTextCodepoint(
+		*(Font*)param.Font,
+		codepoint,
+		(Vector2){.x=(float)(pos.x), .y=(float)(pos.y)},
+		param.size,
+		param.color.rgba
+    );
 }

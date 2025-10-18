@@ -52,7 +52,7 @@ exports.render = function (props) {
       <rectangle id="first" w={50} h={50} color={"#FFFF00"}></rectangle>
       <rectangle id="second" w={10} h={150} color={"#FFFF00"}></rectangle>
       <img src="spritesheet.png" class="grow"></img>
-      <txt msg="hello wlord" font_size={40} w={250} h={50} color="#000"></txt>
+      <txt msg="hello wlord" font_size={20} class="grow" color="#000"></txt>
     </Button>
   );
 };

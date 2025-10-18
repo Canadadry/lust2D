@@ -11,5 +11,6 @@
     } VECTOR2(type);
 
 CREATE_VECTOR2_TYPE(int)
+CREATE_VECTOR2_TYPE(float)
 
 #endif // _VECTOR2_H

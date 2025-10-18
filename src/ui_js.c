@@ -1,4 +1,5 @@
 #include "ui_js.h"
+#include "text.h"
 #include "ui.h"
 #include "../vendor/raylib/raylib.h"
 #include "js_helper.h"
@@ -306,128 +307,10 @@ static void js_ui_compute(js_State *J){
 	compute(t, idx);
 }
 
-static void DrawTextBoxed(Font font, const char *text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint)
-{
-    int length = TextLength(text);
-
-    float textOffsetY = 0;
-    float textOffsetX = 0.0f;
-
-    float scaleFactor = fontSize/(float)font.baseSize;
-
-    enum { MEASURE_STATE = 0, DRAW_STATE = 1 };
-    int state = wordWrap? MEASURE_STATE : DRAW_STATE;
-
-    int startLine = -1;
-    int endLine = -1;
-    int lastk = -1;
-
-    for (int i = 0, k = 0; i < length; i++, k++)
-    {
-        int codepointByteCount = 0;
-        int codepoint = GetCodepoint(&text[i], &codepointByteCount);
-        int index = GetGlyphIndex(font, codepoint);
-
-        // NOTE: Normally we exit the decoding sequence as soon as a bad byte is found (and return 0x3f)
-        // but we need to draw all of the bad bytes using the '?' symbol moving one byte
-        if (codepoint == 0x3f) codepointByteCount = 1;
-        i += (codepointByteCount - 1);
-
-        float glyphWidth = 0;
-        if (codepoint != '\n')
-        {
-            glyphWidth = (font.glyphs[index].advanceX == 0) ? font.recs[index].width*scaleFactor : font.glyphs[index].advanceX*scaleFactor;
-
-            if (i + 1 < length) glyphWidth = glyphWidth + spacing;
-        }
-
-        // NOTE: When wordWrap is ON we first measure how much of the text we can draw before going outside of the rec container
-        // We store this info in startLine and endLine, then we change states, draw the text between those two variables
-        // and change states again and again recursively until the end of the text (or until we get outside of the container)
-        // When wordWrap is OFF we don't need the measure state so we go to the drawing state immediately
-        // and begin drawing on the next line before we can get outside the container
-        if (state == MEASURE_STATE)
-        {
-            // TODO: There are multiple types of spaces in UNICODE, maybe it's a good idea to add support for more
-            // Ref: http://jkorpela.fi/chars/spaces.html
-            if ((codepoint == ' ') || (codepoint == '\t') || (codepoint == '\n')) endLine = i;
-
-            if ((textOffsetX + glyphWidth) > rec.width)
-            {
-                endLine = (endLine < 1)? i : endLine;
-                if (i == endLine) endLine -= codepointByteCount;
-                if ((startLine + codepointByteCount) == endLine) endLine = (i - codepointByteCount);
-
-                state = !state;
-            }
-            else if ((i + 1) == length)
-            {
-                endLine = i;
-                state = !state;
-            }
-            else if (codepoint == '\n') state = !state;
-
-            if (state == DRAW_STATE)
-            {
-                textOffsetX = 0;
-                i = startLine;
-                glyphWidth = 0;
-
-                // Save character position when we switch states
-                int tmp = lastk;
-                lastk = k - 1;
-                k = tmp;
-            }
-        }
-        else
-        {
-            if (codepoint == '\n')
-            {
-                if (!wordWrap)
-                {
-                    textOffsetY += (font.baseSize + font.baseSize/2)*scaleFactor;
-                    textOffsetX = 0;
-                }
-            }
-            else
-            {
-                if (!wordWrap && ((textOffsetX + glyphWidth) > rec.width))
-                {
-                    textOffsetY += (font.baseSize + font.baseSize/2)*scaleFactor;
-                    textOffsetX = 0;
-                }
-
-                // When text overflows rectangle height limit, just stop drawing
-                if ((textOffsetY + font.baseSize*scaleFactor) > rec.height) break;
-
-                // Draw current character glyph
-                if ((codepoint != ' ') && (codepoint != '\t'))
-                {
-                    DrawTextCodepoint(font, codepoint, (Vector2){ rec.x + textOffsetX, rec.y + textOffsetY }, fontSize,  tint);
-                }
-            }
-
-            if (wordWrap && (i == endLine))
-            {
-                textOffsetY += (font.baseSize + font.baseSize/2)*scaleFactor;
-                textOffsetX = 0;
-                startLine = endLine;
-                endLine = -1;
-                glyphWidth = 0;
-                k = lastk;
-
-                state = !state;
-            }
-        }
-
-        if ((textOffsetX != 0) || (codepoint != ' ')) textOffsetX += glyphWidth;
-    }
-}
-
-
 void draw(Tree tree){
 	Rectangle rect =(Rectangle){0};
 	Texture* t;
+	Font f = GetFontDefault();
 	for(int i=0;i<tree.commands.len;i++){
 	    rect.x      = tree.commands.data[i].x;
 	    rect.y      = tree.commands.data[i].y;
@@ -466,14 +349,14 @@ void draw(Tree tree){
     		);
             break;
         case PAINTER_TEXT:
-            DrawTextBoxed(
-                GetFontDefault(),
-                p.value.text.msg,
-                rect,
-                p.value.text.font_size,
-                p.value.text.spacing,
-                p.value.text.wordwrap,
-                p.value.text.color.rgba);
+            draw_text(p.value.text.msg,rect,(FontParam){
+                .Font=(void*)&f,
+                .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
+                .color=p.value.text.color,
+                .line_spacing=p.value.text.spacing,
+                .spacing=p.value.text.spacing,
+                .size=p.value.text.font_size,
+            });
 		}
 	}
 }

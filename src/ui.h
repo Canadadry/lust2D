@@ -172,4 +172,5 @@ void tree_init(Tree *tree,Allocator alloc);
 void compute(Tree* tree, NodeIndex idx);
 void link_child(Tree *tree,NodeIndex parent,NodeIndex child);
 
+int compute_align( Align a, int remaining);
 #endif
