@@ -283,6 +283,17 @@ static void js_ui_create(js_State *J) {
 	int parent=ui_tree->nodes.len;
 	array_append_Node(&ui_tree->nodes, node);
 	walk_children(J,children,parent);
+	if(ui_tree->nodes.data[parent].children_count == 0
+	&& ui_tree->nodes.data[parent].painter.kind == PAINTER_IMG
+	&& node.size.x.kind==SizeKindFit && node.size.x.size==0
+	&& node.size.y.kind==SizeKindFit && node.size.y.size==0
+	){
+	    Texture* t = Texture_upsert(hmap_texture,ui_tree->nodes.data[parent].painter.value.img.source , UpsertActionUpdate);
+		if(t != NULL){
+            ui_tree->nodes.data[parent].size.x.size=t->width;
+            ui_tree->nodes.data[parent].size.y.size=t->height;
+		}
+	}
 	js_pushnumber(J, parent);
 }
 

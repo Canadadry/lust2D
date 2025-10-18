@@ -51,7 +51,7 @@ exports.render = function (props) {
       <Icon at_x={props.at_x} at_y={props.at_y}></Icon>
       <rectangle id="first" w={50} h={50} color={"#FFFF00"}></rectangle>
       <rectangle id="second" w={10} h={150} color={"#FFFF00"}></rectangle>
-      <img src="spritesheet.png" class="grow"></img>
+      <img src="spritesheet.png"></img>
       <txt msg="hello wlord" font_size={20} class="grow" color="#000"></txt>
     </Button>
   );
