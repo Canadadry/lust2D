@@ -1,4 +1,5 @@
 #include "ui_js.h"
+#include "regexp.h"
 #include "text.h"
 #include "ui.h"
 #include "../vendor/raylib/raylib.h"
@@ -8,9 +9,11 @@
 #include "hashmap.h"
 #include "raylib_js.h"
 #include "vector2.h"
+#include "regex.h"
 #include <stdio.h>
 
 extern HASHMAP(init_node_fn)* hmap_init_node_fn;
+extern ARRAY(InitNodeFn1)* array_init_node_fn1;
 extern HASHMAP(Texture)* hmap_texture;
 extern Tree* ui_tree;
 
@@ -224,6 +227,17 @@ static void js_ui_create(js_State *J) {
             init_node_fn* fn = init_node_fn_upsert(hmap_init_node_fn,classname,UpsertActionUpdate);
             if(fn!=NULL && (*fn)!=NULL){
                 (*fn)(&node);
+            }else{
+                for(int i=0;i<array_init_node_fn1->len;i++){
+                    if(match(array_init_node_fn1->data[i].regexp,classname)==1){
+                        if(array_init_node_fn1->data[i].fn!=NULL){
+                            int val=0;
+                            sscanf(classname,array_init_node_fn1->data[i].scanf, &val);
+                            (*array_init_node_fn1->data[i].fn)(&node,val);
+                        }
+                        break;
+                    }
+                }
             }
         }
 	}
@@ -290,6 +304,8 @@ static void js_ui_create(js_State *J) {
 	){
 	    Texture* t = Texture_upsert(hmap_texture,ui_tree->nodes.data[parent].painter.value.img.source , UpsertActionUpdate);
 		if(t != NULL){
+		    ui_tree->nodes.data[parent].size.x.kind=SizeKindFixed;
+		    ui_tree->nodes.data[parent].size.y.kind=SizeKindFixed;
             ui_tree->nodes.data[parent].size.x.size=t->width;
             ui_tree->nodes.data[parent].size.y.size=t->height;
 		}

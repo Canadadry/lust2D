@@ -17,6 +17,7 @@
 
 
 HASHMAP(init_node_fn)* hmap_init_node_fn;
+ARRAY(InitNodeFn1)* array_init_node_fn1;
 HASHMAP(Texture)* hmap_texture;
 
 
@@ -254,7 +255,10 @@ int main(int argc, char** argv){
     HASHMAP(init_node_fn) loc_hmap_init_node_fn={0};
     loc_hmap_init_node_fn.data.alloc=alloc;
     hmap_init_node_fn = &loc_hmap_init_node_fn;
-    init_init_node_fn_hashmap(hmap_init_node_fn);
+    ARRAY(InitNodeFn1) loc_array_init_node_fn1={0};
+    loc_array_init_node_fn1.alloc=alloc;
+    array_init_node_fn1 = &loc_array_init_node_fn1;
+    init_init_node_fn_hashmap(hmap_init_node_fn,array_init_node_fn1);
 
     Tree loc_ui_tree = (Tree){0};
     tree_init(&loc_ui_tree,alloc);

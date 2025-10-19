@@ -1,7 +1,9 @@
 #include "jsx_class.h"
+#include "dynamicarray.h"
 #include "ui.h"
 
 WRITE_HASHMAP_IMPL(init_node_fn);
+WRITE_ARRAY_IMPL(InitNodeFn1);
 
 #define VAL1  5
 #define VAL2 10
@@ -65,7 +67,14 @@ void init_node_fn_set_align_y_begin(Node* n) { n->align.y = AlignBegin; }
 void init_node_fn_set_align_y_middle(Node* n) { n->align.y = AlignMiddle; }
 void init_node_fn_set_align_y_end(Node* n) { n->align.y = AlignEnd; }
 
-void init_init_node_fn_hashmap(HASHMAP(init_node_fn)* hmap) {
+void init_node_fn1_set_min(Node* n,int val) {n->size.x.bound.min = val;n->size.y.bound.min = val;}
+void init_node_fn1_set_min_x(Node* n,int val) {n->size.x.bound.min = val;}
+void init_node_fn1_set_min_y(Node* n,int val) {n->size.y.bound.min = val;}
+void init_node_fn1_set_max(Node* n,int val) {n->size.x.bound.max = val;n->size.y.bound.max = val;}
+void init_node_fn1_set_max_x(Node* n,int val) {n->size.x.bound.max = val;}
+void init_node_fn1_set_max_y(Node* n,int val) {n->size.y.bound.max = val;}
+
+void init_init_node_fn_hashmap(HASHMAP(init_node_fn)* hmap,ARRAY(InitNodeFn1)* array1){
     *(init_node_fn_upsert(hmap, "fit", UpsertActionCreate)) = init_node_fn_set_fit;
     *(init_node_fn_upsert(hmap, "fit_x", UpsertActionCreate)) = init_node_fn_set_fit_x;
     *(init_node_fn_upsert(hmap, "fit_y", UpsertActionCreate)) = init_node_fn_set_fit_y;
@@ -121,4 +130,11 @@ void init_init_node_fn_hashmap(HASHMAP(init_node_fn)* hmap) {
     *(init_node_fn_upsert(hmap, "ay-b", UpsertActionCreate)) = init_node_fn_set_align_y_begin;
     *(init_node_fn_upsert(hmap, "ay-m", UpsertActionCreate)) = init_node_fn_set_align_y_middle;
     *(init_node_fn_upsert(hmap, "ay-e", UpsertActionCreate)) = init_node_fn_set_align_y_end;
+
+    array_append_InitNodeFn1(array1, (InitNodeFn1){"^min-x-.*","min-x-%d",init_node_fn1_set_min_x});
+    array_append_InitNodeFn1(array1, (InitNodeFn1){"^min-y-.*","min-y-%d",init_node_fn1_set_min_y});
+    array_append_InitNodeFn1(array1, (InitNodeFn1){"^min-.*"  ,"min-%d"  ,init_node_fn1_set_min});
+    array_append_InitNodeFn1(array1, (InitNodeFn1){"^max-x-.*","max-x-%d",init_node_fn1_set_max_x});
+    array_append_InitNodeFn1(array1, (InitNodeFn1){"^max-y-.*","max-y-%d",init_node_fn1_set_max_y});
+    array_append_InitNodeFn1(array1, (InitNodeFn1){"^max-.*"  ,"max-%d"  ,init_node_fn1_set_max});
 }
