@@ -282,7 +282,11 @@ static void js_ui_create(js_State *J) {
 			node.painter.value.text.color=get_color(J, props);
 			node.painter.value.text.font_size=get_property_int_or(J,props,"font_size",10);
 			node.painter.value.text.spacing=get_property_int_or(J,props,"spacing",node.painter.value.text.font_size/10);
-			node.painter.value.text.wordwrap=get_property_int_or(J,props,"wordwrap",0)==0;
+			node.painter.value.text.line_spacing=get_property_int_or(J,props,"line_spacing",node.painter.value.text.font_size/10);
+			node.painter.value.text.align=(VECTOR2(Align)){
+    		.x=get_property_align(J, props, "text_h_align"),
+    		.y=get_property_align(J, props, "text_v_align"),
+			};
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
 			js_pushundefined(J);
@@ -378,9 +382,9 @@ void draw(Tree tree){
         case PAINTER_TEXT:
             draw_text(p.value.text.msg,rect,(FontParam){
                 .Font=(void*)&f,
-                .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
+                .align=p.value.text.align,
                 .color=p.value.text.color,
-                .line_spacing=p.value.text.spacing,
+                .line_spacing=p.value.text.line_spacing,
                 .spacing=p.value.text.spacing,
                 .size=p.value.text.font_size,
             });

@@ -23,41 +23,6 @@ typedef union{
     int value;
 } UiColor;
 
-typedef struct{
-    UiColor color;
-}PainterRect;
-
-typedef struct{
-    UiColor color;
-    const char* source;
-}PainterImage;
-
-typedef struct{
-    UiColor color;
-    const char* msg;
-    int font_size;
-    int spacing;
-    bool wordwrap;
-}PainterText;
-
-typedef struct{
-    UiColor color;
-    const char* source;
-   	VECTOR2(int) at;
-    VECTOR2(int) padding;
-    VECTOR2(int) size;
-}PainterTile;
-
-typedef struct{
-    PainterKind kind;
-    union{
-        PainterRect rect;
-        PainterImage img;
-        PainterTile tile;
-        PainterText text;
-    } value;
-}Painter;
-
 typedef enum{
     LayoutHorizontal,
     LayoutVertical,
@@ -97,6 +62,42 @@ typedef struct{
 CREATE_VECTOR2_TYPE(Size)
 CREATE_VECTOR2_TYPE(Align)
 CREATE_RECTANGLE_TYPE(int)
+
+typedef struct{
+    UiColor color;
+}PainterRect;
+
+typedef struct{
+    UiColor color;
+    const char* source;
+}PainterImage;
+
+typedef struct{
+    UiColor color;
+    const char* msg;
+    int font_size;
+    int spacing;
+    int line_spacing;
+    VECTOR2(Align) align;
+}PainterText;
+
+typedef struct{
+    UiColor color;
+    const char* source;
+   	VECTOR2(int) at;
+    VECTOR2(int) padding;
+    VECTOR2(int) size;
+}PainterTile;
+
+typedef struct{
+    PainterKind kind;
+    union{
+        PainterRect rect;
+        PainterImage img;
+        PainterTile tile;
+        PainterText text;
+    } value;
+}Painter;
 
 typedef int NodeIndex;
 typedef struct {

@@ -1,5 +1,5 @@
 var Button = function (props,children) {
-  return <rectangle id={props.id} class="fit m-2 p-2" x={props.x} y={props.y} color={props.color} r={props.r} g={props.g} b={props.b}>
+  return <rectangle id={props.id} class="fit m-2 p-2 min-y-200" x={props.x} y={props.y} color={props.color} r={props.r} g={props.g} b={props.b}>
     {children}
   </rectangle>
 };
@@ -52,7 +52,7 @@ exports.render = function (props) {
       <rectangle id="first" w={50} h={50} color={"#FFFF00"}></rectangle>
       <rectangle id="second" w={10} h={150} color={"#FFFF00"}></rectangle>
       <img src="spritesheet.png"></img>
-      <txt msg="hello wlord" font_size={20} class="grow" color="#000"></txt>
+      <txt msg="hello wlord" font_size={20} class="grow" text_v_align="end" color="#000"></txt>
     </Button>
   );
 };
