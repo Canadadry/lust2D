@@ -296,7 +296,10 @@ static void js_ui_create(js_State *J) {
 			node.painter.value.text.ttf_font=get_property_string_or(J,props,"ttf_font",NULL);
 			Font* ttf_f = Font_upsert(hmap_font,node.painter.value.text.ttf_font , UpsertActionCreate);
 			if(ttf_f!=NULL){
-			    *ttf_f = LoadFont(node.painter.value.text.ttf_font);
+			    *ttf_f = LoadFontEx(
+							node.painter.value.text.ttf_font,
+							node.painter.value.text.font_size,
+						 0, 0);
 			}
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
