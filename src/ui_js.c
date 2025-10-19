@@ -15,6 +15,7 @@
 extern HASHMAP(init_node_fn)* hmap_init_node_fn;
 extern ARRAY(InitNodeFn1)* array_init_node_fn1;
 extern HASHMAP(Texture)* hmap_texture;
+extern HASHMAP(Font)* hmap_font;
 extern Tree* ui_tree;
 
 UiColor hex_to_rgba(js_State *J,const char *hex) {
@@ -284,9 +285,19 @@ static void js_ui_create(js_State *J) {
 			node.painter.value.text.spacing=get_property_int_or(J,props,"spacing",node.painter.value.text.font_size/10);
 			node.painter.value.text.line_spacing=get_property_int_or(J,props,"line_spacing",node.painter.value.text.font_size/10);
 			node.painter.value.text.align=(VECTOR2(Align)){
-    		.x=get_property_align(J, props, "text_h_align"),
-    		.y=get_property_align(J, props, "text_v_align"),
+    		    .x=get_property_align(J, props, "text_h_align"),
+    		    .y=get_property_align(J, props, "text_v_align"),
 			};
+			node.painter.value.text.bmp_font=get_property_string_or(J,props,"bmp_font",NULL);
+			Font* bmp_f = Font_upsert(hmap_font,node.painter.value.text.bmp_font , UpsertActionCreate);
+			if(bmp_f!=NULL){
+			    *bmp_f = LoadFont(node.painter.value.text.bmp_font);
+			}
+			node.painter.value.text.ttf_font=get_property_string_or(J,props,"ttf_font",NULL);
+			Font* ttf_f = Font_upsert(hmap_font,node.painter.value.text.ttf_font , UpsertActionCreate);
+			if(ttf_f!=NULL){
+			    *ttf_f = LoadFont(node.painter.value.text.ttf_font);
+			}
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
 			js_pushundefined(J);
@@ -341,7 +352,8 @@ static void js_ui_compute(js_State *J){
 void draw(Tree tree){
 	Rectangle rect =(Rectangle){0};
 	Texture* t;
-	Font f = GetFontDefault();
+	Font f_default = GetFontDefault();
+	Font* f=&f_default;
 	for(int i=0;i<tree.commands.len;i++){
 	    rect.x      = tree.commands.data[i].x;
 	    rect.y      = tree.commands.data[i].y;
@@ -380,8 +392,19 @@ void draw(Tree tree){
     		);
             break;
         case PAINTER_TEXT:
+            if(p.value.text.bmp_font != NULL){
+                f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
+                if(f==NULL){
+                    f=&f_default;
+                }
+            }else if(p.value.text.ttf_font != NULL){
+                f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+                if(f==NULL){
+                    f=&f_default;
+                }
+            }
             draw_text(p.value.text.msg,rect,(FontParam){
-                .Font=(void*)&f,
+                .Font=(void*)f,
                 .align=p.value.text.align,
                 .color=p.value.text.color,
                 .line_spacing=p.value.text.line_spacing,

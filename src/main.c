@@ -19,7 +19,7 @@
 HASHMAP(init_node_fn)* hmap_init_node_fn;
 ARRAY(InitNodeFn1)* array_init_node_fn1;
 HASHMAP(Texture)* hmap_texture;
-
+HASHMAP(Font)* hmap_font;
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
@@ -186,7 +186,8 @@ static Window get_window(js_State *J) {
 VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
     VECTOR2(int) ret = {0};
     Texture* t;
-    Font f = GetFontDefault();
+    Font f_default = GetFontDefault();
+    Font* f = &f_default;
     switch(p.kind){
     case PAINTER_NONE:
         break;
@@ -203,8 +204,19 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
         ret =p.value.tile.size;
         break;
     case PAINTER_TEXT:
+        if(p.value.text.bmp_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }else if(p.value.text.ttf_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }
         ret = mesure_text(p.value.text.msg,0,(FontParam){
-            .Font=(void*)&f,
+            .Font=(void*)f,
             .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
             .color=p.value.text.color,
             .line_spacing=p.value.text.spacing,
@@ -218,7 +230,8 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
 
 int wrap_content_fn(void *userdata,Painter p,int width){
     VECTOR2(int) content = {0};
-    Font f = GetFontDefault();
+    Font f_default = GetFontDefault();
+    Font* f = &f_default;
     switch(p.kind){
     case PAINTER_NONE:
         break;
@@ -231,8 +244,19 @@ int wrap_content_fn(void *userdata,Painter p,int width){
         content = mesure_content_fn(userdata,p);
         return (int)((float)width*(float)content.y/(float)content.x);
     case PAINTER_TEXT:
+        if(p.value.text.bmp_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }else if(p.value.text.ttf_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }
         content = mesure_text(p.value.text.msg,width,(FontParam){
-            .Font=(void*)&f,
+            .Font=(void*)f,
             .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
             .color=p.value.text.color,
             .line_spacing=p.value.text.spacing,
@@ -252,6 +276,9 @@ int main(int argc, char** argv){
     HASHMAP(Texture) loc_hmap_texture={0};
     loc_hmap_texture.data.alloc=alloc;
     hmap_texture = &loc_hmap_texture;
+    HASHMAP(Font) loc_hmap_font={0};
+    loc_hmap_font.data.alloc=alloc;
+    hmap_font = &loc_hmap_font;
     HASHMAP(init_node_fn) loc_hmap_init_node_fn={0};
     loc_hmap_init_node_fn.data.alloc=alloc;
     hmap_init_node_fn = &loc_hmap_init_node_fn;

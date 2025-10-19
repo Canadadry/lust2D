@@ -6,6 +6,7 @@
 #include "../vendor/raylib/raylib.h"
 
 CREATE_HASHMAP(Texture)
+CREATE_HASHMAP(Font)
 
 void bind_raylib_func(js_State *J,Allocator alloc);
 

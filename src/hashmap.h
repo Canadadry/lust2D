@@ -37,6 +37,9 @@ VALUE* VALUE##_upsert(VALUE##HashMap *m, const char *key, UpsertAction action);
 WRITE_ARRAY_IMPL(VALUE##HashMapCell);                                                                \
                                                                                                      \
 VALUE* VALUE##_upsert(VALUE##HashMap *m, const char *key, UpsertAction action) {                     \
+    if(key==NULL){                                                                                   \
+        return NULL;                                                                                 \
+    }                                                                                                \
     uint64_t h = hash(key);                                                                          \
                                                                                                      \
     for (int cell_index = 0; cell_index < m->data.len; h <<= 2) {                                    \

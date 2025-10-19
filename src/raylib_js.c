@@ -7,6 +7,7 @@
 #include <string.h>
 
 WRITE_HASHMAP_IMPL(Texture)
+WRITE_HASHMAP_IMPL(Font)
 
 CREATE_HASHMAP(KeyboardKey)
 WRITE_HASHMAP_IMPL(KeyboardKey)
