@@ -258,6 +258,17 @@ static void js_ui_create(js_State *J) {
 			if(t!=NULL){
 			    *t = LoadTexture(node.painter.value.img.source);
 			}
+		}else if(strncmp(title,"npatch",6)==0){
+			node.painter.kind=PAINTER_NINE_PATCH;
+			node.painter.value.npatch.left=get_property_int_or(J,props,"left",0),
+			node.painter.value.npatch.right=get_property_int_or(J,props,"right",0),
+			node.painter.value.npatch.top=get_property_int_or(J,props,"top",0),
+			node.painter.value.npatch.bottom=get_property_int_or(J,props,"bottom",0),
+			node.painter.value.npatch.source=get_property_string_or(J,props,"src",NULL);
+			Texture* t = Texture_upsert(hmap_texture,node.painter.value.npatch.source , UpsertActionCreate);
+			if(t!=NULL){
+			    *t = LoadTexture(node.painter.value.npatch.source);
+			}
 		}else if(strncmp(title,"tile",4)==0){
 			node.painter.kind=PAINTER_TILE;
 			node.painter.value.tile.source=get_property_string_or(J,props,"src",NULL);
@@ -357,6 +368,7 @@ void draw(Tree tree){
 	Texture* t;
 	Font f_default = GetFontDefault();
 	Font* f=&f_default;
+	NPatchInfo np_info={0};
 	for(int i=0;i<tree.commands.len;i++){
 	    rect.x      = tree.commands.data[i].x;
 	    rect.y      = tree.commands.data[i].y;
@@ -378,6 +390,27 @@ void draw(Tree tree){
                     .height=(float)t->height,
                 },rect, (Vector2){0} , 0, WHITE);
     		}
+            break;
+        case PAINTER_NINE_PATCH:
+            t = Texture_upsert(hmap_texture,p.value.npatch.source , UpsertActionUpdate);
+            if(t!=NULL){
+                np_info.source=(Rectangle){
+                    .x=0,.y=0,
+                    .width=(float)t->width,
+                    .height=(float)t->height,
+                };
+                np_info.left = p.value.npatch.left;
+                np_info.top = p.value.npatch.top;
+                np_info.right = p.value.npatch.right;
+                np_info.bottom = p.value.npatch.bottom;
+                np_info.layout=NPATCH_NINE_PATCH;
+                DrawTextureNPatch(
+         			*t,
+         			np_info,
+         			rect,
+                    (Vector2){0} , 0, WHITE
+                );
+			}
             break;
         case PAINTER_TILE:
             t = Texture_upsert(hmap_texture,p.value.tile.source , UpsertActionUpdate);

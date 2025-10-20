@@ -193,6 +193,8 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
         break;
     case PAINTER_RECT:
         break;
+    case PAINTER_NINE_PATCH:
+        break;
     case PAINTER_IMG:
         t = Texture_upsert(hmap_texture,p.value.img.source , UpsertActionUpdate);
         if(t!=NULL){
@@ -236,6 +238,8 @@ int wrap_content_fn(void *userdata,Painter p,int width){
     case PAINTER_NONE:
         break;
     case PAINTER_RECT:
+        break;
+    case PAINTER_NINE_PATCH:
         break;
     case PAINTER_IMG:
         content = mesure_content_fn(userdata,p);
@@ -330,7 +334,7 @@ int main(int argc, char** argv){
 	}
 
 	Window window = get_window(J);
-	SetTraceLogLevel(LOG_WARNING);
+	SetTraceLogLevel(LOG_ERROR);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);

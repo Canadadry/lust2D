@@ -14,6 +14,7 @@ typedef enum {
     PAINTER_NONE,
     PAINTER_RECT,
     PAINTER_IMG,
+    PAINTER_NINE_PATCH,
     PAINTER_TILE,
     PAINTER_TEXT,
 } PainterKind;
@@ -72,6 +73,16 @@ typedef struct{
     const char* source;
 }PainterImage;
 
+
+typedef struct{
+    UiColor color;
+    const char* source;
+    int left;
+    int right;
+    int top;
+    int bottom;
+}PainterNinePatch;
+
 typedef struct{
     UiColor color;
     const char* msg;
@@ -96,6 +107,7 @@ typedef struct{
     union{
         PainterRect rect;
         PainterImage img;
+        PainterNinePatch npatch;
         PainterTile tile;
         PainterText text;
     } value;

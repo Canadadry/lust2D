@@ -1,7 +1,13 @@
 var Button = function (props,children) {
-  return <rectangle id={props.id} class="fit m-2 p-2 min-y-200" x={props.x} y={props.y} color={props.color} r={props.r} g={props.g} b={props.b}>
+  return <npatch
+      id={props.id}
+      class="fit m-2 p-2 min-y-200"
+      x={props.x} y={props.y}
+      color={props.color} r={props.r} g={props.g} b={props.b}
+      src="ninepatch_button.png" left={16} right={16} top={16} bottom={16}
+  >
     {children}
-  </rectangle>
+  </npatch>
 };
 
 
@@ -52,7 +58,7 @@ exports.render = function (props) {
       <rectangle id="first" w={50} h={50} color={"#FFFF00"}></rectangle>
       <rectangle id="second" w={10} h={150} color={"#FFFF00"}></rectangle>
       <img src="spritesheet.png"></img>
-      <txt msg="hello world" font_size={20} class="grow" text_v_align="end" color="#000" ttf_font="pixantiqua.ttf"></txt>
+      <txt msg="hello world" font_size={20} class="grow" text_v_align="middle" color="#000" ttf_font="pixantiqua.ttf"></txt>
     </Button>
   );
 };
