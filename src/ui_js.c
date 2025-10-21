@@ -511,3 +511,92 @@ void bind_ui_func(js_State *J){
 	js_newcfunction(J, js_pick_node, "ui_pick", 2);
 	js_setglobal(J, "ui_pick");
 }
+
+VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
+    VECTOR2(int) ret = {0};
+    Texture* t;
+    Font f_default = GetFontDefault();
+    Font* f = &f_default;
+    switch(p.kind){
+    case PAINTER_NONE:
+        break;
+    case PAINTER_RECT:
+        break;
+    case PAINTER_NINE_PATCH:
+        break;
+    case PAINTER_IMG:
+        t = Texture_upsert(hmap_texture,p.value.img.source , UpsertActionUpdate);
+        if(t!=NULL){
+            ret.x = t->width;
+            ret.y = t->height;
+        }
+        break;
+    case PAINTER_TILE:
+        ret =p.value.tile.size;
+        break;
+    case PAINTER_TEXT:
+        if(p.value.text.bmp_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }else if(p.value.text.ttf_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }
+        ret = mesure_text(p.value.text.msg,0,(FontParam){
+            .Font=(void*)f,
+            .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
+            .color=p.value.text.color,
+            .line_spacing=p.value.text.spacing,
+            .spacing=p.value.text.spacing,
+            .size=p.value.text.font_size,
+        });
+        break;
+    }
+    return ret;
+}
+
+int wrap_content_fn(void *userdata,Painter p,int width){
+    VECTOR2(int) content = {0};
+    Font f_default = GetFontDefault();
+    Font* f = &f_default;
+    switch(p.kind){
+    case PAINTER_NONE:
+        break;
+    case PAINTER_RECT:
+        break;
+    case PAINTER_NINE_PATCH:
+        break;
+    case PAINTER_IMG:
+        content = mesure_content_fn(userdata,p);
+        return (int)((float)width*(float)content.y/(float)content.x);
+    case PAINTER_TILE:
+        content = mesure_content_fn(userdata,p);
+        return (int)((float)width*(float)content.y/(float)content.x);
+    case PAINTER_TEXT:
+        if(p.value.text.bmp_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }else if(p.value.text.ttf_font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+            if(f==NULL){
+                f=&f_default;
+            }
+        }
+        content = mesure_text(p.value.text.msg,width,(FontParam){
+            .Font=(void*)f,
+            .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
+            .color=p.value.text.color,
+            .line_spacing=p.value.text.spacing,
+            .spacing=p.value.text.spacing,
+            .size=p.value.text.font_size,
+        });
+        return content.y;
+    }
+    return 0;
+}

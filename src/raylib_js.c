@@ -14,6 +14,19 @@ WRITE_HASHMAP_IMPL(KeyboardKey)
 
 HASHMAP(KeyboardKey) hmap_keyboard_key;
 
+Window get_window(js_State *J) {
+	Window win = {.width=800,.height=600,.title="no title"};
+	int top = js_gettop(J);
+	js_getglobal(J, "window");
+	if(js_isobject(J, top)){
+    	win.width = get_property_int_or(J,top,"width",win.width);
+    	win.height = get_property_int_or(J,top,"height",win.height);
+    	win.title = get_property_string_or(J,top,"title",win.title);
+    	js_pop(J,1);
+	}
+	return win;
+}
+
 static Rectangle get_rectangle(js_State *J, int idx)  {
     if (js_isobject(J, idx) == 0) {
         return (Rectangle){.width = 100, .height = 100};
