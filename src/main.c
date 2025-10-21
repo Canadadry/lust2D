@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "allocator.h"
 #include "ui.h"
 #include "vector2.h"
 #include "hashmap.h"
@@ -12,6 +11,8 @@
 #include "js_helper.h"
 #include "ui_js.h"
 #include "text.h"
+#include "args.h"
+#include "allocator.h"
 
 HASHMAP(init_node_fn)* hmap_init_node_fn;
 ARRAY(InitNodeFn1)* array_init_node_fn1;
@@ -22,22 +23,6 @@ HASHMAP(Font)* hmap_font;
 
 Tree* ui_tree= NULL;
 
-char *get_dirname(char *path)
-{
-    char *slash = strrchr(path, '/');
-    if (!slash)
-        return NULL;
-
-    /* Length includes '\0' */
-    ptrdiff_t length = slash - path;
-    char *dir = malloc(length);
-
-    memcpy(dir, path, length);
-    dir[length] = '\0';
-
-    return dir;
-}
-
 static inline void* user_realloc(void* userdata,void* ptr, size_t size){
     return realloc(ptr,size);
 }
@@ -47,6 +32,15 @@ static inline void user_free(void* userdata,void* ptr){
 }
 
 int main(int argc, char** argv){
+    HasArgResult in = has_arg(argc,argv,"-in");
+    if(in.ok==0){
+        in.next="main.js";
+    }
+    HasArgResult basedir = has_arg(argc,argv,"-basedir");
+    if(basedir.ok==1&&basedir.next!=NULL&&basedir.next[0]!='-'){
+        printf("cd to %s \n",basedir.next);
+        ChangeDirectory(basedir.next);
+    }
     Allocator alloc = (Allocator){
     		.realloc_fn = user_realloc,
     		.free_fn = user_free,
@@ -79,7 +73,7 @@ int main(int argc, char** argv){
 	if(ret != 0){
 	    return ret;
 	}
-	if(js_dofile(J, "main.js") !=0){
+	if(js_dofile(J, in.next) !=0){
 	    printf("failed while running main.js\n");
 	    return 1;
 	}
