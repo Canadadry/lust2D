@@ -24,6 +24,11 @@ function render() {
   ClearBackground({ r: 128, g: 128, b: 128 });
   if(is_key_down("space") || is_mouse_button_down("left")){
     DrawRectangleRec({ x: x, y: y, w: w, h: h }, color_red);
+    DrawImagePro(
+      "toucan.png",
+      undefined,
+      { x: x+10, y: y+10, w: w-20, h: h-20 }
+    );
   }else{
     DrawRectangleRec({ x: x, y: y, w: w, h: h }, color_green);
   }

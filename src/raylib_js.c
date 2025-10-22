@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 
+
+extern HASHMAP(Texture)* hmap_texture;
+
 WRITE_HASHMAP_IMPL(Texture)
 WRITE_HASHMAP_IMPL(Font)
 
@@ -27,9 +30,10 @@ Window get_window(js_State *J) {
 	return win;
 }
 
-static Rectangle get_rectangle(js_State *J, int idx)  {
+
+static Rectangle get_rectangle_or(js_State *J, int idx,Rectangle def)  {
     if (js_isobject(J, idx) == 0) {
-        return (Rectangle){.width = 100, .height = 100};
+        return def;
 	}
 	return (Rectangle){
 		.x =      (float)get_property_number_or(J, idx, "x", 0),
@@ -39,6 +43,9 @@ static Rectangle get_rectangle(js_State *J, int idx)  {
 	};
 }
 
+static Rectangle get_rectangle(js_State *J, int idx)  {
+    return get_rectangle_or(J,idx,(Rectangle){.width = 100, .height = 100});
+}
 
 static Color get_color(js_State *J, int idx)  {
 	if (js_isobject(J, idx) == 0) {
@@ -99,6 +106,38 @@ void clear_background(js_State *J) {
 void draw_rectangle_rec(js_State *J) {
 	DrawRectangleRec(get_rectangle(J, 1), get_color(J, 2));
 }
+
+void draw_image_pro(js_State *J) {
+    int idx_src=1;
+    int idx_rect_src=2;
+    int idx_rect_target=3;
+    // int idx_origin=4;
+    // int idx_rot=5;
+    // int idx_color=6;
+    const char* src =js_tostring(J,idx_src);
+    Texture* t = Texture_upsert(hmap_texture,src , UpsertActionCreate);
+    if(t==NULL){
+        js_pushundefined(J);
+        return;
+    }
+    if(t->id==0){
+        *t = LoadTexture(src);
+    }
+    if(t->id!=0){
+        DrawTexturePro(
+            *t,
+            get_rectangle_or(J,idx_rect_src,(Rectangle){
+                .x=0,.y=0,
+                .width=(float)t->width,
+                .height=(float)t->height,
+            }),
+            get_rectangle(J,idx_rect_target),
+            (Vector2){0} , 0, WHITE
+        );
+    }
+    js_pushundefined(J);
+}
+
 
 void init_keyboard_key_hmap(Allocator alloc){
     hmap_keyboard_key.data.alloc=alloc;
@@ -280,6 +319,8 @@ void bind_raylib_func(js_State *J,Allocator alloc){
 	js_setglobal(J, "ClearBackground");
 	js_newcfunction(J, draw_rectangle_rec, "DrawRectangleRec", 2);
 	js_setglobal(J, "DrawRectangleRec");
+	js_newcfunction(J, draw_image_pro, "DrawImagePro", 3);
+	js_setglobal(J, "DrawImagePro");
 	js_newcfunction(J, is_key_pressed, "is_key_pressed", 1);
 	js_setglobal(J, "is_key_pressed");
 	js_newcfunction(J, is_key_released, "is_key_released", 1);
