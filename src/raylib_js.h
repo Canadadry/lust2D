@@ -7,6 +7,7 @@
 
 CREATE_HASHMAP(Texture)
 CREATE_HASHMAP(Font)
+CREATE_HASHMAP(Sound)
 
 typedef struct{
     int width;

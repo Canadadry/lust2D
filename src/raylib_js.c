@@ -8,9 +8,11 @@
 
 
 extern HASHMAP(Texture)* hmap_texture;
+extern HASHMAP(Sound)* hmap_sound;
 
 WRITE_HASHMAP_IMPL(Texture)
 WRITE_HASHMAP_IMPL(Font)
+WRITE_HASHMAP_IMPL(Sound)
 
 CREATE_HASHMAP(KeyboardKey)
 WRITE_HASHMAP_IMPL(KeyboardKey)
@@ -313,6 +315,24 @@ void get_mouse_y(js_State *J){
     js_pushnumber(J,GetMouseY());
 }
 
+void play_sound(js_State *J){
+    int idx_src=1;
+    const char* src =js_tostring(J,idx_src);
+    Sound* s = Sound_upsert(hmap_sound,src , UpsertActionCreate);
+    if(s==NULL){
+        js_pushundefined(J);
+        return;
+    }
+    if(s->frameCount==0){
+        *s = LoadSound(src);
+    }
+    if(s->frameCount!=0){
+        PlaySound(*s);
+    }
+    js_pushundefined(J);
+
+}
+
 void bind_raylib_func(js_State *J,Allocator alloc){
     init_keyboard_key_hmap(alloc);
     js_newcfunction(J, clear_background, "ClearBackground", 1);
@@ -321,6 +341,8 @@ void bind_raylib_func(js_State *J,Allocator alloc){
 	js_setglobal(J, "DrawRectangleRec");
 	js_newcfunction(J, draw_image_pro, "DrawImagePro", 3);
 	js_setglobal(J, "DrawImagePro");
+	js_newcfunction(J, play_sound, "PlaySound", 1);
+	js_setglobal(J, "PlaySound");
 	js_newcfunction(J, is_key_pressed, "is_key_pressed", 1);
 	js_setglobal(J, "is_key_pressed");
 	js_newcfunction(J, is_key_released, "is_key_released", 1);

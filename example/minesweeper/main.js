@@ -13,6 +13,7 @@ var game = {
 
 function restart() {
   game = new Game.new(size, size, mine);
+  PlaySound("start.wav");
 }
 
 function conf() {
@@ -50,7 +51,7 @@ function click(x, y, button) {
   var x_pos = Math.floor(x / tilesize);
   var y_pos = Math.floor(y / tilesize);
 
-  if (!game.inState("playing")) {
+  if (!game.inState(game,"playing")) {
     restart();
     return;
   }
@@ -62,13 +63,13 @@ function click(x, y, button) {
     ret = game.flag(game,x_pos, y_pos)
   }
 
-  // if (game.inState("win")) {
-  //   ress.play("win")
-  // } else if (game.inState("loose")) {
-  //   ress.play("loose")
-  // } else if (ret) {
-  //   ress.play("nothing")
-  // }
+  if (game.inState(game,"win")) {
+    PlaySound("win.wav");
+  } else if (game.inState(game,"loose")) {
+    PlaySound("loose.wav");
+  } else if (ret) {
+    PlaySound("nothing.wav");
+  }
 
 }
 

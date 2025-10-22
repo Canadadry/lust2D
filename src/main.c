@@ -18,6 +18,7 @@ HASHMAP(init_node_fn)* hmap_init_node_fn;
 ARRAY(InitNodeFn1)* array_init_node_fn1;
 HASHMAP(Texture)* hmap_texture;
 HASHMAP(Font)* hmap_font;
+HASHMAP(Sound)* hmap_sound;
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
@@ -51,6 +52,9 @@ int main(int argc, char** argv){
     HASHMAP(Font) loc_hmap_font={0};
     loc_hmap_font.data.alloc=alloc;
     hmap_font = &loc_hmap_font;
+    HASHMAP(Sound) loc_hmap_sound={0};
+    loc_hmap_sound.data.alloc=alloc;
+    hmap_sound = &loc_hmap_sound;
     HASHMAP(init_node_fn) loc_hmap_init_node_fn={0};
     loc_hmap_init_node_fn.data.alloc=alloc;
     hmap_init_node_fn = &loc_hmap_init_node_fn;
@@ -89,6 +93,7 @@ int main(int argc, char** argv){
     InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);
     SetWindowFocused();
+    InitAudioDevice();
 
    	if(js_dostring(J, "init();") !=0){
 	    printf("failed while running init()\n");
