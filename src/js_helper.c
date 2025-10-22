@@ -54,6 +54,15 @@ static const char *ui_helper_js =
     "}"
 ;
 
+static const char *stacktrace_js =
+	"Error.prototype.toString = function() {\n"
+	"var s = this.name;\n"
+	"if ('message' in this) s += ': ' + this.message;\n"
+	"if ('stack' in this) s += this.stack;\n"
+	"return s;\n"
+	"};\n"
+;
+
 static void jsB_print(js_State *J){
 	int i, top = js_gettop(J);
 	for (i = 1; i < top; ++i) {
@@ -142,7 +151,6 @@ void parse_jsx(js_State *J){
 	jsx_free_compiler(compiler);
 }
 
-
 int init_js(js_State* J,Allocator alloc){
     jsx_allocator=alloc;
    	js_newcfunction(J, jsB_print, "print", 0);
@@ -155,6 +163,9 @@ int init_js(js_State* J,Allocator alloc){
 	js_setglobal(J, "parse_jsx");
 	bind_raylib_func(J,alloc);
 	bind_ui_func(J);
+	if (js_dostring(J, stacktrace_js) != 0){
+	    return 1;
+	}
 	if (js_dostring(J, require_js) != 0){
 	    return 1;
 	}

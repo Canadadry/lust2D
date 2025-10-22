@@ -75,6 +75,7 @@ int main(int argc, char** argv){
 	}
 	if(js_dofile(J, in.next) !=0){
 	    printf("failed while running main.js\n");
+	    js_throw(J);
 	    return 1;
 	}
 	if(js_dostring(J, "conf();") !=0){
