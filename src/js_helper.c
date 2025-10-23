@@ -11,6 +11,7 @@
 Allocator jsx_allocator = {0};
 
 static const char *require_js =
+    "var evaluated_func = null;"
     "function require(name) {\n"
     "    var cache = require.cache;\n"
     "    if (name in cache) return cache[name];\n"
@@ -18,14 +19,20 @@ static const char *require_js =
     "    cache[name] = exports;\n"
     "    var fcontent = \"\";\n"
     "    if(file_exist(name+'.jsx')){\n"
-    "        fcontent = read(name+'.jsx');\n"
+    "        name = name+'.jsx';\n"
+    "        fcontent = read(name);\n"
     "        fcontent = parse_jsx(fcontent);\n"
     "    }\n"
     "    if(file_exist(name+'.js')){\n"
-    "        fcontent = read(name+'.js');\n"
+    "        name = name+'.js';\n"
+    "        fcontent = read(name);\n"
     "    }\n"
     "    if(fcontent!=\"\"){\n"
-    "        Function('exports', fcontent)(exports);\n"
+    "        var previous=evaluated_func;"
+    "        fcontent = 'evaluated_func= function(exports) {'+fcontent+'};'\n"
+    "        named_eval(name,fcontent);\n"
+    "        evaluated_func(exports);\n"
+    "        evaluated_func=previous;\n"
     "    }\n"
     "    return exports;\n"
     "}\n"
@@ -62,6 +69,16 @@ static const char *stacktrace_js =
 	"return s;\n"
 	"};\n"
 ;
+
+static void jsB_named_eval(js_State *J){
+    int func_name_idx = 1;
+    int func_idx = 2;
+    const char * name = js_tostring(J, func_name_idx);
+    const char * func = js_tostring(J, func_idx);
+    js_loadstring(J,name,func);
+    js_pushundefined(J);
+   	js_call(J, 0);
+}
 
 static void jsB_print(js_State *J){
 	int i, top = js_gettop(J);
@@ -153,6 +170,8 @@ void parse_jsx(js_State *J){
 
 int init_js(js_State* J,Allocator alloc){
     jsx_allocator=alloc;
+   	js_newcfunction(J, jsB_named_eval, "named_eval", 2);
+	js_setglobal(J, "named_eval");
    	js_newcfunction(J, jsB_print, "print", 0);
 	js_setglobal(J, "print");
 	js_newcfunction(J, jsB_read, "read", 0);
