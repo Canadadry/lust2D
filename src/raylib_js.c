@@ -5,7 +5,7 @@
 #include "js_helper.h"
 #include <stdio.h>
 #include <string.h>
-
+#include "ui_js.h"
 
 extern HASHMAP(Texture)* hmap_texture;
 extern HASHMAP(Sound)* hmap_sound;
@@ -50,6 +50,10 @@ Rectangle get_rectangle(js_State *J, int idx)  {
 }
 
 Color get_color(js_State *J, int idx)  {
+    if(js_isstring(J,idx)==1){
+        UiColor color = hex_to_rgba(J,js_tostring(J,idx));
+        return color.rgba;
+    }
 	if (js_isobject(J, idx) == 0) {
 		return WHITE;
 	};
