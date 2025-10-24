@@ -59,7 +59,7 @@ UiColor hex_to_rgba(js_State *J,const char *hex) {
     return (UiColor){.rgba=color};;
 }
 
-static UiColor get_color(js_State *J, int idx)  {
+static UiColor get_color_property(js_State *J, int idx)  {
 	if (js_isobject(J, idx) == 0) {
 		return (UiColor){.rgba=WHITE};
 	};
@@ -247,7 +247,7 @@ static void js_ui_create(js_State *J) {
 		if(strncmp(title,"rectangle",9)==0){
 			node.painter.kind=PAINTER_RECT;
 			node.painter.value.rect = (PainterRect){
-				.color = get_color(J, props),
+				.color = get_color_property(J, props),
 			};
 		}else if(strncmp(title,"item",4)==0){
 			node.painter.kind=PAINTER_NONE;
@@ -291,7 +291,7 @@ static void js_ui_create(js_State *J) {
 		}else if(strncmp(title,"txt",4)==0){
 			node.painter.kind=PAINTER_TEXT;
 			node.painter.value.text.msg=get_property_string_or(J,props,"msg",NULL);
-			node.painter.value.text.color=get_color(J, props);
+			node.painter.value.text.color=get_color_property(J, props);
 			node.painter.value.text.font_size=get_property_int_or(J,props,"font_size",10);
 			node.painter.value.text.spacing=get_property_int_or(J,props,"spacing",node.painter.value.text.font_size/10);
 			node.painter.value.text.line_spacing=get_property_int_or(J,props,"line_spacing",node.painter.value.text.font_size/10);

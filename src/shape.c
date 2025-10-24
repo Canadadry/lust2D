@@ -30,12 +30,11 @@ static void draw_scanline_rgba(ImageBuffer img, int y, int x1, int x2, BufColor 
     if (y < 0 || (size_t)y >= img.h || x2 < 0 || x1 >= (int)img.w) return;
     if (x1 < 0) x1 = 0;
     if (x2 >= (int)img.w) x2 = (int)img.w - 1;
-    unsigned char* row = img.buf + y * img.stride;
     for (int x = x1; x <= x2; x++) {
-        row[4*x + 0] = color.r;
-        row[4*x + 1] = color.g;
-        row[4*x + 2] = color.b;
-        row[4*x + 3] = color.a;
+        img.buf[4*(img.h*y+x) + 0] = color.r;
+        img.buf[4*(img.h*y+x) + 1] = color.g;
+        img.buf[4*(img.h*y+x) + 2] = color.b;
+        img.buf[4*(img.h*y+x) + 3] = color.a;
     }
 }
 

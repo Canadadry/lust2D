@@ -17,7 +17,19 @@ function conf() {
   window.title = "from lust2D";
 }
 
-function init(){
+function init() {
+  NewCanvas("shape", w - 20, h - 20);
+  SetCanvas("shape");
+  ClearCanvas("#aaa");
+  SetFillColor("#00ff00");
+  MoveTo({ x: 0, y: 0 });
+  // BezierTo({ x: w - 20, y: 10}, { x: w - 20, y: 10},{ x: w - 20, y: h-20});
+  LineTo({ x: w - 30, y: 10 });
+  LineTo({ x: w - 30, y: h - 20 });
+  LineTo({ x: w - 30, y: h - 20 });
+  LineTo({ x: 0, y: 0 });
+  Close();
+  SaveCanvas("shape.png");
 }
 
 function render() {
@@ -31,6 +43,11 @@ function render() {
     );
   }else{
     DrawRectangleRec({ x: x, y: y, w: w, h: h }, color_green);
+    DrawCanvasPro(
+      "shape",
+      undefined,
+      { x: x+10, y: y+10, w: w-20, h: h-20 }
+    );
   }
   x += dx;
   y += dy;

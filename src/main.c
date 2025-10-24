@@ -17,6 +17,7 @@
 HASHMAP(init_node_fn)* hmap_init_node_fn;
 ARRAY(InitNodeFn1)* array_init_node_fn1;
 HASHMAP(Texture)* hmap_texture;
+HASHMAP(Image)* hmap_image;
 HASHMAP(Font)* hmap_font;
 HASHMAP(Sound)* hmap_sound;
 
@@ -49,6 +50,9 @@ int main(int argc, char** argv){
     HASHMAP(Texture) loc_hmap_texture={0};
     loc_hmap_texture.data.alloc=alloc;
     hmap_texture = &loc_hmap_texture;
+    HASHMAP(Image) loc_hmap_image={0};
+    loc_hmap_image.data.alloc=alloc;
+    hmap_image = &loc_hmap_image;
     HASHMAP(Font) loc_hmap_font={0};
     loc_hmap_font.data.alloc=alloc;
     hmap_font = &loc_hmap_font;

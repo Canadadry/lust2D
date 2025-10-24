@@ -13,6 +13,7 @@ extern HASHMAP(Sound)* hmap_sound;
 WRITE_HASHMAP_IMPL(Texture)
 WRITE_HASHMAP_IMPL(Font)
 WRITE_HASHMAP_IMPL(Sound)
+WRITE_HASHMAP_IMPL(Image)
 
 CREATE_HASHMAP(KeyboardKey)
 WRITE_HASHMAP_IMPL(KeyboardKey)
@@ -32,8 +33,7 @@ Window get_window(js_State *J) {
 	return win;
 }
 
-
-static Rectangle get_rectangle_or(js_State *J, int idx,Rectangle def)  {
+Rectangle get_rectangle_or(js_State *J, int idx,Rectangle def)  {
     if (js_isobject(J, idx) == 0) {
         return def;
 	}
@@ -45,11 +45,11 @@ static Rectangle get_rectangle_or(js_State *J, int idx,Rectangle def)  {
 	};
 }
 
-static Rectangle get_rectangle(js_State *J, int idx)  {
+Rectangle get_rectangle(js_State *J, int idx)  {
     return get_rectangle_or(J,idx,(Rectangle){.width = 100, .height = 100});
 }
 
-static Color get_color(js_State *J, int idx)  {
+Color get_color(js_State *J, int idx)  {
 	if (js_isobject(J, idx) == 0) {
 		return WHITE;
 	};

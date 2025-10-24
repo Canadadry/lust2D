@@ -53,13 +53,20 @@ int main(int argc, char **argv) {
         BUILD_RUN_CMD("./build/tests/run_testsd");
     }
 
-    if (build_has_arg(argc, argv,  "run")){
+    if (build_has_arg(argc, argv,  "basic")){
         if(build_has_arg(argc, argv, "debug","test")){
-            BUILD_RUN_CMD("./build/"TARGET"d","example.jsx");
+            BUILD_RUN_CMD("./build/"TARGET"d","-basedir","example/basic/");
         }else{
-            BUILD_RUN_CMD("./build/"TARGET,"example.jsx");
+            BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/basic/");
+        }
+    }else if (build_has_arg(argc, argv,  "minesweeper")){
+        if(build_has_arg(argc, argv, "debug","test")){
+            BUILD_RUN_CMD("./build/"TARGET"d","-basedir","example/minesweeper/");
+        }else{
+            BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/minesweeper/");
         }
     }
+
 
     return 0;
 }

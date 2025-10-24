@@ -14,7 +14,7 @@ typedef struct{
     size_t stride;
 }ImageBuffer;
 
-typedef struct Color {
+typedef struct {
     unsigned char r;
     unsigned char g;
     unsigned char b;

@@ -7,6 +7,7 @@
 #include "allocator.h"
 #include "raylib_js.h"
 #include "ui_js.h"
+#include "canvas_js.h"
 
 Allocator jsx_allocator = {0};
 
@@ -182,6 +183,7 @@ int init_js(js_State* J,Allocator alloc){
 	js_setglobal(J, "parse_jsx");
 	bind_raylib_func(J,alloc);
 	bind_ui_func(J);
+	bind_canvas_func(J,alloc);
 	if (js_dostring(J, stacktrace_js) != 0){
 	    return 1;
 	}
