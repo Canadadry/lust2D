@@ -299,18 +299,22 @@ static void js_ui_create(js_State *J) {
     		    .x=get_property_align(J, props, "text_h_align"),
     		    .y=get_property_align(J, props, "text_v_align"),
 			};
-			node.painter.value.text.bmp_font=get_property_string_or(J,props,"bmp_font",NULL);
-			Font* bmp_f = Font_upsert(hmap_font,node.painter.value.text.bmp_font , UpsertActionCreate);
-			if(bmp_f!=NULL&&!IsFontValid(*bmp_f)){
-			    *bmp_f = LoadFont(node.painter.value.text.bmp_font);
+			int is_bmp=1;
+			node.painter.value.text.font=get_property_string_or(J,props,"bmp_font",NULL);
+			if(node.painter.value.text.font==NULL){
+			    is_bmp=0;
+				node.painter.value.text.font=get_property_string_or(J,props,"ttf_font",NULL);
 			}
-			node.painter.value.text.ttf_font=get_property_string_or(J,props,"ttf_font",NULL);
-			Font* ttf_f = Font_upsert(hmap_font,node.painter.value.text.ttf_font , UpsertActionCreate);
-			if(ttf_f!=NULL&&!IsFontValid(*ttf_f)){
-			    *ttf_f = LoadFontEx(
-							node.painter.value.text.ttf_font,
+			Font* f = Font_upsert(hmap_font,node.painter.value.text.font , UpsertActionCreate);
+			if(f!=NULL&&!IsFontValid(*f)){
+			    if(is_bmp){
+			        *f = LoadFont(node.painter.value.text.font);
+				}else{
+			        *f = LoadFontEx(
+							node.painter.value.text.font,
 							node.painter.value.text.font_size,
 						 0, 0);
+				}
 			}
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
@@ -428,10 +432,8 @@ void draw(Tree tree){
     		);
             break;
         case PAINTER_TEXT:
-            if(p.value.text.bmp_font != NULL){
-                f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
-            }else if(p.value.text.ttf_font != NULL){
-                f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+            if(p.value.text.font != NULL){
+                f = Font_upsert(hmap_font,p.value.text.font , UpsertActionUpdate);
             }
             if(f==NULL){
                 f=&f_default;
@@ -532,10 +534,8 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
         ret =p.value.tile.size;
         break;
     case PAINTER_TEXT:
-        if(p.value.text.bmp_font != NULL){
-            f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
-        }else if(p.value.text.ttf_font != NULL){
-            f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+        if(p.value.text.font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.font , UpsertActionUpdate);
         }
         if(f==NULL){
             f=&f_default;
@@ -571,10 +571,8 @@ int wrap_content_fn(void *userdata,Painter p,int width){
         content = mesure_content_fn(userdata,p);
         return (int)((float)width*(float)content.y/(float)content.x);
     case PAINTER_TEXT:
-        if(p.value.text.bmp_font != NULL){
-            f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
-        }else if(p.value.text.ttf_font != NULL){
-            f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
+        if(p.value.text.font != NULL){
+            f = Font_upsert(hmap_font,p.value.text.font , UpsertActionUpdate);
         }
         if(f==NULL){
             f=&f_default;

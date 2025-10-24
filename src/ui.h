@@ -86,8 +86,7 @@ typedef struct{
 typedef struct{
     UiColor color;
     const char* msg;
-    const char* ttf_font;
-    const char* bmp_font;
+    const char* font;
     int font_size;
     int spacing;
     int line_spacing;
