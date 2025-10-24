@@ -154,35 +154,6 @@ void js_close(js_State* J){
     js_pushundefined(J);
 }
 
-static void js_draw_canvas_pro(js_State* J){
-    int idx_src=1;
-    int idx_rect_src=2;
-    int idx_rect_target=3;
-    const char* src =js_tostring(J,idx_src);
-    printf("loading %s ",src);
-    Image* img = Image_upsert(hmap_image,src , UpsertActionUpdate);
-    if(img==NULL){
-        js_error(J, "unknown no canvas %s",src);
-        js_pushundefined(J);
-        return;
-    }
-    printf("img %dx%d\n",img->width,img->height);
-
-    Texture t = LoadTextureFromImage(*img);
-    DrawTexturePro(
-        t,
-        get_rectangle_or(J,idx_rect_src,(Rectangle){
-            .x=0,.y=0,
-            .width=(float)t.width,
-            .height=(float)t.height,
-        }),
-        get_rectangle(J,idx_rect_target),
-        (Vector2){0} , 0, WHITE
-    );
-    UnloadTexture(t);
-    js_pushundefined(J);
-}
-
 void js_save_canvas(js_State* J){
     if(current_canvas==NULL){
         js_error(J, "no canvas set");
@@ -191,12 +162,50 @@ void js_save_canvas(js_State* J){
     }
     const char* name = js_tostring(J, 1);
     if(name==NULL){
-        current_canvas=NULL;
+        js_error(J, "invalide filename");
         js_pushundefined(J);
         return;
     }
     ExportImage(*current_canvas,name);
     js_pushundefined(J);
+}
+
+void js_canvas_to_image(js_State* J){
+    if(current_canvas==NULL){
+        js_error(J, "no canvas set");
+        js_pushundefined(J);
+        return;
+    }
+
+    const char* name = js_tostring(J, 1);
+    if(name==NULL){
+        js_error(J, "invalide image name");
+        js_pushundefined(J);
+        return;
+    }
+
+    Texture* t = Texture_upsert(hmap_texture,name , UpsertActionCreate);
+    if(t==NULL){
+        js_error(J, "cannot acces image cache");
+        js_pushundefined(J);
+        return;
+    }
+
+    if(!IsTextureValid(*t)){
+        *t = LoadTextureFromImage(*current_canvas);
+        js_pushundefined(J);
+        return;
+    }
+
+    if(t->width != current_canvas->width ||t->height != current_canvas->height){
+        UnloadTexture(*t);
+        *t = LoadTextureFromImage(*current_canvas);
+        js_pushundefined(J);
+        return;
+    }
+    UpdateTexture(*t, current_canvas->data);
+    js_pushundefined(J);
+    return;
 }
 
 void bind_canvas_func(js_State *J,Allocator alloc){
@@ -209,8 +218,8 @@ void bind_canvas_func(js_State *J,Allocator alloc){
     js_newcfunction(J, js_bezier_to, "BezierTo", 4);             js_setglobal(J, "BezierTo");
     js_newcfunction(J, js_line_to, "LineTo", 1);                 js_setglobal(J, "LineTo");
     js_newcfunction(J, js_close, "Close", 0);                    js_setglobal(J, "Close");
-    js_newcfunction(J, js_draw_canvas_pro, "DrawCanvasPro", 3);  js_setglobal(J, "DrawCanvasPro");
     js_newcfunction(J, js_save_canvas, "SaveCanvas", 1);         js_setglobal(J, "SaveCanvas");
+    js_newcfunction(J, js_canvas_to_image, "CanvasToImage", 1);  js_setglobal(J, "CanvasToImage");
 
 
 }

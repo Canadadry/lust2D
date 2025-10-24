@@ -255,7 +255,7 @@ static void js_ui_create(js_State *J) {
 			node.painter.kind=PAINTER_IMG;
 			node.painter.value.img.source=get_property_string_or(J,props,"src",NULL);
 			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
-			if(t!=NULL){
+			if(t!=NULL && !IsTextureValid(*t)){
 			    *t = LoadTexture(node.painter.value.img.source);
 			}
 		}else if(strncmp(title,"npatch",6)==0){
@@ -266,14 +266,14 @@ static void js_ui_create(js_State *J) {
 			node.painter.value.npatch.bottom=get_property_int_or(J,props,"bottom",0),
 			node.painter.value.npatch.source=get_property_string_or(J,props,"src",NULL);
 			Texture* t = Texture_upsert(hmap_texture,node.painter.value.npatch.source , UpsertActionCreate);
-			if(t!=NULL){
+			if(t!=NULL && !IsTextureValid(*t)){
 			    *t = LoadTexture(node.painter.value.npatch.source);
 			}
 		}else if(strncmp(title,"tile",4)==0){
 			node.painter.kind=PAINTER_TILE;
 			node.painter.value.tile.source=get_property_string_or(J,props,"src",NULL);
 			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
-			if(t!=NULL){
+			if(t!=NULL && !IsTextureValid(*t)){
 			    *t = LoadTexture(node.painter.value.tile.source);
 			}
 			node.painter.value.tile.at = (VECTOR2(int)){
@@ -301,12 +301,12 @@ static void js_ui_create(js_State *J) {
 			};
 			node.painter.value.text.bmp_font=get_property_string_or(J,props,"bmp_font",NULL);
 			Font* bmp_f = Font_upsert(hmap_font,node.painter.value.text.bmp_font , UpsertActionCreate);
-			if(bmp_f!=NULL){
+			if(bmp_f!=NULL&&!IsFontValid(*bmp_f)){
 			    *bmp_f = LoadFont(node.painter.value.text.bmp_font);
 			}
 			node.painter.value.text.ttf_font=get_property_string_or(J,props,"ttf_font",NULL);
 			Font* ttf_f = Font_upsert(hmap_font,node.painter.value.text.ttf_font , UpsertActionCreate);
-			if(ttf_f!=NULL){
+			if(ttf_f!=NULL&&!IsFontValid(*ttf_f)){
 			    *ttf_f = LoadFontEx(
 							node.painter.value.text.ttf_font,
 							node.painter.value.text.font_size,
@@ -430,14 +430,11 @@ void draw(Tree tree){
         case PAINTER_TEXT:
             if(p.value.text.bmp_font != NULL){
                 f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
-                if(f==NULL){
-                    f=&f_default;
-                }
             }else if(p.value.text.ttf_font != NULL){
                 f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
-                if(f==NULL){
-                    f=&f_default;
-                }
+            }
+            if(f==NULL){
+                f=&f_default;
             }
             draw_text(p.value.text.msg,rect,(FontParam){
                 .Font=(void*)f,
@@ -537,14 +534,11 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
     case PAINTER_TEXT:
         if(p.value.text.bmp_font != NULL){
             f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
-            if(f==NULL){
-                f=&f_default;
-            }
         }else if(p.value.text.ttf_font != NULL){
             f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
-            if(f==NULL){
-                f=&f_default;
-            }
+        }
+        if(f==NULL){
+            f=&f_default;
         }
         ret = mesure_text(p.value.text.msg,0,(FontParam){
             .Font=(void*)f,
@@ -579,14 +573,11 @@ int wrap_content_fn(void *userdata,Painter p,int width){
     case PAINTER_TEXT:
         if(p.value.text.bmp_font != NULL){
             f = Font_upsert(hmap_font,p.value.text.bmp_font , UpsertActionUpdate);
-            if(f==NULL){
-                f=&f_default;
-            }
         }else if(p.value.text.ttf_font != NULL){
             f = Font_upsert(hmap_font,p.value.text.ttf_font , UpsertActionUpdate);
-            if(f==NULL){
-                f=&f_default;
-            }
+        }
+        if(f==NULL){
+            f=&f_default;
         }
         content = mesure_text(p.value.text.msg,width,(FontParam){
             .Font=(void*)f,

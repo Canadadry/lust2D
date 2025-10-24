@@ -126,10 +126,10 @@ void draw_image_pro(js_State *J) {
         js_pushundefined(J);
         return;
     }
-    if(t->id==0){
+    if(!IsTextureValid(*t)){
         *t = LoadTexture(src);
     }
-    if(t->id!=0){
+    if(IsTextureValid(*t)){
         DrawTexturePro(
             *t,
             get_rectangle_or(J,idx_rect_src,(Rectangle){
@@ -327,14 +327,29 @@ void play_sound(js_State *J){
         js_pushundefined(J);
         return;
     }
-    if(s->frameCount==0){
+    if(!IsSoundValid(*s)){
         *s = LoadSound(src);
     }
-    if(s->frameCount!=0){
+    if(IsSoundValid(*s)){
         PlaySound(*s);
     }
     js_pushundefined(J);
 
+}
+
+void unload_image(js_State* J){
+    const char* src =js_tostring(J,1);
+    Texture* t = Texture_upsert(hmap_texture,src , UpsertActionUpdate);
+    if(t==NULL){
+        js_pushundefined(J);
+        return;
+    }
+    if(t->id!=0){
+        UnloadTexture(*t);
+        *t=(Texture){0};
+        Texture_upsert(hmap_texture,src , UpsertActionDelete);
+    }
+    js_pushundefined(J);
 }
 
 void bind_raylib_func(js_State *J,Allocator alloc){
@@ -345,6 +360,8 @@ void bind_raylib_func(js_State *J,Allocator alloc){
 	js_setglobal(J, "DrawRectangleRec");
 	js_newcfunction(J, draw_image_pro, "DrawImagePro", 3);
 	js_setglobal(J, "DrawImagePro");
+	js_newcfunction(J, unload_image, "UnloadImage", 1);
+	js_setglobal(J, "UnloadImage");
 	js_newcfunction(J, play_sound, "PlaySound", 1);
 	js_setglobal(J, "PlaySound");
 	js_newcfunction(J, is_key_pressed, "is_key_pressed", 1);
