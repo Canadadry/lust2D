@@ -34,10 +34,6 @@ static inline void user_free(void* userdata,void* ptr){
 }
 
 int main(int argc, char** argv){
-    HasArgResult in = has_arg(argc,argv,"-in");
-    if(in.ok==0){
-        in.next="main.js";
-    }
     HasArgResult basedir = has_arg(argc,argv,"-basedir");
     if(basedir.ok==1&&basedir.next!=NULL&&basedir.next[0]!='-'){
         printf("cd to %s \n",basedir.next);
@@ -81,7 +77,8 @@ int main(int argc, char** argv){
 	if(ret != 0){
 	    return ret;
 	}
-	if(js_dofile(J, in.next) !=0){
+
+	if(js_dofile(J, "main.js") !=0){
 	    printf("failed while running main.js\n");
 	    js_throw(J);
 	    return 1;

@@ -1,9 +1,54 @@
+var ui = require('ui');
+
 var Point=function(x,y){
   return { x: x || 0, y: y || 0 };
 }
+var Segment=function(kind,p,c1,c2){
+  return {
+    kind: kind,
+    c1: c1 ||Point(),
+    c2: c2 || Point(),
+    p: p|| Point()
+  };
+}
 
-var points = [Point(), Point(), Point(), Point(), Point()];
-var point_moved = null;
+function splitBezier(p1, c1, c2, p2) {
+  var p12    = splitLine(p1, c1);
+  var c12    = splitLine(c1, c2);
+  var c23    = splitLine(c2, p2);
+  var p123   = splitLine(p12, c12);
+  var c123   = splitLine(c12, c23);
+  var middle = splitLine(p123, c123);
+  var firstCurve = { c1: p12, c2: p123, p: middle };
+  var secondCurve = { c1: c123, c2: c23, p: p2 };
+  return [firstCurve, secondCurve];
+}
+
+function splitLine(a, b) {
+    return {
+        x: (a.x + b.x) / 2,
+        y: (a.y + b.y) / 2
+    };
+}
+
+function parse_node_id(str) {
+  if(str==null){
+    return null;
+  }
+  var regex = /^(\d+)-(\w+)$/;
+  var match = str.match(regex);
+  if (match) {
+      var idx = parseInt(match[1], 10);
+      var kind = match[2];
+      return { idx:idx, kind:kind };
+  } else {
+      return null;
+  }
+}
+
+
+var segments = [];
+var point_moved = {};
 var dirty = false;
 
 function conf() {
@@ -15,16 +60,17 @@ function conf() {
 function init() {
   NewCanvas("canvas", window.width, window.height);
   var offset = 20;
-  points[0].x=offset
-  points[0].y=offset
-  points[1].x=window.width-offset
-  points[1].y=offset*2
-  points[2].x=window.width-offset*2
-  points[2].y=offset
-  points[3].x=window.width-offset
-  points[3].y=window.height-offset
-  points[4].x=offset
-  points[4].y=window.height-offset
+  segments = [Segment("move"),Segment("bezier"),Segment("line")];
+  segments[0].p.x=offset;
+  segments[0].p.y=offset;
+  segments[1].c1.x=window.width-offset;
+  segments[1].c1.y=offset*2;
+  segments[1].c2.x=window.width-offset*2;
+  segments[1].c2.y=offset;
+  segments[1].p.x=window.width-offset;
+  segments[1].p.y=window.height-offset;
+  segments[2].p.x=offset;
+  segments[2].p.y = window.height - offset;
   updateCanvas();
 }
 
@@ -32,11 +78,16 @@ function updateCanvas(){
   SetCanvas("canvas");
   ClearCanvas("#fff");
   SetFillColor("#aaffee");
-  MoveTo(points[0]);
-  BezierTo(points[1],points[2],points[3],20);
-  LineTo(points[4]);
-  LineTo(points[0]);
-  Close();
+  for (var i = 0; i < segments.length;i++){
+    if(segments[i].kind=="move"){
+      Close();
+      MoveTo(segments[i].p);
+    } else if(segments[i].kind=="line"){
+      LineTo(segments[i].p);
+    } else if(segments[i].kind=="bezier"){
+      BezierTo(segments[i].c1,segments[i].c2,segments[i].p,20);
+    }
+  }
   CanvasToImage("shape");
 }
 
@@ -46,24 +97,32 @@ function close_enough(p1,p2,dist){
 
 function move_point() {
   if (is_mouse_button_pressed("left")) {
-    for (var i = 0; i < points.length; i++) {
-      var dist = 10;
-      var m = Point(get_mouse_x(), get_mouse_y());
-      if (close_enough(m, points[i],dist)) {
-        point_moved = i;
+    for (var j = 0; j < segments.length; j++) {
+      var points = [segments[j].p];
+      if(segments[j].kind=='bezier'){
+        points.push(segments[j].c1);
+        points.push(segments[j].c2);
+      }
+      for (var i = 0; i < points.length; i++) {
+        var dist = 10;
+        var m = Point(get_mouse_x(), get_mouse_y());
+        if (close_enough(m, points[i],dist)) {
+          point_moved = points[i];
+        }
       }
     }
   } else if (is_mouse_button_released("left")) {
     point_moved = null;
   }else if(point_moved != null){
-    points[point_moved] = Point(get_mouse_x(), get_mouse_y());
+    point_moved.x  =get_mouse_x()
+    point_moved.y = get_mouse_y();
     dirty = true;
   }
 }
 
 function render() {
   move_point();
-  if(dirty){
+  if (dirty) {
     dirty = false;
     updateCanvas();
   }
@@ -73,12 +132,63 @@ function render() {
     undefined,
     { x: 0, y: 0, w: window.width, h: window.height }
   );
-  for (var i = 0; i < points.length;i++){
-    var size = 10;
-    var c = "#0f0";
-    if(point_moved==i){
-      c = "#f00" ;
+  for (var j = 0; j < segments.length; j++) {
+    var points = [segments[j].p];
+    if(segments[j].kind=='bezier'){
+      points.push(segments[j].c1);
+      points.push(segments[j].c2);
     }
-    DrawRectangleRec({ x: points[i].x-size/2, y: points[i].y-size/2, w: size, h: size }, c);
+    for (var i = 0; i < points.length; i++) {
+      var size = 10;
+      var c = "#0f0";
+      if (point_moved == points[i]) {
+        c = "#f00";
+      }
+      DrawRectangleRec({ x: points[i].x - size / 2, y: points[i].y - size / 2, w: size, h: size }, c);
+    }
   }
+
+  ui_clear();
+  var root = ui.build({ segments: segments })
+  ui_compute(root);
+
+  if(is_mouse_button_released("left")&& point_moved==null){
+    var node = ui_pick(get_mouse_x(), get_mouse_y());
+    var parsed = parse_node_id(node);
+    if (parsed!=null){
+      console.log("action", parsed.kind, "on", parsed.idx);
+      if (parsed.idx < segments.length) {
+        if (parsed.kind = "split") {
+          if (segments[parsed.idx].kind == 'line') {
+            var middle = splitLine(segments[parsed.idx - 1].p, segments[parsed.idx].p);
+            var end = Point(segments[parsed.idx].p.x, segments[parsed.idx].p.y);
+            segments[parsed.idx].p = middle
+            segments.splice(parsed.idx-1, 0, Segment('line', end));
+            dirty = true;
+            console.log("splice 1");
+          }else if (segments[parsed.idx].kind == 'bezier') {
+            var to_split = segments[parsed.idx]
+            var splitted = splitBezier(segments[parsed.idx - 1].p, to_split.c1, to_split.c2, to_split.p);
+            segments[parsed.idx].c1 = splitted[0].c1;
+            segments[parsed.idx].c2 = splitted[0].c2;
+            segments[parsed.idx].p = splitted[0].p;
+            segments.splice(parsed.idx-1, 0, Segment('bezier', splitted[1].p, splitted[1].c1, splitted[1].c2));
+            dirty = true;
+            console.log("splice 2");
+          }else{
+            console.log("oups 1",parsed.idx,segments[parsed.idx].kind);
+          }
+        }else if (parsed.kind = "delete" && segments.length > 2) {
+            segments.splice(parsed.idx, 1);
+            dirty = true;
+            console.log("splice 3");
+        }else{
+          console.log("oups 2");
+        }
+      }
+    }
+  }
+
+  ui_draw(root);
+
 }

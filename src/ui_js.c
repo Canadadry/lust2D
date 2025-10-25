@@ -450,6 +450,43 @@ void draw(Tree tree){
 	}
 }
 
+
+void dump_ui_command(Tree tree){
+	Rectangle rect =(Rectangle){0};
+	for(int i=0;i<tree.commands.len;i++){
+	    rect.x      = tree.commands.data[i].x;
+	    rect.y      = tree.commands.data[i].y;
+	    rect.width  = tree.commands.data[i].w;
+	    rect.height = tree.commands.data[i].h;
+		const char* id = tree.commands.data[i].id;
+		Painter p =tree.commands.data[i].painter;
+	    switch(p.kind){
+    	case PAINTER_NONE:
+            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter none : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+    	    break;
+    	case PAINTER_RECT:
+            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter rect : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            break;
+        case PAINTER_IMG:
+            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter img  : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            break;
+        case PAINTER_NINE_PATCH:
+            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter npat : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            break;
+        case PAINTER_TILE:
+            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter tile : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            break;
+        case PAINTER_TEXT:
+            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter text : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            break;
+		}
+	}
+}
+
+void js_dump_ui_command(js_State* J){
+    dump_ui_command(*ui_tree);
+}
+
 static void js_ui_draw(js_State *J){
 	if (ui_tree->commands.len<=0){
 		js_error(J, "empty ui_node, call create and compute before calling draw");
@@ -509,6 +546,10 @@ void bind_ui_func(js_State *J){
 	js_setglobal(J, "ui_draw");
 	js_newcfunction(J, js_pick_node, "ui_pick", 2);
 	js_setglobal(J, "ui_pick");
+	js_newcfunction(J, js_dump_ui_command, "ui_dump_command", 0);
+	js_setglobal(J, "ui_dump_command");
+
+
 }
 
 VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
