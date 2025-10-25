@@ -115,12 +115,14 @@ void js_bezier_to(js_State* J){
     if(canvas_path.len==0){
         array_append_Point(&canvas_path,(VECTOR2(float)){0,0});
     }
-    if(bezier_to(
+    int n=js_tointeger(J, 4);
+    n = n >2?n:10;
+    if(!bezier_to(
         &canvas_path,
         get_point_or(J,1,(VECTOR2(float)){0,0}),
         get_point_or(J,2,(VECTOR2(float)){0,0}),
         get_point_or(J,3,(VECTOR2(float)){0,0}),
-        js_tointeger(J, 4)
+        n
     )){
         js_error(J, "number of segment must be greaer than 2");
         js_pushundefined(J);

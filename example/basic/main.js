@@ -20,16 +20,23 @@ function conf() {
 function init() {
   NewCanvas("shape", w - 20, h - 20);
   SetCanvas("shape");
-  ClearCanvas("#aaa");
-  SetFillColor("#00ff00");
-  MoveTo({ x: 0, y: 0 });
-  // BezierTo({ x: w - 20, y: 10}, { x: w - 20, y: 10},{ x: w - 20, y: h-20});
-  LineTo({ x: w - 30, y: 10 });
-  LineTo({ x: w - 30, y: h - 20 });
-  LineTo({ x: w - 30, y: h - 20 });
-  LineTo({ x: 0, y: 0 });
+  ClearCanvas("#0000");
+  SetFillColor("#aaffee");
+  MoveTo({ x: 10, y: 10 });
+  BezierTo({ x: w - 30, y: 10}, { x: w - 30, y: 10},{ x: w - 30, y: h-30});
+  LineTo({ x: 10    , y: h - 30 });
+  LineTo({ x: 10    , y: 10 });
   Close();
-  SaveCanvas("shape.png");
+  SetFillColor("#ffff00aa");
+  MoveTo({ x: 20, y: 20 });
+  LineTo({ x: 20    , y: h - 40 });
+  LineTo({ x: w-20    , y: h - 40 });
+  LineTo({ x: w-20    , y: 20 });
+  LineTo({ x: 20, y: 20 });
+  Close();
+
+  //SaveCanvas("shape.png");
+  CanvasToImage("shape");
 }
 
 function render() {
@@ -43,7 +50,9 @@ function render() {
     );
   }else{
     DrawRectangleRec({ x: x, y: y, w: w, h: h }, color_green);
-    DrawCanvasPro(
+    // UnloadImage("shape.png");
+    // CanvasToImage("shape");
+    DrawImagePro(
       "shape",
       undefined,
       { x: x+10, y: y+10, w: w-20, h: h-20 }

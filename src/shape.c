@@ -26,15 +26,31 @@ static void sort_nodes(int* nodes, int count) {
     }
 }
 
+inline static BufColor blend_colors(BufColor a, BufColor b) {
+    BufColor result;
+    float alpha_a = a.a / 255.0f;
+    float alpha_b = b.a / 255.0f;
+    float alpha_o = alpha_a + alpha_b * (1 - alpha_a);
+
+    if (alpha_o < 1e-6f) {
+        result.r = result.g = result.b = result.a = 0;
+        return result;
+    }
+
+    result.r = (unsigned char)((a.r * alpha_a + b.r * alpha_b * (1 - alpha_a)) / alpha_o);
+    result.g = (unsigned char)((a.g * alpha_a + b.g * alpha_b * (1 - alpha_a)) / alpha_o);
+    result.b = (unsigned char)((a.b * alpha_a + b.b * alpha_b * (1 - alpha_a)) / alpha_o);
+    result.a = (unsigned char)(alpha_o * 255);
+    return result;
+}
+
 static void draw_scanline_rgba(ImageBuffer img, int y, int x1, int x2, BufColor color) {
     if (y < 0 || (size_t)y >= img.h || x2 < 0 || x1 >= (int)img.w) return;
     if (x1 < 0) x1 = 0;
     if (x2 >= (int)img.w) x2 = (int)img.w - 1;
     for (int x = x1; x <= x2; x++) {
-        img.buf[4*(img.h*y+x) + 0] = color.r;
-        img.buf[4*(img.h*y+x) + 1] = color.g;
-        img.buf[4*(img.h*y+x) + 2] = color.b;
-        img.buf[4*(img.h*y+x) + 3] = color.a;
+        unsigned char * pix = img.buf+4*(img.h*y+x);
+        *(BufColor*)pix =blend_colors(color,*(BufColor*)pix);
     }
 }
 
