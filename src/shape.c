@@ -49,7 +49,7 @@ static void draw_scanline_rgba(ImageBuffer img, int y, int x1, int x2, BufColor 
     if (x1 < 0) x1 = 0;
     if (x2 >= (int)img.w) x2 = (int)img.w - 1;
     for (int x = x1; x <= x2; x++) {
-        unsigned char * pix = img.buf+4*(img.h*y+x);
+        unsigned char * pix = img.buf+4*(img.w*y+x);
         *(BufColor*)pix =blend_colors(color,*(BufColor*)pix);
     }
 }

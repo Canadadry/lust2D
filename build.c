@@ -65,6 +65,12 @@ int main(int argc, char **argv) {
         }else{
             BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/minesweeper/");
         }
+    }else if (build_has_arg(argc, argv,  "path")){
+        if(build_has_arg(argc, argv, "debug","test")){
+            BUILD_RUN_CMD("./build/"TARGET"d","-basedir","example/path_editor/");
+        }else{
+            BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/path_editor/");
+        }
     }
 
 
