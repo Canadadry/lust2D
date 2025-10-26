@@ -66,6 +66,10 @@ function conf() {
 
 function init() {
   NewCanvas("canvas", window.width-canvas_offset, window.height);
+  new_canvas();
+}
+
+function new_canvas(){
   var offset = 20;
   segments = [
     Segment("move",Point(offset,offset)),
@@ -76,7 +80,7 @@ function init() {
     ),
     Segment("line",Point(offset,window.height - offset))
   ];
-  updateCanvas();
+  dirty = true;
 }
 
 function updateCanvas(){
@@ -125,40 +129,18 @@ function move_point() {
   }
 }
 
-function render() {
-  move_point();
-  if (dirty) {
-    dirty = false;
-    updateCanvas();
-  }
-  ClearBackground("#fff");
-  DrawImagePro(
-    "shape",
-    undefined,
-    { x: canvas_offset, y: 0, w: window.width-canvas_offset, h: window.height }
-  );
-  for (var j = 0; j < segments.length; j++) {
-     var points = [{ p: segments[j].p, c: "#0f0" }];
-    if(segments[j].kind=='bezier'){
-      points.push({ p: segments[j].c1, c: "#00f" });
-      points.push({ p: segments[j].c2, c: "#00f" });
-    }
-    for (var i = 0; i < points.length; i++) {
-      var size = 10;
-      var c = points[i].c;
-      if (point_moved == points[i].p) {
-        c = "#f00";
-      }
-      DrawRectangleRec({ x: points[i].p.x +canvas_offset- size / 2, y: points[i].p.y - size / 2, w: size, h: size }, c);
-    }
-  }
-
-  ui_clear();
-  var root = ui.build({ segments: segments })
-  ui_compute(root);
-
+function handle_click(){
   if(is_mouse_button_released("left")&& point_moved==null){
     var node = ui_pick(get_mouse_x(), get_mouse_y());
+    if(node=="new"){
+      new_canvas();
+    }else if(node=="load"){
+      if(file_exist("backup.json")){
+        segments=JSON.parse(read("backup.json"));
+      }
+    }else if(node=="save"){
+      write("backup.json", JSON.stringify(segments,null,2));
+    }
     var parsed = parse_node_id(node);
     if (parsed!=null){
       if (parsed.idx < segments.length) {
@@ -195,7 +177,40 @@ function render() {
       }
     }
   }
+}
 
+function render() {
+  move_point();
+  if (dirty) {
+    dirty = false;
+    updateCanvas();
+  }
+  ClearBackground("#fff");
+  DrawImagePro(
+    "shape",
+    undefined,
+    { x: canvas_offset, y: 0, w: window.width-canvas_offset, h: window.height }
+  );
+  for (var j = 0; j < segments.length; j++) {
+     var points = [{ p: segments[j].p, c: "#0f0" }];
+    if(segments[j].kind=='bezier'){
+      points.push({ p: segments[j].c1, c: "#00f" });
+      points.push({ p: segments[j].c2, c: "#00f" });
+    }
+    for (var i = 0; i < points.length; i++) {
+      var size = 10;
+      var c = points[i].c;
+      if (point_moved == points[i].p) {
+        c = "#f00";
+      }
+      DrawRectangleRec({ x: points[i].p.x +canvas_offset- size / 2, y: points[i].p.y - size / 2, w: size, h: size }, c);
+    }
+  }
+
+  ui_clear();
+  var root = ui.build({ segments: segments })
+  ui_compute(root);
+  handle_click();
   ui_draw(root);
 
 }

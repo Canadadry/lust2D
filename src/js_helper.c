@@ -138,6 +138,19 @@ static void jsB_read(js_State *J){
 	fclose(f);
 }
 
+static void jsB_write(js_State* J){
+   	const char *filename = js_tostring(J, 1);
+	FILE *f = fopen(filename, "w");
+	if (!f) {
+		js_error(J, "cannot open file '%s': %s", filename, strerror(errno));
+	}
+
+	const char *content = js_tostring(J, 2);
+	fwrite(content,sizeof(char),strlen(content),f);
+	fclose(f);
+	js_pushundefined(J);
+}
+
 static void jsB_file_exist(js_State *J){
     int exist = 0;
 	const char *filename = js_tostring(J, 1);
@@ -173,10 +186,12 @@ int init_js(js_State* J,Allocator alloc){
     jsx_allocator=alloc;
    	js_newcfunction(J, jsB_named_eval, "named_eval", 2);
 	js_setglobal(J, "named_eval");
-   	js_newcfunction(J, jsB_print, "print", 0);
+   	js_newcfunction(J, jsB_print, "print", 1);
 	js_setglobal(J, "print");
-	js_newcfunction(J, jsB_read, "read", 0);
+	js_newcfunction(J, jsB_read, "read", 1);
 	js_setglobal(J, "read");
+	js_newcfunction(J, jsB_write, "write", 2);
+	js_setglobal(J, "write");
 	js_newcfunction(J, jsB_file_exist, "file_exist", 0);
 	js_setglobal(J, "file_exist");
 	js_newcfunction(J, parse_jsx, "parse_jsx", 0);

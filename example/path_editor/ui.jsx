@@ -15,6 +15,11 @@ var Icon = function(props){
 
 exports.build=function(props){
   return (<rectangle class="fit m-2 p-2 lv" color="#aaa">
+    <item class="fit lh m-1">
+      <Icon id="new" at_x={1} at_y={2}></Icon>
+      <Icon id="load" at_x={0} at_y={3}></Icon>
+      <Icon id="save" at_x={3} at_y={2}></Icon>
+    </item>
     {props.segments.filter(function(s,id){
       return id > 0;
     }).map(function(s,id){
