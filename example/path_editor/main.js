@@ -31,6 +31,13 @@ function splitLine(a, b) {
     };
 }
 
+function lineToBezier(a,b){
+  var m = splitLine(a, b);
+  var c1 = splitLine(a, m);
+  var c2 = splitLine(b, m);
+  return { c1: c1, c2: c2, p: b };
+}
+
 function parse_node_id(str) {
   if(str==null){
     return null;
@@ -60,17 +67,15 @@ function conf() {
 function init() {
   NewCanvas("canvas", window.width, window.height);
   var offset = 20;
-  segments = [Segment("move"),Segment("bezier"),Segment("line")];
-  segments[0].p.x=offset;
-  segments[0].p.y=offset;
-  segments[1].c1.x=window.width-offset;
-  segments[1].c1.y=offset*2;
-  segments[1].c2.x=window.width-offset*2;
-  segments[1].c2.y=offset;
-  segments[1].p.x=window.width-offset;
-  segments[1].p.y=window.height-offset;
-  segments[2].p.x=offset;
-  segments[2].p.y = window.height - offset;
+  segments = [
+    Segment("move",Point(offset,offset)),
+    Segment("bezier",
+      Point(window.width-offset,window.height-offset),
+      Point(window.width-offset,offset*2),
+      Point(window.width-offset*2,offset)
+    ),
+    Segment("line",Point(offset,window.height - offset))
+  ];
   updateCanvas();
 }
 
@@ -133,18 +138,18 @@ function render() {
     { x: 0, y: 0, w: window.width, h: window.height }
   );
   for (var j = 0; j < segments.length; j++) {
-    var points = [segments[j].p];
+     var points = [{ p: segments[j].p, c: "#0f0" }];
     if(segments[j].kind=='bezier'){
-      points.push(segments[j].c1);
-      points.push(segments[j].c2);
+      points.push({ p: segments[j].c1, c: "#00f" });
+      points.push({ p: segments[j].c2, c: "#00f" });
     }
     for (var i = 0; i < points.length; i++) {
       var size = 10;
-      var c = "#0f0";
-      if (point_moved == points[i]) {
+      var c = points[i].c;
+      if (point_moved == points[i].p) {
         c = "#f00";
       }
-      DrawRectangleRec({ x: points[i].x - size / 2, y: points[i].y - size / 2, w: size, h: size }, c);
+      DrawRectangleRec({ x: points[i].p.x - size / 2, y: points[i].p.y - size / 2, w: size, h: size }, c);
     }
   }
 
@@ -156,34 +161,37 @@ function render() {
     var node = ui_pick(get_mouse_x(), get_mouse_y());
     var parsed = parse_node_id(node);
     if (parsed!=null){
-      console.log("action", parsed.kind, "on", parsed.idx);
       if (parsed.idx < segments.length) {
-        if (parsed.kind = "split") {
+        if (parsed.kind == "split") {
           if (segments[parsed.idx].kind == 'line') {
             var middle = splitLine(segments[parsed.idx - 1].p, segments[parsed.idx].p);
             var end = Point(segments[parsed.idx].p.x, segments[parsed.idx].p.y);
             segments[parsed.idx].p = middle
-            segments.splice(parsed.idx-1, 0, Segment('line', end));
+            segments.splice(parsed.idx+1, 0, Segment('line', end));
             dirty = true;
-            console.log("splice 1");
           }else if (segments[parsed.idx].kind == 'bezier') {
             var to_split = segments[parsed.idx]
             var splitted = splitBezier(segments[parsed.idx - 1].p, to_split.c1, to_split.c2, to_split.p);
             segments[parsed.idx].c1 = splitted[0].c1;
             segments[parsed.idx].c2 = splitted[0].c2;
             segments[parsed.idx].p = splitted[0].p;
-            segments.splice(parsed.idx-1, 0, Segment('bezier', splitted[1].p, splitted[1].c1, splitted[1].c2));
+            segments.splice(parsed.idx+1, 0, Segment('bezier', splitted[1].p, splitted[1].c1, splitted[1].c2));
             dirty = true;
-            console.log("splice 2");
-          }else{
-            console.log("oups 1",parsed.idx,segments[parsed.idx].kind);
           }
-        }else if (parsed.kind = "delete" && segments.length > 2) {
-            segments.splice(parsed.idx, 1);
+        }else if (parsed.kind == "delete" && segments.length > 2) {
+            segments = segments.filter(function (s, idx) { return idx != parsed.idx });
             dirty = true;
-            console.log("splice 3");
-        }else{
-          console.log("oups 2");
+        }else if (parsed.kind == "swap") {
+          if(segments[parsed.idx].kind=="line"){
+            var b = lineToBezier(segments[parsed.idx - 1].p, segments[parsed.idx].p);
+            segments[parsed.idx].c1 = b.c1;
+            segments[parsed.idx].c2 = b.c2;
+            segments[parsed.idx].kind = "bezier";
+          }else{
+            segments[parsed.idx].kind = "line";
+          }
+          console.log("dirty");
+          dirty = true;
         }
       }
     }

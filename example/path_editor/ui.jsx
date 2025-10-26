@@ -21,9 +21,9 @@ exports.build=function(props){
       return <item class="lh fit m-2">
         <txt msg={s.kind} class="grow min-x-70" font_size={20} ></txt>;
         {(s.kind=="bezier")?(
-          <Icon id={(id+1)+"-line"} at_x={0} at_y={0}></Icon>
+          <Icon id={(id+1)+"-swap"} at_x={0} at_y={0}></Icon>
         ):(
-          <Icon id={(id+1)+"-bezier"} at_x={0} at_y={1}></Icon>
+          <Icon id={(id+1)+"-swap"} at_x={0} at_y={1}></Icon>
         )}
         <Icon id={(id+1)+"-split"} at_x={3} at_y={1}></Icon>
         {props.segments.length>=2?(
