@@ -1,3 +1,4 @@
 builder
 build/
 example/basic/shape.png
+example/path_editor/backup.json
