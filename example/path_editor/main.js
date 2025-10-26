@@ -57,7 +57,7 @@ function parse_node_id(str) {
 var segments = [];
 var point_moved = {};
 var dirty = false;
-
+var canvas_offset = 200;
 function conf() {
   window.width = 800;
   window.height = 600;
@@ -65,14 +65,14 @@ function conf() {
 }
 
 function init() {
-  NewCanvas("canvas", window.width, window.height);
+  NewCanvas("canvas", window.width-canvas_offset, window.height);
   var offset = 20;
   segments = [
     Segment("move",Point(offset,offset)),
     Segment("bezier",
-      Point(window.width-offset,window.height-offset),
-      Point(window.width-offset,offset*2),
-      Point(window.width-offset*2,offset)
+      Point(window.width-offset-canvas_offset,window.height-offset),
+      Point(window.width-offset-canvas_offset,offset*2),
+      Point(window.width-offset*2-canvas_offset,offset)
     ),
     Segment("line",Point(offset,window.height - offset))
   ];
@@ -110,7 +110,7 @@ function move_point() {
       }
       for (var i = 0; i < points.length; i++) {
         var dist = 10;
-        var m = Point(get_mouse_x(), get_mouse_y());
+        var m = Point(get_mouse_x()-canvas_offset, get_mouse_y());
         if (close_enough(m, points[i],dist)) {
           point_moved = points[i];
         }
@@ -119,7 +119,7 @@ function move_point() {
   } else if (is_mouse_button_released("left")) {
     point_moved = null;
   }else if(point_moved != null){
-    point_moved.x  =get_mouse_x()
+    point_moved.x = get_mouse_x() - canvas_offset;
     point_moved.y = get_mouse_y();
     dirty = true;
   }
@@ -135,7 +135,7 @@ function render() {
   DrawImagePro(
     "shape",
     undefined,
-    { x: 0, y: 0, w: window.width, h: window.height }
+    { x: canvas_offset, y: 0, w: window.width-canvas_offset, h: window.height }
   );
   for (var j = 0; j < segments.length; j++) {
      var points = [{ p: segments[j].p, c: "#0f0" }];
@@ -149,7 +149,7 @@ function render() {
       if (point_moved == points[i].p) {
         c = "#f00";
       }
-      DrawRectangleRec({ x: points[i].p.x - size / 2, y: points[i].p.y - size / 2, w: size, h: size }, c);
+      DrawRectangleRec({ x: points[i].p.x +canvas_offset- size / 2, y: points[i].p.y - size / 2, w: size, h: size }, c);
     }
   }
 
@@ -190,7 +190,6 @@ function render() {
           }else{
             segments[parsed.idx].kind = "line";
           }
-          console.log("dirty");
           dirty = true;
         }
       }
