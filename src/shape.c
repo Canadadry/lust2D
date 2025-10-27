@@ -1,5 +1,6 @@
 #include "shape.h"
 #include "dynamicarray.h"
+#include <math.h>
 #define MAX_INTERSECTION 512
 
 WRITE_ARRAY_IMPL(Point);
@@ -72,6 +73,57 @@ void fill_polygon(ARRAY(Point) pts, ImageBuffer buffer, BufColor color) {
     }
 }
 
+float quick_rsqrt( float number ){
+    int32_t i;
+    float x2, y;
+    const float threehalfs = 1.5F;
+
+    x2 = number * 0.5F;
+    y  = number;
+    i  = * (int32_t *) &y;
+    i  = 0x5f3759df - (i >> 1);
+    y  = *(float *) &i;
+    y  = y * (threehalfs - (x2 * y * y));
+    return y;
+}
+
+void drawLine(ImageBuffer img, Point p1, Point p2, int w, BufColor c){
+    int dx = p2.x - p1.x;
+    int dy = p2.y - p1.y;
+    float length_square = dx * dx + dy * dy;
+
+    if (length_square == 0) {
+        return;
+    }
+
+    float inv_length = quick_rsqrt(length_square);
+    float double_inv_length = quick_rsqrt(2*length_square);
+    float ux = -dy *inv_length;
+    float uy = dx * inv_length;
+
+    for (float t = 0; t <= 1.0f; t += double_inv_length) {
+        float cx = p1.x + t * dx;
+        float cy = p1.y + t * dy;
+        for (int i = -w / 2; i <= w / 2; i++) {
+            for (int j = -w / 2; j <= w / 2; j++) {
+                int px = (int)roundf(cx + i * ux + j * uy);
+                int py = (int)roundf(cy + i * uy - j * ux);
+
+                if (px >= 0 && px < img.w && py >= 0 && py < img.h) {
+                    unsigned char * pix = img.buf+4*(img.w*py+px);
+                    *(BufColor*)pix =blend_colors(c,*(BufColor*)pix);
+                }
+            }
+        }
+    }
+}
+
+void outline_polygon(ARRAY(Point) pts, ImageBuffer buffer,int width,BufColor color){
+    for (int i = 0; i < pts.len; i++) {
+        int j = (i + 1) % pts.len;
+        drawLine(buffer,pts.data[i],pts.data[j],width,color);
+    }
+}
 
 int bezier_to(ARRAY(Point)* pts, Point p2, Point p3, Point p4, int n) {
     if(pts->len==0){

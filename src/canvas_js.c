@@ -11,6 +11,9 @@ extern HASHMAP(Image)* hmap_image;
 extern HASHMAP(Texture)* hmap_texture;
 Image* current_canvas=NULL;
 Color fill_color=RED;
+Color outline_color=BLUE;
+int outline_width=0;
+
 
 void js_new_canvas(js_State* J){
     const char* name = js_tostring(J, 1);
@@ -67,6 +70,18 @@ void js_set_fill_color(js_State* J){
     return;
 }
 
+void js_set_outline_color(js_State* J){
+    outline_color =get_color(J,1);
+    js_pushundefined(J);
+    return;
+}
+
+void js_set_outline_width(js_State* J){
+    outline_width =js_tointeger(J,1);
+    js_pushundefined(J);
+    return;
+}
+
 static void close_path(){
     fill_polygon(canvas_path,
     (ImageBuffer){
@@ -80,7 +95,20 @@ static void close_path(){
         .b=fill_color.b,
         .a=fill_color.a
     });
-    canvas_path.len=0;
+    if(outline_width>0){
+        outline_polygon(canvas_path,
+        (ImageBuffer){
+            .buf=current_canvas->data,
+            .w=current_canvas->width,
+            .h=current_canvas->height
+        },outline_width,(BufColor){
+            .r=outline_color.r,
+            .g=outline_color.g,
+            .b=outline_color.b,
+            .a=outline_color.a
+        });
+        canvas_path.len=0;
+    }
 }
 
 static VECTOR2(float) get_point_or(js_State *J, int idx,VECTOR2(float) def)  {
@@ -212,16 +240,16 @@ void js_canvas_to_image(js_State* J){
 
 void bind_canvas_func(js_State *J,Allocator alloc){
     canvas_path.alloc=alloc;
-    js_newcfunction(J, js_new_canvas, "NewCanvas", 3);           js_setglobal(J, "NewCanvas");
-    js_newcfunction(J, js_set_canvas, "SetCanvas", 1);           js_setglobal(J, "SetCanvas");
-    js_newcfunction(J, js_clear_canvas, "ClearCanvas", 1);       js_setglobal(J, "ClearCanvas");
-    js_newcfunction(J, js_set_fill_color, "SetFillColor", 1);    js_setglobal(J, "SetFillColor");
-    js_newcfunction(J, js_move_to, "MoveTo", 1);                 js_setglobal(J, "MoveTo");
-    js_newcfunction(J, js_bezier_to, "BezierTo", 4);             js_setglobal(J, "BezierTo");
-    js_newcfunction(J, js_line_to, "LineTo", 1);                 js_setglobal(J, "LineTo");
-    js_newcfunction(J, js_close, "Close", 0);                    js_setglobal(J, "Close");
-    js_newcfunction(J, js_save_canvas, "SaveCanvas", 1);         js_setglobal(J, "SaveCanvas");
-    js_newcfunction(J, js_canvas_to_image, "CanvasToImage", 1);  js_setglobal(J, "CanvasToImage");
-
-
+    js_newcfunction(J, js_new_canvas, "NewCanvas", 3);              js_setglobal(J, "NewCanvas");
+    js_newcfunction(J, js_set_canvas, "SetCanvas", 1);              js_setglobal(J, "SetCanvas");
+    js_newcfunction(J, js_clear_canvas, "ClearCanvas", 1);          js_setglobal(J, "ClearCanvas");
+    js_newcfunction(J, js_set_fill_color, "SetFillColor", 1);       js_setglobal(J, "SetFillColor");
+    js_newcfunction(J, js_set_outline_color, "SetOutlineColor", 1); js_setglobal(J, "SetOutlineColor");
+    js_newcfunction(J, js_set_outline_width, "SetOutlineWidth", 1); js_setglobal(J, "SetOutlineWidth");
+    js_newcfunction(J, js_move_to, "MoveTo", 1);                    js_setglobal(J, "MoveTo");
+    js_newcfunction(J, js_bezier_to, "BezierTo", 4);                js_setglobal(J, "BezierTo");
+    js_newcfunction(J, js_line_to, "LineTo", 1);                    js_setglobal(J, "LineTo");
+    js_newcfunction(J, js_close, "Close", 0);                       js_setglobal(J, "Close");
+    js_newcfunction(J, js_save_canvas, "SaveCanvas", 1);            js_setglobal(J, "SaveCanvas");
+    js_newcfunction(J, js_canvas_to_image, "CanvasToImage", 1);     js_setglobal(J, "CanvasToImage");
 }

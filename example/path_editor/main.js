@@ -87,6 +87,8 @@ function updateCanvas(){
   SetCanvas("canvas");
   ClearCanvas("#fff");
   SetFillColor("#aaffee");
+  SetOutlineColor("#ffaaee");
+  SetOutlineWidth(10);
   for (var i = 0; i < segments.length;i++){
     if(segments[i].kind=="move"){
       Close();

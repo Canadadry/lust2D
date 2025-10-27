@@ -22,6 +22,7 @@ typedef struct {
 } BufColor;
 
 void fill_polygon(ARRAY(Point) pts, ImageBuffer buffer, BufColor color);
+void outline_polygon(ARRAY(Point) pts, ImageBuffer buffer, int width,BufColor color);
 int bezier_to(ARRAY(Point)* pts, Point p2, Point p3, Point p4, int n);
 
 #endif //_SHAPE_H_
