@@ -55,7 +55,7 @@ function parse_node_id(str) {
 
 
 var segments = [];
-var point_moved = {};
+var point_moved = null;
 var dirty = false;
 var canvas_offset = 200;
 function conf() {
@@ -97,7 +97,9 @@ function updateCanvas(){
       BezierTo(segments[i].c1,segments[i].c2,segments[i].p,20);
     }
   }
+  Close();
   CanvasToImage("shape");
+  dirty = false;
 }
 
 function close_enough(p1,p2,dist){
@@ -137,6 +139,7 @@ function handle_click(){
     }else if(node=="load"){
       if(file_exist("backup.json")){
         segments=JSON.parse(read("backup.json"));
+        dirty = true;
       }
     }else if(node=="save"){
       write("backup.json", JSON.stringify(segments,null,2));
@@ -182,8 +185,7 @@ function handle_click(){
 function render() {
   move_point();
   if (dirty) {
-    dirty = false;
-    updateCanvas();
+    updateCanvas()
   }
   ClearBackground("#fff");
   DrawImagePro(
