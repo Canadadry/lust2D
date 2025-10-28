@@ -1,3 +1,17 @@
+var type_move = 0;
+var type_line = 1;
+var type_bezier = 2;
+
+function type_to_string(t){
+  if(t==type_move){
+    return "move"
+  }else if(t==type_line){
+    return "line"
+  }else if(t==type_bezier){
+    return "bezier"
+  }
+}
+
 var Icon = function(props){
   return <tile
     id={props.id}
@@ -24,8 +38,8 @@ exports.build=function(props){
       return id > 0;
     }).map(function(s,id){
       return <item class="lh fit m-2">
-        <txt msg={s.kind} class="grow min-x-70" font_size={20} ></txt>;
-        {(s.kind=="bezier")?(
+        <txt msg={type_to_string(s.kind)} class="grow min-x-70" font_size={20} ></txt>;
+        {(s.kind==type_bezier)?(
           <Icon id={(id+1)+"-swap"} at_x={0} at_y={0}></Icon>
         ):(
           <Icon id={(id+1)+"-swap"} at_x={0} at_y={1}></Icon>

@@ -1,4 +1,7 @@
 var ui = require('ui');
+var type_move = 0;
+var type_line = 1;
+var type_bezier = 2;
 
 var Point=function(x,y){
   return { x: x || 0, y: y || 0 };
@@ -72,13 +75,13 @@ function init() {
 function new_canvas(){
   var offset = 20;
   segments = [
-    Segment("move",Point(offset,offset)),
-    Segment("bezier",
+    Segment(type_move,Point(offset,offset)),
+    Segment(type_bezier,
       Point(window.width-offset-canvas_offset,window.height-offset),
       Point(window.width-offset-canvas_offset,offset*2),
       Point(window.width-offset*2-canvas_offset,offset)
     ),
-    Segment("line",Point(offset,window.height - offset))
+    Segment(type_line,Point(offset,window.height - offset))
   ];
   dirty = true;
 }
@@ -90,12 +93,12 @@ function updateCanvas(){
   SetOutlineColor("#ffaaee");
   SetOutlineWidth(10);
   for (var i = 0; i < segments.length;i++){
-    if(segments[i].kind=="move"){
+    if(segments[i].kind==type_move){
       Close();
       MoveTo(segments[i].p);
-    } else if(segments[i].kind=="line"){
+    } else if(segments[i].kind==type_line){
       LineTo(segments[i].p);
-    } else if(segments[i].kind=="bezier"){
+    } else if(segments[i].kind==type_bezier){
       BezierTo(segments[i].c1,segments[i].c2,segments[i].p,20);
     }
   }
@@ -112,7 +115,7 @@ function move_point() {
   if (is_mouse_button_pressed("left")) {
     for (var j = 0; j < segments.length; j++) {
       var points = [segments[j].p];
-      if(segments[j].kind=='bezier'){
+      if(segments[j].kind==type_bezier){
         points.push(segments[j].c1);
         points.push(segments[j].c2);
       }
@@ -144,38 +147,38 @@ function handle_click(){
         dirty = true;
       }
     }else if(node=="save"){
-      write("backup.json", JSON.stringify(segments,null,2));
+      write("backup.json", JSON.stringify(segments));
     }
     var parsed = parse_node_id(node);
     if (parsed!=null){
       if (parsed.idx < segments.length) {
         if (parsed.kind == "split") {
-          if (segments[parsed.idx].kind == 'line') {
+          if (segments[parsed.idx].kind == type_line) {
             var middle = splitLine(segments[parsed.idx - 1].p, segments[parsed.idx].p);
             var end = Point(segments[parsed.idx].p.x, segments[parsed.idx].p.y);
             segments[parsed.idx].p = middle
-            segments.splice(parsed.idx+1, 0, Segment('line', end));
+            segments.splice(parsed.idx+1, 0, Segment(type_line, end));
             dirty = true;
-          }else if (segments[parsed.idx].kind == 'bezier') {
+          }else if (segments[parsed.idx].kind == type_bezier) {
             var to_split = segments[parsed.idx]
             var splitted = splitBezier(segments[parsed.idx - 1].p, to_split.c1, to_split.c2, to_split.p);
             segments[parsed.idx].c1 = splitted[0].c1;
             segments[parsed.idx].c2 = splitted[0].c2;
             segments[parsed.idx].p = splitted[0].p;
-            segments.splice(parsed.idx+1, 0, Segment('bezier', splitted[1].p, splitted[1].c1, splitted[1].c2));
+            segments.splice(parsed.idx+1, 0, Segment(type_bezier, splitted[1].p, splitted[1].c1, splitted[1].c2));
             dirty = true;
           }
         }else if (parsed.kind == "delete" && segments.length > 2) {
             segments = segments.filter(function (s, idx) { return idx != parsed.idx });
             dirty = true;
         }else if (parsed.kind == "swap") {
-          if(segments[parsed.idx].kind=="line"){
+          if(segments[parsed.idx].kind==type_line){
             var b = lineToBezier(segments[parsed.idx - 1].p, segments[parsed.idx].p);
             segments[parsed.idx].c1 = b.c1;
             segments[parsed.idx].c2 = b.c2;
-            segments[parsed.idx].kind = "bezier";
+            segments[parsed.idx].kind = type_bezier;
           }else{
-            segments[parsed.idx].kind = "line";
+            segments[parsed.idx].kind = type_line;
           }
           dirty = true;
         }
@@ -197,7 +200,7 @@ function render() {
   );
   for (var j = 0; j < segments.length; j++) {
      var points = [{ p: segments[j].p, c: "#0f0" }];
-    if(segments[j].kind=='bezier'){
+    if(segments[j].kind==type_bezier){
       points.push({ p: segments[j].c1, c: "#00f" });
       points.push({ p: segments[j].c2, c: "#00f" });
     }
