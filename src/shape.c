@@ -108,7 +108,9 @@ void drawLine(ImageBuffer img, Point p1, Point p2, int w, BufColor c){
             for (int j = -w / 2; j <= w / 2; j++) {
                 int px = (int)roundf(cx + i * ux + j * uy);
                 int py = (int)roundf(cy + i * uy - j * ux);
-
+                if(i*i+j*j>(w*w)>>2){
+                    continue;
+                }
                 if (px >= 0 && px < img.w && py >= 0 && py < img.h) {
                     unsigned char * pix = img.buf+4*(img.w*py+px);
                     *(BufColor*)pix =blend_colors(c,*(BufColor*)pix);
