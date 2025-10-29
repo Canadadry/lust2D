@@ -29,25 +29,25 @@ UiColor hex_to_rgba(js_State *J,const char *hex) {
     size_t len = strlen(hex);
     if (len == 4) {
         unsigned int r, g, b;
-        sscanf(hex + 1, "%1x%1x%1x", &r, &g, &b);
+        sscanf(hex, "#%1x%1x%1x", &r, &g, &b);
         color.r = (unsigned char)(r * 17);
         color.g = (unsigned char)(g * 17);
         color.b = (unsigned char)(b * 17);
     } else if (len == 5) {
         unsigned int r, g, b;
-        sscanf(hex + 1, "%2x%2x%2x", &r, &g, &b);
+        sscanf(hex, "#%2x%2x%2x", &r, &g, &b);
         color.r = (unsigned char)(r);
         color.g = (unsigned char)(g);
         color.b = (unsigned char)(b);
     } else if (len == 7) {
         unsigned int r, g, b;
-        sscanf(hex + 1, "%2x%2x%2x", &r, &g, &b);
+        sscanf(hex, "#%2x%2x%2x", &r, &g, &b);
         color.r = (unsigned char)(r);
         color.g = (unsigned char)(g);
         color.b = (unsigned char)(b);
     } else if (len == 9) {
         unsigned int r, g, b, a;
-        sscanf(hex + 1, "%2x%2x%2x%2x", &r, &g, &b, &a);
+        sscanf(hex, "#%2x%2x%2x%2x", &r, &g, &b, &a);
         color.r = (unsigned char)(r);
         color.g = (unsigned char)(g);
         color.b = (unsigned char)(b);
@@ -438,6 +438,9 @@ void draw(Tree tree){
             if(f==NULL){
                 f=&f_default;
             }
+            if(p.value.text.msg==NULL){
+                return;
+            }
             draw_text(p.value.text.msg,rect,(FontParam){
                 .Font=(void*)f,
                 .align=p.value.text.align,
@@ -459,25 +462,26 @@ void dump_ui_command(Tree tree){
 	    rect.width  = tree.commands.data[i].w;
 	    rect.height = tree.commands.data[i].h;
 		const char* id = tree.commands.data[i].id;
+		printf("command id '%s' %02d : x:%.1f , y:%.1f , w:%.1f , h:%.1f ",id,i,rect.x,rect.y,rect.width,rect.height);
 		Painter p =tree.commands.data[i].painter;
 	    switch(p.kind){
     	case PAINTER_NONE:
-            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter none : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            printf("painter none\n");
     	    break;
     	case PAINTER_RECT:
-            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter rect : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            printf("painter rect : color r %d g %d b %d a %d\n",p.value.rect.color.rgba.r,p.value.rect.color.rgba.g,p.value.rect.color.rgba.b,p.value.rect.color.rgba.a);
             break;
         case PAINTER_IMG:
-            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter img  : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            printf("painter img src : '%s'\n",p.value.img.source);
             break;
         case PAINTER_NINE_PATCH:
-            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter npat : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            printf("painter img npatch : '%s'\n",p.value.npatch.source);
             break;
         case PAINTER_TILE:
-            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter tile : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            printf("painter img tile : '%s'\n",p.value.tile.source);
             break;
         case PAINTER_TEXT:
-            printf("command %d : x:%.1f,y:%.1f,w:%.1f,h:%.1f painter text : %s\n",i,rect.x,rect.y,rect.width,rect.height,id);
+            printf("painter txt msg : '%s' color r %d g %d b %d a %d\n",p.value.text.msg,p.value.text.color.rgba.r,p.value.text.color.rgba.g,p.value.text.color.rgba.b,p.value.text.color.rgba.a);
             break;
 		}
 	}
@@ -557,6 +561,7 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
     Texture* t;
     Font f_default = GetFontDefault();
     Font* f = &f_default;
+    const char* txt_to_mesure = " ";
     switch(p.kind){
     case PAINTER_NONE:
         break;
@@ -581,10 +586,12 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
         if(f==NULL){
             f=&f_default;
         }
-        ret = mesure_text(p.value.text.msg,0,(FontParam){
+        if(p.value.text.msg!=NULL){
+            txt_to_mesure=p.value.text.msg;
+        }
+        ret = mesure_text(txt_to_mesure,0,(FontParam){
             .Font=(void*)f,
             .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
-            .color=p.value.text.color,
             .line_spacing=p.value.text.spacing,
             .spacing=p.value.text.spacing,
             .size=p.value.text.font_size,
@@ -617,6 +624,9 @@ int wrap_content_fn(void *userdata,Painter p,int width){
         }
         if(f==NULL){
             f=&f_default;
+        }
+        if(p.value.text.msg==NULL){
+            return 0;
         }
         content = mesure_text(p.value.text.msg,width,(FontParam){
             .Font=(void*)f,

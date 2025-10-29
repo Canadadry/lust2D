@@ -11,6 +11,9 @@ Line get_next_line(const char *txt, float width, FontParam param) {
     Line word = {0};
     float last_space_size = 0;
     int last_codepoint = 0;
+    if(txt==NULL || txt[0]==0){
+        return (Line){.end_at=-1};
+    }
 
     for (int index = 0; txt[index] != '\0'; index++) {
         int codepoint = txt[index];
@@ -60,17 +63,16 @@ VECTOR2(int) mesure_text(const char *txt, float width, FontParam param) {
 
     for (int i = 0; i < MAX_LINE; i++) {
         Line line = get_next_line(remaining_txt, width, param);
-        if (line.end_at == 0) {
-            break;  // Fin du texte
-        }
-        remaining_txt = remaining_txt + line.end_at + 1;
         out.x = fmax(out.x, line.size.x);
         out.y += line.size.y + param.line_spacing;
+        if (line.end_at < 0) {
+            break;
+        }
+        remaining_txt = remaining_txt + line.end_at + 1;
     }
 
     return out;
 }
-
 
 void draw_text(const char *txt, Rectangle rect, FontParam param) {
     VECTOR2(int) dim = mesure_text(txt, (float)rect.width, param);
@@ -80,7 +82,7 @@ void draw_text(const char *txt, Rectangle rect, FontParam param) {
 
     for (int i = 0; i < 100; i++) {
         Line line = get_next_line(remaining_txt, rect.width, param);
-        if (line.end_at == 0) {
+        if (line.end_at < 0) {
             break;
         }
 

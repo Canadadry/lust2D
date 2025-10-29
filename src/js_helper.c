@@ -177,7 +177,9 @@ void parse_jsx(js_State *J){
 		return;
 	}
 	const char* compiled = jsx_get_output(compiler);
-	// printf("compiling jsx %s \n", compiled);
+	#ifdef BUILD_DEBUG
+	printf("compiling jsx %s \n", compiled);
+	#endif
 	js_pushstring(J, compiled);
 	jsx_free_compiler(compiler);
 }

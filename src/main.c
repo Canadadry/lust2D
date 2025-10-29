@@ -94,7 +94,9 @@ int main(int argc, char** argv){
     InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);
     SetWindowFocused();
+    #ifndef BUILD_DEBUG
     InitAudioDevice();
+    #endif
 
    	if(js_dostring(J, "init();") !=0){
 	    printf("failed while running init()\n");

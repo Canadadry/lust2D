@@ -215,9 +215,12 @@ function render() {
   }
 
   ui_clear();
-  var root = ui.build({ segments: segments })
+  var root = ui.build({ segments: segments, colors:{fill:{r:0,g:0,b:0},border:{r:0,g:0,b:0}} })
   ui_compute(root);
   handle_click();
   ui_draw(root);
+  if(is_key_released("space")){
+    ui_dump_command();
+  }
 
 }

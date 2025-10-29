@@ -76,11 +76,11 @@ void init_node_fn1_set_max_y(Node* n,int val) {n->size.y.bound.max = val;}
 
 void init_init_node_fn_hashmap(HASHMAP(init_node_fn)* hmap,ARRAY(InitNodeFn1)* array1){
     *(init_node_fn_upsert(hmap, "fit", UpsertActionCreate)) = init_node_fn_set_fit;
-    *(init_node_fn_upsert(hmap, "fit_x", UpsertActionCreate)) = init_node_fn_set_fit_x;
-    *(init_node_fn_upsert(hmap, "fit_y", UpsertActionCreate)) = init_node_fn_set_fit_y;
+    *(init_node_fn_upsert(hmap, "fit-x", UpsertActionCreate)) = init_node_fn_set_fit_x;
+    *(init_node_fn_upsert(hmap, "fit-y", UpsertActionCreate)) = init_node_fn_set_fit_y;
     *(init_node_fn_upsert(hmap, "grow", UpsertActionCreate)) = init_node_fn_set_grow;
-    *(init_node_fn_upsert(hmap, "grow_x", UpsertActionCreate)) = init_node_fn_set_grow_x;
-    *(init_node_fn_upsert(hmap, "grow_y", UpsertActionCreate)) = init_node_fn_set_grow_y;
+    *(init_node_fn_upsert(hmap, "grow-x", UpsertActionCreate)) = init_node_fn_set_grow_x;
+    *(init_node_fn_upsert(hmap, "grow-y", UpsertActionCreate)) = init_node_fn_set_grow_y;
     *(init_node_fn_upsert(hmap, "m-1", UpsertActionCreate)) = init_node_fn_set_margin_1;
     *(init_node_fn_upsert(hmap, "m-2", UpsertActionCreate)) = init_node_fn_set_margin_2;
     *(init_node_fn_upsert(hmap, "m-3", UpsertActionCreate)) = init_node_fn_set_margin_3;
