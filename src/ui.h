@@ -9,6 +9,8 @@
 #include <stdbool.h>
 
 #define ID_LEN 32
+#define SRC_LEN 255
+#define MSG_LEN 255
 
 typedef enum {
     PAINTER_NONE,
@@ -70,13 +72,12 @@ typedef struct{
 
 typedef struct{
     UiColor color;
-    const char* source;
+    char source[255];
 }PainterImage;
-
 
 typedef struct{
     UiColor color;
-    const char* source;
+    char source[255];
     int left;
     int right;
     int top;
@@ -85,8 +86,8 @@ typedef struct{
 
 typedef struct{
     UiColor color;
-    const char* msg;
-    const char* font;
+    char msg[255];
+    char font[255];
     int font_size;
     int spacing;
     int line_spacing;
@@ -95,7 +96,7 @@ typedef struct{
 
 typedef struct{
     UiColor color;
-    const char* source;
+    char source[255];
    	VECTOR2(int) at;
     VECTOR2(int) padding;
     VECTOR2(int) size;

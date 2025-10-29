@@ -11,6 +11,7 @@
 #include "vector2.h"
 #include "regex.h"
 #include <stdio.h>
+#include <string.h>
 
 extern HASHMAP(init_node_fn)* hmap_init_node_fn;
 extern ARRAY(InitNodeFn1)* array_init_node_fn1;
@@ -253,25 +254,34 @@ static void js_ui_create(js_State *J) {
 			node.painter.kind=PAINTER_NONE;
 		}else if(strncmp(title,"img",3)==0){
 			node.painter.kind=PAINTER_IMG;
-			node.painter.value.img.source=get_property_string_or(J,props,"src",NULL);
+			const char* src=get_property_string_or(J,props,"src",NULL);
+			if(src!=NULL){
+			    strncpy(node.painter.value.img.source, src, SRC_LEN);
+			}
 			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
 			if(t!=NULL && !IsTextureValid(*t)){
 			    *t = LoadTexture(node.painter.value.img.source);
 			}
 		}else if(strncmp(title,"npatch",6)==0){
 			node.painter.kind=PAINTER_NINE_PATCH;
-			node.painter.value.npatch.left=get_property_int_or(J,props,"left",0),
-			node.painter.value.npatch.right=get_property_int_or(J,props,"right",0),
-			node.painter.value.npatch.top=get_property_int_or(J,props,"top",0),
-			node.painter.value.npatch.bottom=get_property_int_or(J,props,"bottom",0),
-			node.painter.value.npatch.source=get_property_string_or(J,props,"src",NULL);
+			node.painter.value.npatch.left=get_property_int_or(J,props,"left",0);
+			node.painter.value.npatch.right=get_property_int_or(J,props,"right",0);
+			node.painter.value.npatch.top=get_property_int_or(J,props,"top",0);
+			node.painter.value.npatch.bottom=get_property_int_or(J,props,"bottom",0);
+			const char* src=get_property_string_or(J,props,"src",NULL);
+			if(src!=NULL){
+			    strncpy(node.painter.value.npatch.source, src, SRC_LEN);
+			}
 			Texture* t = Texture_upsert(hmap_texture,node.painter.value.npatch.source , UpsertActionCreate);
 			if(t!=NULL && !IsTextureValid(*t)){
 			    *t = LoadTexture(node.painter.value.npatch.source);
 			}
 		}else if(strncmp(title,"tile",4)==0){
 			node.painter.kind=PAINTER_TILE;
-			node.painter.value.tile.source=get_property_string_or(J,props,"src",NULL);
+			const char* src=get_property_string_or(J,props,"src",NULL);
+			if(src!=NULL){
+			    strncpy(node.painter.value.tile.source, src, SRC_LEN);
+			}
 			Texture* t = Texture_upsert(hmap_texture,node.painter.value.img.source , UpsertActionCreate);
 			if(t!=NULL && !IsTextureValid(*t)){
 			    *t = LoadTexture(node.painter.value.tile.source);
@@ -290,7 +300,10 @@ static void js_ui_create(js_State *J) {
 		    };
 		}else if(strncmp(title,"txt",4)==0){
 			node.painter.kind=PAINTER_TEXT;
-			node.painter.value.text.msg=get_property_string_or(J,props,"msg",NULL);
+			const char* msg=get_property_string_or(J,props,"msg",NULL);
+			if(msg!=NULL){
+			    strncpy(node.painter.value.text.msg, msg, MSG_LEN);
+			}
 			node.painter.value.text.color=get_color_property(J, props);
 			node.painter.value.text.font_size=get_property_int_or(J,props,"font_size",10);
 			node.painter.value.text.spacing=get_property_int_or(J,props,"spacing",node.painter.value.text.font_size/10);
@@ -300,10 +313,13 @@ static void js_ui_create(js_State *J) {
     		    .y=get_property_align(J, props, "text_v_align"),
 			};
 			int is_bmp=1;
-			node.painter.value.text.font=get_property_string_or(J,props,"bmp_font",NULL);
-			if(node.painter.value.text.font==NULL){
+			const char* font=get_property_string_or(J,props,"bmp_font",NULL);
+			if(font==NULL){
 			    is_bmp=0;
-				node.painter.value.text.font=get_property_string_or(J,props,"ttf_font",NULL);
+				font=get_property_string_or(J,props,"ttf_font",NULL);
+			}
+			if(font != NULL){
+			    strncpy(node.painter.value.text.font, font, SRC_LEN);
 			}
 			Font* f = Font_upsert(hmap_font,node.painter.value.text.font , UpsertActionCreate);
 			if(f!=NULL&&!IsFontValid(*f)){
@@ -432,13 +448,13 @@ void draw(Tree tree){
     		);
             break;
         case PAINTER_TEXT:
-            if(p.value.text.font != NULL){
+            if(p.value.text.font[0] != 0){
                 f = Font_upsert(hmap_font,p.value.text.font , UpsertActionUpdate);
             }
             if(f==NULL){
                 f=&f_default;
             }
-            if(p.value.text.msg==NULL){
+            if(p.value.text.msg[0] == 0){
                 return;
             }
             draw_text(p.value.text.msg,rect,(FontParam){
@@ -561,7 +577,6 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
     Texture* t;
     Font f_default = GetFontDefault();
     Font* f = &f_default;
-    const char* txt_to_mesure = " ";
     switch(p.kind){
     case PAINTER_NONE:
         break;
@@ -580,16 +595,13 @@ VECTOR2(int) mesure_content_fn(void *userdata,Painter p){
         ret =p.value.tile.size;
         break;
     case PAINTER_TEXT:
-        if(p.value.text.font != NULL){
+        if(p.value.text.font[0] != 0){
             f = Font_upsert(hmap_font,p.value.text.font , UpsertActionUpdate);
         }
         if(f==NULL){
             f=&f_default;
         }
-        if(p.value.text.msg!=NULL){
-            txt_to_mesure=p.value.text.msg;
-        }
-        ret = mesure_text(txt_to_mesure,0,(FontParam){
+        ret = mesure_text(p.value.text.msg,0,(FontParam){
             .Font=(void*)f,
             .align=(VECTOR2(Align)){.x=AlignBegin,.y=AlignBegin},
             .line_spacing=p.value.text.spacing,
@@ -619,13 +631,13 @@ int wrap_content_fn(void *userdata,Painter p,int width){
         content = mesure_content_fn(userdata,p);
         return (int)((float)width*(float)content.y/(float)content.x);
     case PAINTER_TEXT:
-        if(p.value.text.font != NULL){
+        if(p.value.text.font[0] != 0){
             f = Font_upsert(hmap_font,p.value.text.font , UpsertActionUpdate);
         }
         if(f==NULL){
             f=&f_default;
         }
-        if(p.value.text.msg==NULL){
+        if(p.value.text.msg[0] == 0){
             return 0;
         }
         content = mesure_text(p.value.text.msg,width,(FontParam){
