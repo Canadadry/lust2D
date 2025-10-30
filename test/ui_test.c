@@ -48,6 +48,51 @@ bool painter_match(const char* test_name,int i,Painter exp, Painter got){
             );
             return false;
         }
+        case PAINTER_TILE:
+        if(exp.value.tile.color.value != got.value.tile.color.value){
+            TEST_ERRORF(test_name,
+                "failed command %d painter tile color dont match got %x want:%x\n",
+                i,got.value.tile.color.value,exp.value.tile.color.value
+            );
+            return false;
+        }
+        if(strncmp(exp.value.tile.source, exp.value.tile.source,MAX_SOURCE_IMG_LEN)!=0){
+            TEST_ERRORF(test_name,
+                "failed command %d painter tile source dont match got %s want:%s\n",
+                i,got.value.img.source,exp.value.img.source
+            );
+            return false;
+        }
+        case PAINTER_NINE_PATCH:
+        if(exp.value.npatch.color.value != got.value.npatch.color.value){
+            TEST_ERRORF(test_name,
+                "failed command %d painter npatch color dont match got %x want:%x\n",
+                i,got.value.npatch.color.value,exp.value.npatch.color.value
+            );
+            return false;
+        }
+        if(strncmp(exp.value.npatch.source, exp.value.npatch.source,MAX_SOURCE_IMG_LEN)!=0){
+            TEST_ERRORF(test_name,
+                "failed command %d painter npatch source dont match got %s want:%s\n",
+                i,got.value.npatch.source,exp.value.npatch.source
+            );
+            return false;
+        }
+        case PAINTER_TEXT:
+        if(exp.value.text.color.value != got.value.text.color.value){
+            TEST_ERRORF(test_name,
+                "failed command %d painter text color dont match got %x want:%x\n",
+                i,got.value.text.color.value,exp.value.text.color.value
+            );
+            return false;
+        }
+        if(strncmp(exp.value.text.msg, exp.value.text.msg,MAX_SOURCE_IMG_LEN)!=0){
+            TEST_ERRORF(test_name,
+                "failed command %d painter text msg dont match got %s want:%s\n",
+                i,got.value.text.msg,exp.value.text.msg
+            );
+            return false;
+        }
         break;
     }
     return true;
@@ -1407,12 +1452,13 @@ void test_two_line_basic_table_example(TestCase* tc) {
                 (Size){.kind = SizeKindGrow},
                 (Size){.kind = SizeKindGrow},
             },
-            .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = (i == 0) ? "100x25" : "25x25"}}},
+            .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){0}}},
             .first_children = -1,
             .last_children = -1,
             .children_count = 0,
             .next = child_index + 2,
         };
+        strncpy(tc->tree.nodes.data[child_index+1].painter.value.img.source, (i == 0) ? "100x25" : "25x25", SRC_LEN);
 
         tc->tree.nodes.data[child_index + 2] = (Node){
             .size = {
@@ -1598,12 +1644,14 @@ void test_two_line_basic_table_example_reverse_order(TestCase* tc) {
                 (Size){.kind = SizeKindGrow},
                 (Size){.kind = SizeKindGrow},
             },
-            .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){.source = (i != 0) ? "100x25" : "25x25"}}},
+            .painter = (Painter){.kind = PAINTER_IMG, .value = {.img = (PainterImage){0}}},
             .first_children = -1,
             .last_children = -1,
             .children_count = 0,
             .next = child_index + 2,
         };
+        strncpy(tc->tree.nodes.data[child_index+1].painter.value.img.source, (i == 0) ? "100x25" : "25x25", SRC_LEN);
+
 
         tc->tree.nodes.data[child_index + 2] = (Node){
             .size = {
