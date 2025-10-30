@@ -215,7 +215,7 @@ function render() {
   }
 
   ui_clear();
-  var root = ui.build({ segments: segments, colors:{fill:{r:0,g:0,b:0},border:{r:0,g:0,b:0}} })
+  var root = ui.build({ segments: segments, colors:{fill:{r:255,g:0,b:0},border:{r:0,g:255,b:0}} })
   ui_compute(root);
   handle_click();
   ui_draw(root);

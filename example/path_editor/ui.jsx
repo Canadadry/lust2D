@@ -20,31 +20,31 @@ var Icon = function(props){
 }
 
 var Slider = function(props){
-  return <item id={props.id} class="fit lh">
-    <txt msg={":"+props.min} class="grow" font_size={20}></txt>
-    <txt msg={":"+props.max} class="grow" font_size={20}></txt>
-    <txt msg={":"+props.val} class="grow" font_size={20}></txt>
+  return <item id={props.id} class="fit-y grow-x lh">
+    <txt msg={props.name} class="grow" font_size={20} color="#000"></txt>
+    <item class="fit-y grow-x ls">
+      <rectangle class="grow-x ay-m" h={10} color="#aaa"></rectangle>
+      <rectangle id={props.id+"-knob"} w={20} h={20} color="#a00"></rectangle>
+    </item>
+    <txt msg={""+props.val} class="grow" font_size={20} color="#000"></txt>
 </item>
 }
 
 var Colors=function(props){
-  return <item class="fit lv">
-    {/* <item class="fit lh">
+  return <item class="fit-y grow-x lv">
+    <item class="fit-y grow-x  lh">
       <rectangle class="grow-x" h={30} color={props.colors.fill}></rectangle>
       <rectangle class="grow-x" h={30} color={props.colors.border}></rectangle>
-    </item>*/}
-    <item class="fit lh">
-      <txt msg="R" class="grow" font_size={20} color="#000"></txt>
-      <Slider id="silder-r" min={0} max={255} val={props.colors.fill.r}></Slider>
     </item>
-    {/* <item class="fit lh">
-      <txt msg="G" class="grow" font_size={20}></txt>
-      <Slider id="silder-g" min={0} max={255} val={props.colors.fill.g}></Slider>
+    <item class="fit-y grow-x  lh">
+      <Slider id="silder-r" name="R" min={0} max={255} val={props.colors.fill.r}></Slider>
     </item>
-    <item class="fit lh">
-      <txt msg="B" class="grow" font_size={20}></txt>
-      <Slider id="silder-b" min={0} max={255} val={props.colors.fill.b}></Slider>
-    </item>*/}
+    <item class="fit-y grow-x  lh">
+      <Slider id="silder-g" name="G" min={0} max={255} val={props.colors.fill.g}></Slider>
+    </item>
+    <item class="fit-y grow-x lh">
+      <Slider id="silder-b" name="B" min={0} max={255} val={props.colors.fill.b}></Slider>
+    </item>
   </item>
 }
 
@@ -77,6 +77,6 @@ var Path=function(props){
 exports.build=function(props){
   return <item class="fit lv">
     <Colors colors={props.colors}></Colors>
-    {/* <Path segments={props.segments}></Path>*/}
+    <Path segments={props.segments}></Path>
   </item>
 }

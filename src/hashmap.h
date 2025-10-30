@@ -18,10 +18,11 @@ typedef enum{
 unsigned long hash(const char *s) ;
 
 #define HASHMAP(VALUE) VALUE##HashMap
+#define HASMMAP_KEY_LEN 255
 
 #define CREATE_HASHMAP(VALUE)                                                      \
 typedef struct {                                                                   \
-    const char *key;                                                               \
+    char key[HASMMAP_KEY_LEN];                                                     \
     VALUE value;                                                                   \
     int children[4];                                                               \
 } VALUE##HashMapCell;                                                              \
@@ -44,23 +45,23 @@ VALUE* VALUE##_upsert(VALUE##HashMap *m, const char *key, UpsertAction action) {
                                                                                                      \
     for (int cell_index = 0; cell_index < m->data.len; h <<= 2) {                                    \
         VALUE##HashMapCell *cell = &m->data.data[cell_index];                                        \
-        if(cell->key==NULL){                                                                         \
+        if(cell->key[0]==0){                                                                         \
             switch(action){                                                                          \
                 case UpsertActionCreate:                                                             \
-                case UpsertActionUpdate:                                                             \
-                    cell->key=key;                                                                   \
+                    strncpy(cell->key, key, HASMMAP_KEY_LEN);                                        \
                     return &cell->value;                                                             \
+                case UpsertActionUpdate:                                                             \
                 case UpsertActionDelete:                                                             \
                     return NULL;                                                                     \
             }                                                                                        \
         }                                                                                            \
-        if (strcmp(cell->key, key)==0) {                                                             \
+        if (strncmp(cell->key, key,HASMMAP_KEY_LEN)==0) {                                            \
             switch(action){                                                                          \
                 case UpsertActionCreate:                                                             \
                 case UpsertActionUpdate:                                                             \
                     return &cell->value;                                                             \
                 case UpsertActionDelete:                                                             \
-                    cell->key = NULL;                                                                \
+                    cell->key[0] = 0;                                                                \
                     return NULL;                                                                     \
             }                                                                                        \
         }                                                                                            \
@@ -78,7 +79,7 @@ VALUE* VALUE##_upsert(VALUE##HashMap *m, const char *key, UpsertAction action) {
     }                                                                                                \
                                                                                                      \
     VALUE##HashMapCell new_cell = { 0 };                                                             \
-    new_cell.key=key;                                                                                \
+    strncpy(new_cell.key, key, HASMMAP_KEY_LEN);                                                    \
     array_append_##VALUE##HashMapCell(&m->data, new_cell);                                           \
     return &m->data.data[m->data.len - 1].value;                                                     \
 }
