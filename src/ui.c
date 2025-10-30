@@ -88,7 +88,7 @@ void compute_fit_size_width(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 	    compute_fit_size_width(tree,child_id,idx);
 	    child_id = tree->nodes.data[child_id].next;
 	}
-
+	float content_width =0;
 	switch(el->size.x.kind) {
 	case SizeKindFixed:
 		el->computed_box.w = el->size.x.size;
@@ -97,11 +97,12 @@ void compute_fit_size_width(Tree* tree, NodeIndex idx,NodeIndex parent_id)
 		fit_width_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
 		break;
 	case SizeKindGrow:
+		content_width = tree->mesure_content_fn(tree->mesure_content_userdata, el->painter).x;
+		if(el->size.x.bound.pref_use==PreferedToMax){
+		    el->size.x.bound.max=content_width;
+		}
 	    fit_width_sizing(el, el->size.x.bound.min, el->size.x.bound.max);
-		el->computed_box.w = MAX(
-		    el->computed_box.w,
-			tree->mesure_content_fn(tree->mesure_content_userdata, el->painter).x
-		);
+		el->computed_box.w = MAX(el->computed_box.w,content_width);
 	}
 
 	if(parent_id<0){

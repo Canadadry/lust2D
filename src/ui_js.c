@@ -104,6 +104,7 @@ static inline Size get_property_size(js_State *J, int idx,const char* name){
             .bound={
                 .min=get_property_int_or(J,top,"min",0),
                 .max=get_property_int_or(J,top,"max",0),
+                .pref_use=get_property_string_enum(J,top,"pref","PreferedToNone","PreferedToMin","PreferedToMax"),
             },
         };
         js_pop(J, 1);

@@ -21,12 +21,12 @@ var Icon = function(props){
 
 var Slider = function(props){
   return <item id={props.id} class="fit-y grow-x lh">
-    <txt msg={props.name} class="grow" font_size={20} color="#000"></txt>
+    <txt msg={props.name} class="grow max-bound-x" font_size={20} color="#000"></txt>
     <item class="fit-y grow-x ls">
       <rectangle class="grow-x ay-m" h={10} color="#aaa"></rectangle>
       <rectangle id={props.id+"-knob"} w={20} h={20} color="#a00"></rectangle>
     </item>
-    <txt msg={""+props.val} class="grow" font_size={20} color="#000"></txt>
+    <txt msg={""+props.val} class="grow max-bound-x" font_size={20} color="#000"></txt>
 </item>
 }
 

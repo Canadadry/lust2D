@@ -17,6 +17,12 @@ void init_node_fn_set_fit(Node* n) { n->size.x.kind = SizeKindFit; n->size.y.kin
 void init_node_fn_set_grow_x(Node* n) { n->size.x.kind = SizeKindGrow; }
 void init_node_fn_set_grow_y(Node* n) { n->size.y.kind = SizeKindGrow; }
 void init_node_fn_set_grow(Node* n) { n->size.x.kind = SizeKindGrow; n->size.y.kind = SizeKindGrow; }
+void init_node_fn_min_bound_grow(Node* n ){n->size.x.bound.pref_use=PreferedToMin;n->size.y.bound.pref_use=PreferedToMin;}
+void init_node_fn_min_bound_grow_x(Node* n ){n->size.x.bound.pref_use=PreferedToMin;}
+void init_node_fn_min_bound_grow_y(Node* n ){n->size.y.bound.pref_use=PreferedToMin;}
+void init_node_fn_max_bound_grow(Node* n ){n->size.x.bound.pref_use=PreferedToMax;n->size.y.bound.pref_use=PreferedToMax;}
+void init_node_fn_max_bound_grow_x(Node* n ){n->size.x.bound.pref_use=PreferedToMax;}
+void init_node_fn_max_bound_grow_y(Node* n ){n->size.y.bound.pref_use=PreferedToMax;}
 void init_node_fn_set_margin_1(Node* n) { n->margin = VAL1; }
 void init_node_fn_set_margin_2(Node* n) { n->margin = VAL2; }
 void init_node_fn_set_margin_3(Node* n) { n->margin = VAL3; }
@@ -81,6 +87,12 @@ void init_init_node_fn_hashmap(HASHMAP(init_node_fn)* hmap,ARRAY(InitNodeFn1)* a
     *(init_node_fn_upsert(hmap, "grow", UpsertActionCreate)) = init_node_fn_set_grow;
     *(init_node_fn_upsert(hmap, "grow-x", UpsertActionCreate)) = init_node_fn_set_grow_x;
     *(init_node_fn_upsert(hmap, "grow-y", UpsertActionCreate)) = init_node_fn_set_grow_y;
+    *(init_node_fn_upsert(hmap, "min-bound", UpsertActionCreate))   = init_node_fn_min_bound_grow;
+    *(init_node_fn_upsert(hmap, "min-bound-x", UpsertActionCreate)) = init_node_fn_min_bound_grow_x;
+    *(init_node_fn_upsert(hmap, "min-bound-y", UpsertActionCreate)) = init_node_fn_min_bound_grow_y;
+    *(init_node_fn_upsert(hmap, "max-bound", UpsertActionCreate))   = init_node_fn_max_bound_grow;
+    *(init_node_fn_upsert(hmap, "max-bound-x", UpsertActionCreate)) = init_node_fn_max_bound_grow_x;
+    *(init_node_fn_upsert(hmap, "max-bound-y", UpsertActionCreate)) = init_node_fn_max_bound_grow_y;
     *(init_node_fn_upsert(hmap, "m-1", UpsertActionCreate)) = init_node_fn_set_margin_1;
     *(init_node_fn_upsert(hmap, "m-2", UpsertActionCreate)) = init_node_fn_set_margin_2;
     *(init_node_fn_upsert(hmap, "m-3", UpsertActionCreate)) = init_node_fn_set_margin_3;

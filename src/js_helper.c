@@ -270,3 +270,24 @@ const char*  get_property_string_or(js_State *J, int idx,const char* name, const
     }
     return ret.value;
 }
+
+int __get_property_string_enum(js_State *J, int idx,const char* name, ...) {
+    va_list args;
+    va_start(args, name);
+
+    const char* value = get_property_string_or(J,idx,name,NULL);
+    if(value==NULL){
+        return 0;
+    }
+
+    int i=0;
+    const char *arg;
+    while ((arg = va_arg(args, const char*))) {
+        if(strcmp(arg,value)==0){
+            va_end(args);
+            return i;
+        }
+    }
+    va_end(args);
+    return 0;
+}

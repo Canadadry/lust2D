@@ -1274,6 +1274,65 @@ void test_dont_grow_over_max_size(TestCase* tc) {
     };
 }
 
+void test_dont_grow_over_pref_width(TestCase* tc) {
+    tc->name = __func__;
+    tc->expected.len = 3;
+    tc->expected.data[0] = (PainterCommand){.x = 0, .y = 0, .w = 450, .h = 70, .painter = {0}};
+    tc->expected.data[1] = (PainterCommand){.x = 10, .y = 10, .w = 50, .h = 50,
+                                            .painter = (Painter){
+                                                .kind = PAINTER_IMG,
+                                                .value = {.img = (PainterImage){.source = "50x50"}}
+                                            }
+    };
+    tc->expected.data[2] = (PainterCommand){.x = 70, .y = 10, .w = 50, .h = 50, .painter = {0}};
+
+    tc->tree.nodes.len = 3;
+    tc->tree.nodes.data[0] = (Node){
+        .layout = LayoutHorizontal,
+        .size = {
+            (Size){.kind = SizeKindFixed, .size = 450},
+            (Size){.kind = SizeKindFit},
+        },
+        .padding = {
+            .left = 10,
+            .right = 10,
+            .top = 10,
+            .bottom = 10,
+        },
+        .margin = 10,
+        .first_children = 1,
+        .last_children = 2,
+        .children_count = 2,
+        .next = -1,
+    };
+
+    tc->tree.nodes.data[1] = (Node){
+        .size = {
+            (Size){.kind = SizeKindGrow, .bound = {.pref_use = PreferedToMax}},
+            (Size){.kind = SizeKindFixed, .size = 50},
+        },
+        .painter = (Painter){
+            .kind = PAINTER_IMG,
+            .value = {.img = (PainterImage){.source = "50x50"}}
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .children_count = 0,
+        .next = 2,
+    };
+
+    tc->tree.nodes.data[2] = (Node){
+        .size = {
+            (Size){.kind = SizeKindGrow, .bound = {.max = 50}},
+            (Size){.kind = SizeKindFixed, .size = 50},
+        },
+        .first_children = -1,
+        .last_children = -1,
+        .children_count = 0,
+        .next = -1,
+    };
+}
+
 void test_dont_fit_over_max_width_size(TestCase* tc) {
     tc->name = __func__;
     tc->expected.len = 3;
@@ -1739,9 +1798,13 @@ void test_ui_compute(){
         test_centered_alignment,
         test_bottom_left_alignment,
         test_shrink_to_min_size,
+        //test_shrink_to_pref_width,
+        //test_shrink_to_pref_height,
         test_fit_to_min_size,
-        test_dont_shrink_min_size,
+        test_dont_shrink_min_size,  //TODO check utility
         test_dont_grow_over_max_size,
+        test_dont_grow_over_pref_width,
+        // test_dont_grow_over_pref_height,
         test_dont_fit_over_max_width_size,
         test_one_line_basic_table_example,
         test_two_line_basic_table_example,

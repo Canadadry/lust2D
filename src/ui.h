@@ -44,12 +44,19 @@ typedef enum{
     SizeKindGrow,
 }SizeKind;
 
+typedef enum{
+    PreferedToNone,
+    PreferedToMin,
+    PreferedToMax
+} PreferedUse;
+
 typedef struct{
     SizeKind kind;
     union {
         struct{
             int min;
             int max;
+            PreferedUse pref_use;
         } bound;
         int size;
     };
