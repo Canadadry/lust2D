@@ -21,6 +21,8 @@ typedef enum {
     PAINTER_TEXT,
 } PainterKind;
 
+const char* to_painter_kind_name(PainterKind pk);
+
 typedef union{
     Color rgba;
     int value;
@@ -43,6 +45,8 @@ typedef enum{
     SizeKindFixed,
     SizeKindGrow,
 }SizeKind;
+
+const char* to_size_kind_name(SizeKind sk);
 
 typedef enum{
     PreferedToNone,

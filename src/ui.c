@@ -18,6 +18,26 @@ VECTOR2(int) no_measure_content(void* userdata,Painter painter){
     return (VECTOR2(int)){0};
 }
 
+const char* to_painter_kind_name(PainterKind pk){
+    switch(pk){
+        case PAINTER_NONE : return "NONE";
+        case PAINTER_RECT : return "RECT";
+        case PAINTER_IMG : return "IMG";
+        case PAINTER_NINE_PATCH : return "NINE_PATCH";
+        case PAINTER_TILE : return "TILE";
+        case PAINTER_TEXT : return "TEXT";
+    }
+}
+
+const char* to_size_kind_name(SizeKind sk){
+    switch(sk){
+        case SizeKindFit: return "Fit";
+        case SizeKindFixed: return "Fixed";
+        case SizeKindGrow: return "Grow";
+    }
+}
+
+
 VECTOR2(int) get_remaining(Tree* tree,NodeIndex parent_id){
     Node* parent = &tree->nodes.data[parent_id];
 	VECTOR2(int) remaining = (VECTOR2(int)){
