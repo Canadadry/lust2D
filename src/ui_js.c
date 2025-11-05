@@ -60,22 +60,31 @@ UiColor hex_to_rgba(js_State *J,const char *hex) {
     return (UiColor){.rgba=color};;
 }
 
-static UiColor get_color_property(js_State *J, int idx)  {
-	if (js_isobject(J, idx) == 0) {
+static UiColor get_color_property(js_State *J, int idx,const char* name)  {
+   	if( js_hasproperty(J, idx, name) == 0) {
+        return (UiColor){.rgba=WHITE};
+	}
+	int top = js_gettop(J);
+    js_getproperty(J, idx, name);
+	if (js_isstring(J, top)){
+		UiColor c = hex_to_rgba(J,js_tostring(J,top));
+		js_pop(J,1);
+		return c;
+	}
+	if (js_isobject(J, top) == 0) {
+		js_pop(J,1);
 		return (UiColor){.rgba=WHITE};
 	};
-	if (js_hasproperty(J, idx, "color")){
-	    const char* hex_color = get_property_string_or(J,idx,"color","#FFF");
-		return hex_to_rgba(J,hex_color);
-	}
-	return (UiColor){
+	UiColor c=  (UiColor){
     	.rgba=(Color){
-    		.r = (unsigned char)get_property_number_or(J, idx, "r", 255),
-    		.g = (unsigned char)get_property_number_or(J, idx, "g", 255),
-    		.b = (unsigned char)get_property_number_or(J, idx, "b", 255),
-    		.a = (unsigned char)get_property_number_or(J, idx, "a", 255),
+    		.r = (unsigned char)get_property_number_or(J, top, "r", 255),
+    		.g = (unsigned char)get_property_number_or(J, top, "g", 255),
+    		.b = (unsigned char)get_property_number_or(J, top, "b", 255),
+    		.a = (unsigned char)get_property_number_or(J, top, "a", 255),
     	},
 	};
+	js_pop(J,1);
+	return c;
 }
 
 static inline Size get_property_size(js_State *J, int idx,const char* name){
@@ -249,7 +258,7 @@ static void js_ui_create(js_State *J) {
 		if(strncmp(title,"rectangle",9)==0){
 			node.painter.kind=PAINTER_RECT;
 			node.painter.value.rect = (PainterRect){
-				.color = get_color_property(J, props),
+				.color = get_color_property(J, props,"color"),
 			};
 		}else if(strncmp(title,"item",4)==0){
 			node.painter.kind=PAINTER_NONE;
@@ -305,7 +314,7 @@ static void js_ui_create(js_State *J) {
 			if(msg!=NULL){
 			    strncpy(node.painter.value.text.msg, msg, MSG_LEN);
 			}
-			node.painter.value.text.color=get_color_property(J, props);
+			node.painter.value.text.color=get_color_property(J, props,"color");
 			node.painter.value.text.font_size=get_property_int_or(J,props,"font_size",10);
 			node.painter.value.text.spacing=get_property_int_or(J,props,"spacing",node.painter.value.text.font_size/10);
 			node.painter.value.text.line_spacing=get_property_int_or(J,props,"line_spacing",node.painter.value.text.font_size/10);
