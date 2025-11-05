@@ -220,7 +220,7 @@ function render() {
   handle_click();
   ui_draw(root);
   if(is_key_released("space")){
-    ui_dump_command();
+    ui_dump_nodes();
   }
 
 }

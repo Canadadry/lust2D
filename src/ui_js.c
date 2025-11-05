@@ -504,8 +504,62 @@ void dump_ui_command(Tree tree){
 	}
 }
 
+void dump_ui_nodes(Tree tree){
+	for(int i=0;i<tree.nodes.len;i++){
+		printf("node %2d id '%15s' child %2d next %2d  boxed at : x:%03d , y:%03d , w:%03d , h:%03d ",
+           	i,
+           	tree.nodes.data[i].id,
+           	tree.nodes.data[i].first_children,
+           	tree.nodes.data[i].next,
+           	tree.nodes.data[i].computed_box.x,
+           	tree.nodes.data[i].computed_box.y,
+           	tree.nodes.data[i].computed_box.w,
+           	tree.nodes.data[i].computed_box.h
+		);
+		printf("size x kind %5s min %03d max %03d, pref %d ",
+           	to_size_kind_name(tree.nodes.data[i].size.x.kind),
+           	tree.nodes.data[i].size.x.bound.min,
+           	tree.nodes.data[i].size.x.bound.max,
+           	tree.nodes.data[i].size.x.bound.pref_use
+		);
+		printf("size y kind %5s min %03d max %03d, pref %d ",
+           	to_size_kind_name(tree.nodes.data[i].size.y.kind),
+           	tree.nodes.data[i].size.y.bound.min,
+           	tree.nodes.data[i].size.y.bound.max,
+           	tree.nodes.data[i].size.y.bound.pref_use
+		);
+		Painter p = tree.nodes.data[i].painter;
+	    switch(p.kind){
+    	case PAINTER_NONE:
+            printf("painter none\n");
+    	    break;
+    	case PAINTER_RECT:
+            printf("painter rect : color #%2x%2x%2x%2x\n",p.value.rect.color.rgba.r,p.value.rect.color.rgba.g,p.value.rect.color.rgba.b,p.value.rect.color.rgba.a);
+            break;
+        case PAINTER_IMG:
+            printf("painter img src : '%s'\n",p.value.img.source);
+            break;
+        case PAINTER_NINE_PATCH:
+            printf("painter img npatch : '%s'\n",p.value.npatch.source);
+            break;
+        case PAINTER_TILE:
+            printf("painter img tile : '%s'\n",p.value.tile.source);
+            break;
+        case PAINTER_TEXT:
+            printf("painter txt msg : '%s' color #%2x%2x%2x%2x\n",p.value.text.msg,p.value.text.color.rgba.r,p.value.text.color.rgba.g,p.value.text.color.rgba.b,p.value.text.color.rgba.a);
+            break;
+		}
+	}
+}
+
+
 void js_dump_ui_command(js_State* J){
     dump_ui_command(*ui_tree);
+}
+
+
+void js_dump_ui_nodes(js_State* J){
+    dump_ui_nodes(*ui_tree);
 }
 
 static void js_ui_draw(js_State *J){
@@ -569,6 +623,8 @@ void bind_ui_func(js_State *J){
 	js_setglobal(J, "ui_pick");
 	js_newcfunction(J, js_dump_ui_command, "ui_dump_command", 0);
 	js_setglobal(J, "ui_dump_command");
+	js_newcfunction(J, js_dump_ui_nodes, "ui_dump_nodes", 0);
+	js_setglobal(J, "ui_dump_nodes");
 
 
 }
