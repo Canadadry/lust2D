@@ -220,12 +220,15 @@ void build_sorted_growable(Tree *tree){
     );
 }
 
-void add(ptr_growable_array*  sorted_growables,int delta, int up_to){
-    int end = MIN(up_to + 1, sorted_growables->len);
-	for(int i= 0;i< end;i++){
+int add(ptr_growable_array*  sorted_growables,int delta, int count){
+    int added = 0;
+    int end = MIN(count , sorted_growables->len);
+	for(int i= 0;i<end;i++){
 	    Growable* g = sorted_growables->data[i];
 		g->val += delta;
-		if(g->val > g->max && g->max != 0){
+		added += delta;
+		if(g->val >= g->max && g->max != 0){
+		    added += g->max-g->val;
 			g->val = g->max;
 			g->to_remove=true;
 		}
@@ -244,6 +247,7 @@ void add(ptr_growable_array*  sorted_growables,int delta, int up_to){
         sizeof(ptr_growable),
         cmp_ptr_growable
     );
+    return added;
 }
 
 void grow_along_axis(Tree* tree,int remaining) {
@@ -255,24 +259,33 @@ void grow_along_axis(Tree* tree,int remaining) {
 		return;
 	}
 	build_sorted_growable(tree);
-	for(int i=0;i<tree->sorted_growables.len;i++){
-	    if(tree->sorted_growables.data[i]->val > tree->sorted_growables.data[0]->val){
-			int delta = tree->sorted_growables.data[i]->val - tree->sorted_growables.data[0]->val;
-			delta = MIN(delta, remaining / i);
-			if(delta == 0){
-				break;
-			}
-			remaining -= delta * i;
-			add(&tree->sorted_growables, delta, i - 1);
+	while(tree->sorted_growables.len>0 && remaining/tree->sorted_growables.len>0){
+	    int count = 0;
+	    for(count=1;count<tree->sorted_growables.len;count++){
+            if(tree->sorted_growables.data[count]->val > tree->sorted_growables.data[0]->val){
+      		    break;
+           	}
 		}
-	    if(tree->sorted_growables.data[0]->val==tree->sorted_growables.data[tree->sorted_growables.len-1]->val){
-			int delta = remaining / tree->sorted_growables.len;
-			remaining -= delta * tree->sorted_growables.len;
-			add(&tree->sorted_growables, delta, tree->sorted_growables.len);
-			if((remaining / tree->sorted_growables.len) == 0){
-				break;
-			}
+        int delta = 0;
+        if(count<tree->sorted_growables.len){
+            delta= tree->sorted_growables.data[count]->val - tree->sorted_growables.data[0]->val;
+        }else{
+            delta=remaining / count;
+        }
+		delta = MIN(delta, remaining / count);
+		if(delta == 0){
+			break;
 		}
+		remaining -= add(&tree->sorted_growables, delta, count);
+
+		// if(tree->sorted_growables.data[0]->val==tree->sorted_growables.data[tree->sorted_growables.len-1]->val){
+		// 	int delta = remaining / tree->sorted_growables.len;
+		// 	remaining -= delta * tree->sorted_growables.len;
+		// 	add(&tree->sorted_growables, delta, tree->sorted_growables.len);
+		// 	if((remaining / tree->sorted_growables.len) == 0){
+		// 		break;
+		// 	}
+		// }
 	}
 }
 

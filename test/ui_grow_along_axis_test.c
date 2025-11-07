@@ -105,12 +105,30 @@ void test_ui_grow_along_axis_grow_to_2_equal_part_and_one_maxed(GrowAlongAxisTes
     tc->expected.data[2]=(Growable){.id=2,.val=20,.min=0,.max= 0,.to_remove=0};
 }
 
+void test_ui_grow_along_axis_grow_with_three_maxed(GrowAlongAxisTestCase* tc){
+    tc->name = __func__;
+    tc->in.growables.len=5;
+    tc->in.growables.data[0]=(Growable){.id=0,.val= 0,.min=0,.max=10,.to_remove=0};
+    tc->in.growables.data[1]=(Growable){.id=1,.val= 0,.min=0,.max=10,.to_remove=0};
+    tc->in.growables.data[2]=(Growable){.id=2,.val= 0,.min=0,.max=10,.to_remove=0};
+    tc->in.growables.data[3]=(Growable){.id=3,.val= 0,.min=0,.max= 0,.to_remove=0};
+    tc->in.growables.data[4]=(Growable){.id=4,.val=10,.min=0,.max= 0,.to_remove=0};
+    tc->remaining=60;
+    tc->expected.len=5;
+    tc->expected.data[0]=(Growable){.id=0,.val=10,.min=0,.max=10,.to_remove=1};
+    tc->expected.data[1]=(Growable){.id=1,.val=10,.min=0,.max=10,.to_remove=1};
+    tc->expected.data[2]=(Growable){.id=2,.val=10,.min=0,.max=10,.to_remove=1};
+    tc->expected.data[3]=(Growable){.id=3,.val=20,.min=0,.max= 0,.to_remove=0};
+    tc->expected.data[4]=(Growable){.id=4,.val=20,.min=0,.max= 0,.to_remove=0};
+}
+
 
 void test_ui_grow_along_axis(){
     void(*cases[])(GrowAlongAxisTestCase* tc) = {
         test_ui_grow_along_axis_unsorted_just_init,
         test_ui_grow_along_axis_grow_to_3_equal_part,
         test_ui_grow_along_axis_grow_to_2_equal_part_and_one_maxed,
+        test_ui_grow_along_axis_grow_with_three_maxed,
     };
 
     int test_count = sizeof(cases) / sizeof(cases[0]);

@@ -5,7 +5,7 @@ typedef struct{
     const char *name;
     Tree in;
     int delta;
-    int upto;
+    int count;
     Tree expected;
 }AddTestCase;
 
@@ -25,7 +25,7 @@ void test_ui_add_case(void(*init_test)(AddTestCase* tc)){
     build_sorted_growable(&tc.in);
     build_sorted_growable(&tc.expected);
 
-    add(&tc.in.sorted_growables,tc.delta,tc.upto);
+    add(&tc.in.sorted_growables,tc.delta,tc.count);
 
     if(tc.in.sorted_growables.len!=tc.expected.sorted_growables.len){
        TEST_ERRORF(tc.name,"failed sorted_growables len dont match exp %d got %d\n",
@@ -91,7 +91,7 @@ void test_add_value(AddTestCase* tc){
     tc->in.growables.data[1]=(Growable){.id=1,.val=20,.min=0,.max=0,.to_remove=0};
     tc->in.growables.data[2]=(Growable){.id=2,.val=10,.min=0,.max=0,.to_remove=0};
     tc->delta=10;
-    tc->upto=2;
+    tc->count=3;
     tc->expected.growables.len=3;
     tc->expected.growables.data[0]=(Growable){.id=1,.val=30,.min=0,.max=0,.to_remove=0};
     tc->expected.growables.data[1]=(Growable){.id=2,.val=20,.min=0,.max=0,.to_remove=0};
@@ -105,7 +105,7 @@ void test_add_value_only_on_first(AddTestCase* tc){
     tc->in.growables.data[1]=(Growable){.id=1,.val=20,.min=0,.max=0,.to_remove=0};
     tc->in.growables.data[2]=(Growable){.id=2,.val=10,.min=0,.max=0,.to_remove=0};
     tc->delta=10;
-    tc->upto=0;
+    tc->count=1;
     tc->expected.growables.len=3;
     tc->expected.growables.data[0]=(Growable){.id=1,.val=20,.min=0,.max=0,.to_remove=0};
     tc->expected.growables.data[1]=(Growable){.id=2,.val=10,.min=0,.max=0,.to_remove=0};
@@ -119,7 +119,7 @@ void test_add_value_overflow_one(AddTestCase* tc){
     tc->in.growables.data[1]=(Growable){.id=1,.val=20,.min=0,.max=30,.to_remove=0};
     tc->in.growables.data[2]=(Growable){.id=2,.val=10,.min=0,.max= 0,.to_remove=0};
     tc->delta=20;
-    tc->upto=2;
+    tc->count=3;
     tc->expected.growables.len=2;
     tc->expected.growables.data[0]=(Growable){.id=0,.val=20,.min=0,.max= 0,.to_remove=0};
     tc->expected.growables.data[1]=(Growable){.id=2,.val=30,.min=0,.max= 0,.to_remove=0};
