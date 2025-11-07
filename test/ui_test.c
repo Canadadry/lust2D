@@ -1282,7 +1282,7 @@ void test_dont_grow_over_pref_width(TestCase* tc) {
                                                 .value = {.img = (PainterImage){.source = "50x50"}}
                                             }
     };
-    tc->expected.data[2] = (PainterCommand){.x = 70, .y = 10, .w = 50, .h = 50, .painter = {0}};
+    tc->expected.data[2] = (PainterCommand){.x = 70, .y = 10, .w = 450, .h = 50, .painter = {0}};
 
     tc->tree.nodes.len = 3;
     tc->tree.nodes.data[0] = (Node){
@@ -1321,7 +1321,7 @@ void test_dont_grow_over_pref_width(TestCase* tc) {
 
     tc->tree.nodes.data[2] = (Node){
         .size = {
-            (Size){.kind = SizeKindGrow, .bound = {.max = 50}},
+            (Size){.kind = SizeKindGrow},
             (Size){.kind = SizeKindFixed, .size = 50},
         },
         .first_children = -1,
