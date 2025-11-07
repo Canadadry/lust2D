@@ -127,12 +127,10 @@ int wrap_content_fn(void *userdata,Painter p,int width){
 
 void test_ui_compute_case(void(*init_test)(TestCase* tc)){
     TestCase tc = {0};
-    PainterCommand exp_commands[MAX_NODE_LEN]={0};
-    tc.expected.capacity=MAX_NODE_LEN;
-    tc.expected.data=exp_commands;
+    STATIC_INIT_TREE(tc.tree,MAX_NODE_LEN);
+    STATIC_ZERO_INIT(PainterCommand, tc.expected,exp_commands,MAX_NODE_LEN);
     tc.tree.mesure_content_fn=mesure_content_fn;
     tc.tree.wrap_content_fn=wrap_content_fn;
-    STATIC_INIT_TREE(tc.tree,MAX_NODE_LEN);
     init_test(&tc);
     compute(&tc.tree,tc.head);
     if(tc.expected.len != tc.tree.commands.len){

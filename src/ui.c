@@ -197,7 +197,11 @@ void set_growable(Tree *tree, NodeIndex parent_id, Direction dir ){
 int cmp_ptr_growable(const void* left, const void* right){
     ptr_growable ptr_left = *(ptr_growable*)left;
     ptr_growable ptr_right = *(ptr_growable*)right;
-    return ptr_left->val-ptr_right->val;
+    int delta =  ptr_left->val-ptr_right->val;
+    if (delta==0){
+        return ptr_left->id-ptr_right->id;
+    }
+    return delta;
 }
 
 void build_sorted_growable(Tree *tree){
@@ -216,10 +220,10 @@ void build_sorted_growable(Tree *tree){
     );
 }
 
-void add(Tree *tree,int delta, int up_to){
-    int end = MIN(up_to + 1, tree->sorted_growables.len);
+void add(ptr_growable_array*  sorted_growables,int delta, int up_to){
+    int end = MIN(up_to + 1, sorted_growables->len);
 	for(int i= 0;i< end;i++){
-	    Growable* g = tree->sorted_growables.data[i];
+	    Growable* g = sorted_growables->data[i];
 		g->val += delta;
 		if(g->val > g->max && g->max != 0){
 			g->val = g->max;
@@ -227,16 +231,16 @@ void add(Tree *tree,int delta, int up_to){
 		}
 	}
 
-	for(int i = 0;i<tree->sorted_growables.len;i++){
-	    if(tree->sorted_growables.data[i]->to_remove){
-			tree->sorted_growables.data[i]=tree->sorted_growables.data[tree->sorted_growables.len-1];
-			tree->sorted_growables.len--;
+	for(int i = 0;i<sorted_growables->len;i++){
+        if(sorted_growables->data[i]->to_remove){
+            sorted_growables->data[i]=sorted_growables->data[sorted_growables->len-1];
+            sorted_growables->len--;
 			i--;
 		}
 	}
     qsort(
-        tree->sorted_growables.data,
-        tree->sorted_growables.len,
+        sorted_growables->data,
+        sorted_growables->len,
         sizeof(ptr_growable),
         cmp_ptr_growable
     );
@@ -259,12 +263,12 @@ void grow_along_axis(Tree* tree,int remaining) {
 				break;
 			}
 			remaining -= delta * i;
-			add(tree, delta, i - 1);
+			add(&tree->sorted_growables, delta, i - 1);
 		}
 	    if(tree->sorted_growables.data[0]->val==tree->sorted_growables.data[tree->sorted_growables.len-1]->val){
 			int delta = remaining / tree->sorted_growables.len;
 			remaining -= delta * tree->sorted_growables.len;
-			add(tree, delta, tree->sorted_growables.len);
+			add(&tree->sorted_growables, delta, tree->sorted_growables.len);
 			if((remaining / tree->sorted_growables.len) == 0){
 				break;
 			}

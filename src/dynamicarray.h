@@ -7,6 +7,12 @@
 #define ARRAY(type) type##_array
 // #define ARRAY_APPEND(type) array_append_##type((arr),(value))
 
+#define STATIC_ZERO_INIT(type,dst,buf,legnth)\
+type buf[legnth]={0};                        \
+(dst).data=buf;                              \
+(dst).capacity=(legnth);                     \
+(dst).len=0
+
 #define CREATE_ARRAY_TYPE(type)                                    \
     typedef struct {                                               \
         type* data;                                                \

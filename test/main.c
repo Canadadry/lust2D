@@ -4,8 +4,8 @@
 #include "ui_add_test.h"
 
 int main(int argc,char ** argv){
-    TEST_GROUP(test_ui_compute);
     TEST_GROUP(test_ui_add);
+    TEST_GROUP(test_ui_compute);
     test_done();
     return 0;
 }
