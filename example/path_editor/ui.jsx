@@ -20,9 +20,11 @@ var Icon = function(props){
 }
 
 var Slider = function(props){
-  return <rectangle id={props.id} class="fit-y grow-x lh" color="#aa0">
+  return <rectangle id={props.id} class="fit-y grow-x lh p-1 m-1" color="#aa0">
     <txt id={props.id+"-name"} msg={props.name} class="grow max-bound-x" font_size={20} color="#000"></txt>
-    <rectangle id={props.id+"-nox"} class="fit-y grow-x ls" color="#00a">
+    <rectangle id={props.id+"-box"} class="fit-y grow-x ls" radius={1} color="#00a">
+      <rectangle id={props.id + "-knob"} w={20} h={20} radius={1} color="#f0a">
+      </rectangle>
     </rectangle>
     <txt id={props.id+"-val"} msg={""+props.val} class="grow max-bound-x" font_size={20} color="#000"></txt>
 </rectangle>

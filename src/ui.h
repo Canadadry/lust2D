@@ -79,6 +79,10 @@ CREATE_RECTANGLE_TYPE(int)
 
 typedef struct{
     UiColor color;
+    UiColor border_color;
+    int boder_width;
+    float radius;
+    int segment;
 }PainterRect;
 
 typedef struct{

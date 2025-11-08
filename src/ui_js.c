@@ -259,6 +259,10 @@ static void js_ui_create(js_State *J) {
 			node.painter.kind=PAINTER_RECT;
 			node.painter.value.rect = (PainterRect){
 				.color = get_color_property(J, props,"color"),
+				.border_color = get_color_property(J, props,"border_color"),
+				.boder_width = get_property_int_or(J, props, "border", 0),
+				.radius = get_property_number_or(J, props, "radius", 0),
+				.segment = get_property_number_or(J, props, "segment", 10),
 			};
 		}else if(strncmp(title,"item",4)==0){
 			node.painter.kind=PAINTER_NONE;
@@ -409,7 +413,17 @@ void draw(Tree tree){
     	case PAINTER_NONE:
     	    break;
     	case PAINTER_RECT:
-    		DrawRectangleRec(rect, p.value.rect.color.rgba);
+            if(p.value.rect.radius>0 && p.value.rect.segment>0){
+                DrawRectangleRounded(rect,  p.value.rect.radius, p.value.rect.segment, p.value.rect.color.rgba);
+                if(p.value.rect.boder_width){
+                    DrawRectangleRoundedLinesEx(rect, p.value.rect.radius, p.value.rect.segment, p.value.rect.boder_width, p.value.rect.border_color.rgba);
+                }
+            }else{
+                DrawRectangleRec(rect, p.value.rect.color.rgba);
+                if(p.value.rect.boder_width){
+                    DrawRectangleLinesEx(rect,  p.value.rect.boder_width, p.value.rect.border_color.rgba);                            // Draw rectangle outline with extended parameters
+                }
+            }
             break;
         case PAINTER_IMG:
             t = Texture_upsert(hmap_texture,p.value.img.source , UpsertActionUpdate);
@@ -593,12 +607,12 @@ static void js_pick_node(js_State *J){
 		return;
     }
     if (js_isnumber(J, 1) == 0 ){
-		js_error(J, "first arg passed to ui_pick should be a number");
+		js_error(J, "first arg passed to ui_pick should be a number (at.x)");
 		js_pushnull(J);
 		return;
 	}
     if (js_isnumber(J, 2) == 0 ){
-		js_error(J, "second arg passed to ui_pick should be a number");
+		js_error(J, "second arg passed to ui_pick should be a number (at.y)");
 		js_pushnull(J);
 		return;
 	}
@@ -611,6 +625,39 @@ static void js_pick_node(js_State *J){
         }
     }
     js_pushnull(J);
+}
+
+static void js_bounding_box(js_State *J){
+    if(ui_tree->commands.len <= 0){
+        js_pushnull(J);
+		return;
+    }
+    if (js_isstring(J, 1) == 0 ){
+		js_error(J, "first arg passed to ui_bb should be a string");
+		js_pushnull(J);
+		return;
+	}
+    const char *id = js_tostring(J, 1);
+    for(int i = ui_tree->commands.len-1;i>=0;i--){
+        if(strcmp(ui_tree->commands.data[i].id,id)==0){
+            js_newobject(J);
+            js_pushnumber(J, ui_tree->commands.data[i].x);
+            js_setproperty(J, -2, "x");
+            js_pop(J,1);
+            js_pushnumber(J, ui_tree->commands.data[i].y);
+            js_setproperty(J, -2, "y");
+            js_pop(J,1);
+            js_pushnumber(J, ui_tree->commands.data[i].w);
+            js_setproperty(J, -2, "w");
+            js_pop(J,1);
+            js_pushnumber(J, ui_tree->commands.data[i].h);
+            js_setproperty(J, -2, "h");
+            js_pop(J,1);
+            return;
+        }
+    }
+    js_pushnull(J);
+    return;
 }
 
 void js_ui_clear(js_State *J){
@@ -630,6 +677,8 @@ void bind_ui_func(js_State *J){
 	js_setglobal(J, "ui_draw");
 	js_newcfunction(J, js_pick_node, "ui_pick", 2);
 	js_setglobal(J, "ui_pick");
+	js_newcfunction(J, js_bounding_box, "ui_bb", 2);
+	js_setglobal(J, "ui_bb");
 	js_newcfunction(J, js_dump_ui_command, "ui_dump_command", 0);
 	js_setglobal(J, "ui_dump_command");
 	js_newcfunction(J, js_dump_ui_nodes, "ui_dump_nodes", 0);
