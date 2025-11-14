@@ -8,6 +8,7 @@
 #include "raylib_js.h"
 #include "ui_js.h"
 #include "canvas_js.h"
+#include "buffer.h"
 
 Allocator jsx_allocator = {0};
 
@@ -89,6 +90,20 @@ static void jsB_print(js_State *J){
 		fputs(s, stdout);
 	}
 	putchar('\n');
+	js_pushundefined(J);
+}
+
+static void jsB_panic(js_State *J){
+    Buffer buf;
+    STATIC_ZERO_INIT(char,buf,back,1024);
+	int i, top = js_gettop(J);
+	for (i = 1; i < top; ++i) {
+		const char *s = js_tostring(J, i);
+		if (i > 1) buf_write_char(&buf,' ');
+		buf_write_string(&buf,s);
+	}
+	buf_write_char(&buf,'\n');
+	js_error(J,"%s",buf.data);
 	js_pushundefined(J);
 }
 
@@ -190,6 +205,8 @@ int init_js(js_State* J,Allocator alloc){
 	js_setglobal(J, "named_eval");
    	js_newcfunction(J, jsB_print, "print", 1);
 	js_setglobal(J, "print");
+	js_newcfunction(J, jsB_panic, "panic", 1);
+	js_setglobal(J, "panic");
 	js_newcfunction(J, jsB_read, "read", 1);
 	js_setglobal(J, "read");
 	js_newcfunction(J, jsB_write, "write", 2);

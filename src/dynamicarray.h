@@ -5,7 +5,6 @@
 #include "allocator.h"
 
 #define ARRAY(type) type##_array
-// #define ARRAY_APPEND(type) array_append_##type((arr),(value))
 
 #define STATIC_ZERO_INIT(type,dst,buf,legnth)\
 type buf[legnth]={0};                        \
@@ -21,21 +20,27 @@ type buf[legnth]={0};                        \
         Allocator alloc;                                           \
     } ARRAY(type);                                                 \
                                                                    \
-    int array_append_##type(ARRAY(type)* a, type val);            \
-    ARRAY(type) array_create_##type(Allocator alloc);             \
+    int array_append_##type(ARRAY(type)* a, type val);             \
+    int array_reserve_##type(ARRAY(type)* a, int cap);             \
+    ARRAY(type) array_create_##type(Allocator alloc);              \
 
 #define WRITE_ARRAY_IMPL(type)                                     \
-                                                                   \
-    int type##_array_grow_values(ARRAY(type)* a) {                 \
+    int array_reserve_##type(ARRAY(type)* a,int cap) {             \
+        if(cap <= 0){                                              \
+          return 0;                                                \
+        }                                                          \
         if (a->alloc.realloc_fn == NULL) {                         \
             return 1;                                              \
         }                                                          \
-        int next_capacity = a->capacity;                           \
-        if (next_capacity == 0) {                                  \
+        int next_capacity = 0;                                     \
+        if (next_capacity <= 0) {                                  \
             next_capacity = 1;                                     \
         }                                                          \
-        while (a->len + 1 >= next_capacity) {                      \
+        while (a->len + cap >= next_capacity) {                    \
             next_capacity = 2 * next_capacity;                     \
+        }                                                          \
+        if( next_capacity < a->capacity){                          \
+         return 0;                                                 \
         }                                                          \
         a->data = a->alloc.realloc_fn(                             \
             a->alloc.userdata,                                     \
@@ -51,7 +56,7 @@ type buf[legnth]={0};                        \
                                                                    \
     int array_append_##type(ARRAY(type)* a, type val) {            \
         if (a->len >= a->capacity) {                               \
-            int ok = type##_array_grow_values(a);                  \
+            int ok = array_reserve_##type(a,1);                    \
             if (ok != 0) {                                         \
                 return 1;                                          \
             }                                                      \
@@ -65,6 +70,6 @@ type buf[legnth]={0};                        \
         return (type##_array){                                     \
             .alloc=alloc,                                          \
         };                                                         \
-    }                                                              \
+    }
 
 #endif // _DYNAMIC_ARRAY_H

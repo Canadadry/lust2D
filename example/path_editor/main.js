@@ -61,6 +61,16 @@ var segments = [];
 var point_moved = null;
 var dirty = false;
 var canvas_offset = 200;
+var silder_width = 0;
+var model = {
+  segments: segments,
+  silder_width: silder_width,
+  mode: "fill",
+  colors: {
+    fill: { r: 255, g: 0, b: 0 },
+    border: { r: 0, g: 255, b: 0 }
+  }
+};
 function conf() {
   window.width = 800;
   window.height = 600;
@@ -70,6 +80,12 @@ function conf() {
 function init() {
   NewCanvas("canvas", window.width-canvas_offset, window.height);
   new_canvas();
+  var root = ui.build(model);
+  ui_compute(root);
+  var rbox = ui_bb("R-box");
+  if(rbox===undefined){
+    panic("cannot find red slider box");
+  }
 }
 
 function new_canvas(){
@@ -112,6 +128,8 @@ function close_enough(p1,p2,dist){
 }
 
 function move_point() {
+  var mx = get_mouse_x();
+  var my = get_mouse_y();
   if (is_mouse_button_pressed("left")) {
     for (var j = 0; j < segments.length; j++) {
       var points = [segments[j].p];
@@ -121,7 +139,7 @@ function move_point() {
       }
       for (var i = 0; i < points.length; i++) {
         var dist = 10;
-        var m = Point(get_mouse_x()-canvas_offset, get_mouse_y());
+        var m = Point(mx-canvas_offset, my);
         if (close_enough(m, points[i],dist)) {
           point_moved = points[i];
         }
@@ -130,8 +148,8 @@ function move_point() {
   } else if (is_mouse_button_released("left")) {
     point_moved = null;
   }else if(point_moved != null){
-    point_moved.x = get_mouse_x() - canvas_offset;
-    point_moved.y = get_mouse_y();
+    point_moved.x = mx - canvas_offset;
+    point_moved.y = my;
     dirty = true;
   }
 }
@@ -183,6 +201,8 @@ function handle_click(){
           dirty = true;
         }
       }
+    }else{
+
     }
   }
 }
@@ -215,7 +235,7 @@ function render() {
   }
 
   ui_clear();
-  var root = ui.build({ segments: segments, colors:{fill:{r:255,g:0,b:0},border:{r:0,g:255,b:0}} })
+  var root = ui.build(model);
   ui_compute(root);
   handle_click();
   ui_draw(root);
