@@ -72,6 +72,31 @@ static const char *stacktrace_js =
 	"};\n"
 ;
 
+void js_dump_stack(js_State *J,const char * prefix){
+    int top = js_gettop(J);
+    for(int i=0;i<top;i++){
+        // if(js_isdefined(J,i)){printf("[%s:%d] defined\n",prefix,i);}
+        if(js_isundefined(J,i)){printf("[%s:%d] undefined\n",prefix,i);}
+        else if(js_isnull(J,i)){printf("[%s:%d] null\n",prefix,i);}
+        else if(js_isboolean(J,i)){printf("[%s:%d] boolean\n",prefix,i);}
+        else if(js_isnumber(J,i)){printf("[%s:%d] number\n",prefix,i);}
+        else if(js_isstring(J,i)){printf("[%s:%d] string\n",prefix,i);}
+        else if(js_isprimitive(J,i)){printf("[%s:%d] primitive\n",prefix,i);}
+        else if(js_isobject(J,i)){printf("[%s:%d] object\n",prefix,i);}
+        else if(js_isarray(J,i)){printf("[%s:%d] array\n",prefix,i);}
+        else if(js_isregexp(J,i)){printf("[%s:%d] regexp\n",prefix,i);}
+        else if(js_iscoercible(J,i)){printf("[%s:%d] coercible\n",prefix,i);}
+        else if(js_iscallable(J,i)){printf("[%s:%d] callable\n",prefix,i);}
+        //else if(js_isuserdata(J,i)){printf("[%s:%d] userdata\n",prefix,i);}
+        else if(js_iserror(J,i)){printf("[%s:%d] error\n",prefix,i);}
+        else if(js_isnumberobject(J,i)){printf("[%s:%d] numberobject\n",prefix,i);}
+        else if(js_isstringobject(J,i)){printf("[%s:%d] stringobject\n",prefix,i);}
+        else if(js_isbooleanobject(J,i)){printf("[%s:%d] booleanobject\n",prefix,i);}
+        else if(js_isdateobject(J,i)){printf("[%s:%d] dateobject\n",prefix,i);}
+        else{ printf("[%s:%d] unknown\n",prefix,i);}
+    }
+}
+
 static void jsB_named_eval(js_State *J){
     int func_name_idx = 1;
     int func_idx = 2;

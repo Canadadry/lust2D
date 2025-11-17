@@ -643,16 +643,12 @@ static void js_bounding_box(js_State *J){
             js_newobject(J);
             js_pushnumber(J, ui_tree->commands.data[i].x);
             js_setproperty(J, -2, "x");
-            js_pop(J,1);
             js_pushnumber(J, ui_tree->commands.data[i].y);
             js_setproperty(J, -2, "y");
-            js_pop(J,1);
             js_pushnumber(J, ui_tree->commands.data[i].w);
             js_setproperty(J, -2, "w");
-            js_pop(J,1);
             js_pushnumber(J, ui_tree->commands.data[i].h);
             js_setproperty(J, -2, "h");
-            js_pop(J,1);
             return;
         }
     }

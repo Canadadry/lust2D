@@ -13,6 +13,7 @@ CREATE_OPTIONAL_TYPE(string)
 int read_full_file(const char *filename,char ** file);
 const char* read_full_file_errno(int err);
 
+void js_dump_stack(js_State *J,const char * prefix);
 int init_js(js_State* J,Allocator alloc);
 OPTIONAL(double) get_property_number(js_State *J, int idx,const char* name);
 double get_property_number_or(js_State *J, int idx,const char* name, double def);
