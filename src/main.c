@@ -1,8 +1,10 @@
 #include "../vendor/raylib/raylib.h"
 #include "../vendor/mujs/mujs.h"
+#include "../vendor/jsx_parser/jsx_parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "ui.h"
 #include "vector2.h"
 #include "hashmap.h"
@@ -31,6 +33,65 @@ static inline void* user_realloc(void* userdata,void* ptr, size_t size){
 
 static inline void user_free(void* userdata,void* ptr){
     free(ptr);
+}
+
+int has_suffix(char* txt,char* suf){
+    int len_txt = strlen(txt);
+    int len_suf = strlen(suf);
+
+    if(len_suf>len_txt){
+        return 0;
+    }
+    int ret = strcmp(txt+len_txt-len_suf, suf)==0;
+    return ret;
+}
+
+int run_main_file(js_State *J,Allocator alloc){
+    char *files[]={"main.jsx","main.js"};
+    int len = sizeof(files)/sizeof(files[0]);
+    for(int i=0;i<len;i+=1){
+        FILE *f = fopen(files[i], "rb");
+    	if (f==NULL) {
+            continue;
+    	}
+        fclose(f);
+        if(has_suffix(files[i],".jsx")){
+            char *content =NULL;
+            int ret = read_full_file(files[i],&content);
+           	if(ret!=0){
+           	    printf("cannot read %s %s %s\n",files[i], read_full_file_errno(ret),strerror(errno));
+          		return 1;
+           	}
+            JSX_Compiler* compiler = jsx_new_compiler("ui_create(", (JSX_Allocator){
+                .realloc_fn = alloc.realloc_fn,
+                .free_fn = alloc.free_fn,
+            });
+            bool ok = jsx_compile(compiler, content, 0);
+            if(!ok){
+                printf("[%s] cannot compile jsx %s\n", files[i],jsx_get_last_error(compiler));
+                jsx_free_compiler(compiler);
+                return 1;
+            }
+            const char* compiled = jsx_get_output(compiler);
+           	#ifdef BUILD_DEBUG
+           	    printf("[%s] compiling jsx %s \n", files[i],compiled);
+           	#endif
+            js_loadstring(J,files[i],compiled);
+            js_pushundefined(J);
+           	js_call(J, 0);
+            jsx_free_compiler(compiler);
+            return 0;
+        }
+        if(has_suffix(files[i],".js")){
+            if(js_dofile(J, files[i]) !=0){
+                printf("failed while running %s\n",files[i]);
+                js_throw(J);
+                return 1;
+            }
+            return 0;
+        }
+    }
+    return 2;
 }
 
 int main(int argc, char** argv){
@@ -78,8 +139,8 @@ int main(int argc, char** argv){
 	    return ret;
 	}
 
-	if(js_dofile(J, "main.js") !=0){
-	    printf("failed while running main.js\n");
+	if(run_main_file(J,alloc) !=0){
+	    printf("failed while running main files\n");
 	    js_throw(J);
 	    return 1;
 	}

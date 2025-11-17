@@ -107,50 +107,71 @@ static void jsB_panic(js_State *J){
 	js_pushundefined(J);
 }
 
-static void jsB_read(js_State *J){
-	const char *filename = js_tostring(J, 1);
+
+int read_full_file(const char *filename,char ** file){
 	FILE *f;
-	char *s;
 	int n, t;
 
 	f = fopen(filename, "rb");
 	if (!f) {
-		js_error(J, "cannot open file '%s': %s", filename, strerror(errno));
+	    return 1;
 	}
 
 	if (fseek(f, 0, SEEK_END) < 0) {
 		fclose(f);
-		js_error(J, "cannot seek in file '%s': %s", filename, strerror(errno));
+		return 2;
 	}
 
 	n = ftell(f);
 	if (n < 0) {
 		fclose(f);
-		js_error(J, "cannot tell in file '%s': %s", filename, strerror(errno));
+		return 3;
 	}
 
 	if (fseek(f, 0, SEEK_SET) < 0) {
 		fclose(f);
-		js_error(J, "cannot seek in file '%s': %s", filename, strerror(errno));
+		return 2;
 	}
 
-	s = malloc(n + 1);
-	if (!s) {
+	*file = malloc(n + 1);
+	if (!*file) {
 		fclose(f);
-		js_error(J, "out of memory");
+		return 4;
 	}
 
-	t = fread(s, 1, n, f);
+	t = fread(*file, 1, n, f);
 	if (t != n) {
-		free(s);
+		free(*file);
 		fclose(f);
-		js_error(J, "cannot read data from file '%s': %s", filename, strerror(errno));
+		return 5;
 	}
-	s[n] = 0;
-
-	js_pushstring(J, s);
-	free(s);
+	(*file)[n] = 0;
 	fclose(f);
+	return 0;
+}
+
+const char* read_full_file_errno(int err){
+   	switch(err){
+    	case 1: return "cannot open file";
+    	case 2: return "cannot seek in file";
+    	case 3: return "cannot tell in file";
+    	case 4: return "out of memory";
+    	case 5: return "cannot read data from file";
+	}
+	return "";
+}
+
+static void jsB_read(js_State *J){
+    const char * filename = js_tostring(J, 1);
+    char *content =NULL;
+	int ret = read_full_file(filename,&content);
+	if(ret!=0){
+	    js_error(J, "%s %s %s",read_full_file_errno(ret),filename,strerror(errno));
+		js_pushundefined(J);
+		return;
+	}
+	js_pushstring(J, content);
+	free(content);
 }
 
 static void jsB_write(js_State* J){
@@ -176,6 +197,7 @@ static void jsB_file_exist(js_State *J){
 	}
 	js_pushboolean(J, exist);
 }
+
 
 
 void parse_jsx(js_State *J){
