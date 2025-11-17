@@ -9,6 +9,8 @@ var Slider = function(props){
 </rectangle>
 }
 
+var val = 100;
+
 function conf() {
   window.width = 800;
   window.height = 600;
@@ -20,4 +22,12 @@ function init() {
 
 function render() {
   ClearBackground("#fff");
+  ui_clear();
+  var root = ui_compute(<item w={200}>{
+      Slider({id:"line",name:"test",val:val})
+    }</item>
+  )
+  ui_draw(root);
+  var b = ui_bb("line-box");
+  console.log("box : ",JSON.stringify(b));
 }
