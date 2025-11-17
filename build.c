@@ -71,6 +71,12 @@ int main(int argc, char **argv) {
         }else{
             BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/path_editor/");
         }
+    }else if (build_has_arg(argc, argv,  "widget")){
+        if(build_has_arg(argc, argv, "debug","test")){
+            BUILD_RUN_CMD("./build/"TARGET"d","-basedir","example/widget/");
+        }else{
+            BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/widget/");
+        }
     }
 
 
