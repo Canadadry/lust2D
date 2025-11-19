@@ -246,6 +246,21 @@ void parse_jsx(js_State *J){
 	jsx_free_compiler(compiler);
 }
 
+static inline double map_value(double from_start, double from_end, double to_start, double to_end, double value) {
+    double proportion = (value - from_start) / (from_end - from_start);
+    return to_start + proportion * (to_end - to_start);
+}
+
+static void js_map_value(js_State *J){
+    js_pushnumber(J, map_value(
+        js_tonumber(J, 1),
+        js_tonumber(J, 2),
+        js_tonumber(J, 3),
+        js_tonumber(J, 4),
+        js_tonumber(J, 5)
+    ));
+}
+
 int init_js(js_State* J,Allocator alloc){
     jsx_allocator=alloc;
    	js_newcfunction(J, jsB_named_eval, "named_eval", 2);
@@ -262,6 +277,8 @@ int init_js(js_State* J,Allocator alloc){
 	js_setglobal(J, "file_exist");
 	js_newcfunction(J, parse_jsx, "parse_jsx", 0);
 	js_setglobal(J, "parse_jsx");
+	js_newcfunction(J, js_map_value, "map", 5);
+	js_setglobal(J, "map");
 	bind_raylib_func(J,alloc);
 	bind_ui_func(J);
 	bind_canvas_func(J,alloc);

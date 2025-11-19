@@ -68,7 +68,8 @@ int run_main_file(js_State *J,Allocator alloc){
             });
             bool ok = jsx_compile(compiler, content, 0);
             if(!ok){
-                printf("[%s] cannot compile jsx %s\n", files[i],jsx_get_last_error(compiler));
+                char * err = jsx_get_last_error(compiler);
+                printf("[%s] cannot compile jsx %s\n", files[i],err);
                 jsx_free_compiler(compiler);
                 return 1;
             }
