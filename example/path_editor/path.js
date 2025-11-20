@@ -71,7 +71,7 @@ function new_canvas (model){
   model.dirty = true;
 }
 
-function updateCanvas(){
+function updateCanvas(model){
   SetCanvas("canvas");
   ClearCanvas("#fff");
   SetFillColor("#aaffee");
@@ -174,10 +174,10 @@ exports.handle_click= function (model,node){
   }
 }
 
-exports.render =function () {
-  move_point();
-  if (dirty) {
-    updateCanvas()
+exports.render =function (model) {
+  move_point(model);
+  if (model.dirty) {
+    updateCanvas(model)
   }
   ClearBackground("#fff");
   DrawImagePro(
@@ -194,7 +194,7 @@ exports.render =function () {
     for (var i = 0; i < points.length; i++) {
       var size = 10;
       var c = points[i].c;
-      if (point_moved == points[i].p) {
+      if (model.point_moved == points[i].p) {
         c = "#f00";
       }
       DrawRectangleRec({ x: points[i].p.x +model.canvas_offset- size / 2, y: points[i].p.y - size / 2, w: size, h: size }, c);

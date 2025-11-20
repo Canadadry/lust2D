@@ -24,10 +24,10 @@ function init() {
 }
 
 function render() {
-  Path.render(model);
+  Path.render(model.path);
   ui_clear();
   var root = ui.build(model);
   ui_compute(root);
-  handle_click(model,Path.handle_click);
+  ui.handle_click(model,Path.handle_click);
   ui_draw(root);
 }

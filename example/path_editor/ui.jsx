@@ -77,12 +77,12 @@ var Path=function(props){
 exports.build=function(props){
   return <item class="fit lv">
     <Colors colors={props.colors}></Colors>
-    <Path segments={props.segments}></Path>
+    <Path segments={props.path.segments}></Path>
   </item>
 }
 
 
-exports.handle_click = function(model,fn){
+exports.handle_click = function(model,handle_path){
   if(is_mouse_button_released("left")&& model.path.point_moved==null){
     var node = ui_pick(get_mouse_x(), get_mouse_y());
     if(node=="new"){
@@ -95,7 +95,7 @@ exports.handle_click = function(model,fn){
     }else if(node=="save"){
       write("backup.json", JSON.stringify(model.segments));
     }else {
-      fn(model,node)
+      handle_path(model.path,node)
     }
   }
 }
