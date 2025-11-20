@@ -1,6 +1,24 @@
+var WColor = require('../widget/color');
+var Path = require('path');
+
 var type_move = 0;
 var type_line = 1;
 var type_bezier = 2;
+
+function parse_node_id(str) {
+  if(str==null){
+    return null;
+  }
+  var regex = /^(\d+)-(\w+)$/;
+  var match = str.match(regex);
+  if (match) {
+      var idx = parseInt(match[1], 10);
+      var kind = match[2];
+      return { idx:idx, kind:kind };
+  } else {
+      return null;
+  }
+}
 
 function type_to_string(t){
   if(t==type_move){
@@ -33,22 +51,14 @@ var Slider = function(props){
 var Colors=function(props){
   return <item id={props.id} class="fit-y grow-x lv">
     <item class="fit-y grow-x  lh">
-      <rectangle id="item-fill" class="grow-x" h={30} color={props.colors.fill}></rectangle>
-      <rectangle id="item-border" class="grow-x" h={30} color={props.colors.border}></rectangle>
+      <rectangle id="item-fill" class="grow-x" h={30} color={WColor.export(props.colors.fill)}></rectangle>
+      <rectangle id="item-border" class="grow-x" h={30} color={WColor.export(props.colors.border)}></rectangle>
     </item>
-    <item class="fit-y grow-x  lh">
-      <Slider name="R" min={0} max={255} val={props.colors.fill.r}></Slider>
-    </item>
-    <item class="fit-y grow-x  lh">
-      <Slider name="G" min={0} max={255} val={props.colors.fill.g}></Slider>
-    </item>
-    <item id="item-s-b" class="fit-y grow-x lh">
-      <Slider name="B" min={0} max={255} val={props.colors.fill.b}></Slider>
-    </item>
+    {WColor.draw(props.colors.fill)}
   </item>
 }
 
-var Path=function(props){
+var PathView=function(props){
   return (<rectangle class="fit m-2 p-2 lv" color="#aaa">
     <item class="fit lh m-1">
       <Icon id="new" at_x={1} at_y={2}></Icon>
@@ -77,25 +87,68 @@ var Path=function(props){
 exports.build=function(props){
   return <item class="fit lv">
     <Colors colors={props.colors}></Colors>
-    <Path segments={props.path.segments}></Path>
+    <PathView segments={props.path.segments}></PathView>
   </item>
 }
 
-
-exports.handle_click = function(model,handle_path){
-  if(is_mouse_button_released("left")&& model.path.point_moved==null){
-    var node = ui_pick(get_mouse_x(), get_mouse_y());
-    if(node=="new"){
-      new_canvas();
-    }else if(node=="load"){
-      if(file_exist("backup.json")){
-        model.segments=JSON.parse(read("backup.json"));
-        model.dirty = true;
-      }
-    }else if(node=="save"){
-      write("backup.json", JSON.stringify(model.segments));
-    }else {
-      handle_path(model.path,node)
+exports.init = function(){
+  return {
+    path: Path.init(),
+    silder_width: 0,
+    mode: "fill",
+    colors: {
+      fill: WColor.init("fill"),
+      border: WColor.init("border")
     }
   }
+}
+
+exports.handle_click = function(model){
+  model.colors.fill = WColor.update(model.colors.fill);
+  if( model.colors.fill.r.pressed==true
+    ||model.colors.fill.g.pressed==true
+    ||model.colors.fill.b.pressed==true
+  ){
+    model.path.dirty = true;
+  }
+
+  model.colors.border = WColor.update(model.colors.border);
+  if( model.colors.border.r.pressed==true
+    ||model.colors.border.g.pressed==true
+    ||model.colors.border.b.pressed==true
+  ){
+    model.path.dirty = true;
+  }
+
+  var node = ui_pick(get_mouse_x(), get_mouse_y());
+  if(is_mouse_button_released("left") && model.path.point_moved==null){
+    if(node=="new"){
+      Path.new_canvas(model.path);
+    }else if(node=="load"){
+      if(file_exist("backup.json")){
+        model.path=JSON.parse(read("backup.json"));
+        model.path.dirty = true;
+      }
+    }else if(node=="save"){
+      write("backup.json", JSON.stringify(model.path));
+    }else{
+      var parsed = parse_node_id(node);
+      if (parsed != null) {
+        if (parsed.idx < model.path.segments.length) {
+          if (parsed.kind == "split") {
+            Path.split_segment(model.path,parsed.idx)
+          } else if (parsed.kind == "delete" && model.path.segments.length > 2) {
+            Path.delete_segment(model.path,parsed.idx)
+          } else if (parsed.kind == "swap") {
+            Path.swap_segment(model.path,parsed.idx)
+          }
+        }
+      }
+    }
+  }
+  if(model.path.dirty){
+    model.path.fill = WColor.export(model.colors.fill);
+    model.path.border = WColor.export(model.colors.border);
+  }
+  return model
 }

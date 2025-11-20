@@ -2,22 +2,6 @@ var type_move = 0;
 var type_line = 1;
 var type_bezier = 2;
 
-
-function parse_node_id(str) {
-  if(str==null){
-    return null;
-  }
-  var regex = /^(\d+)-(\w+)$/;
-  var match = str.match(regex);
-  if (match) {
-      var idx = parseInt(match[1], 10);
-      var kind = match[2];
-      return { idx:idx, kind:kind };
-  } else {
-      return null;
-  }
-}
-
 var Point=function(x,y){
   return { x: x || 0, y: y || 0 };
 }
@@ -57,7 +41,7 @@ function lineToBezier(a,b){
 }
 
 
-function new_canvas (model){
+exports.new_canvas= function (model){
   var offset = 20;
   model.segments = [
     Segment(type_move,Point(offset,offset)),
@@ -74,9 +58,9 @@ function new_canvas (model){
 function updateCanvas(model){
   SetCanvas("canvas");
   ClearCanvas("#fff");
-  SetFillColor("#aaffee");
-  SetOutlineColor("#ffaaee");
-  SetOutlineWidth(10);
+  SetFillColor(model.fill);
+  SetOutlineColor(model.border);
+  SetOutlineWidth(model.width);
   for (var i = 0; i < model.segments.length;i++){
     if(model.segments[i].kind==type_move){
       Close();
@@ -96,7 +80,7 @@ function close_enough(p1,p2,dist){
   return ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) < (dist * dist);
 }
 
-function move_point(model) {
+exports.handle_click = function (model) {
   var mx = get_mouse_x();
   var my = get_mouse_y();
   if (is_mouse_button_pressed("left")) {
@@ -121,6 +105,7 @@ function move_point(model) {
     model.point_moved.y = my;
     model.dirty = true;
   }
+  return model
 }
 
 exports.init =function () {
@@ -129,53 +114,49 @@ exports.init =function () {
     dirty: false,
     segments: [],
     canvas_offset:200,
+    fill:"#aaffee",
+    border:"#ffaaee",
+    width:10,
   };
   NewCanvas("canvas", window.width-model.canvas_offset, window.height);
-  new_canvas(model);
+  exports.new_canvas(model);
   return model;
 }
 
-
-exports.handle_click= function (model,node){
-  var parsed = parse_node_id(node);
-  if (parsed!=null){
-    if (parsed.idx < model.segments.length) {
-      if (parsed.kind == "split") {
-        if (model.segments[parsed.idx].kind == type_line) {
-          var middle = splitLine(model.segments[parsed.idx - 1].p, model.segments[parsed.idx].p);
-          var end = Point(model.segments[parsed.idx].p.x, model.segments[parsed.idx].p.y);
-          model.segments[parsed.idx].p = middle
-          model.segments.splice(parsed.idx+1, 0, Segment(type_line, end));
-          model.dirty = true;
-        }else if (model.segments[parsed.idx].kind == type_bezier) {
-          var to_split = model.segments[parsed.idx]
-          var splitted = splitBezier(model.segments[parsed.idx - 1].p, to_split.c1, to_split.c2, to_split.p);
-          model.segments[parsed.idx].c1 = splitted[0].c1;
-          model.segments[parsed.idx].c2 = splitted[0].c2;
-          model.segments[parsed.idx].p = splitted[0].p;
-          model.segments.splice(parsed.idx+1, 0, Segment(type_bezier, splitted[1].p, splitted[1].c1, splitted[1].c2));
-          model.dirty = true;
-        }
-      }else if (parsed.kind == "delete" && model.segments.length > 2) {
-          model.segments = model.segments.filter(function (s, idx) { return idx != parsed.idx });
-          model.dirty = true;
-      }else if (parsed.kind == "swap") {
-        if(model.segments[parsed.idx].kind==type_line){
-          var b = lineToBezier(model.segments[parsed.idx - 1].p, model.segments[parsed.idx].p);
-          model.segments[parsed.idx].c1 = b.c1;
-          model.segments[parsed.idx].c2 = b.c2;
-          model.segments[parsed.idx].kind = type_bezier;
-        }else{
-          model.segments[parsed.idx].kind = type_line;
-        }
-        model.dirty = true;
-      }
-    }
+exports.split_segment=function(model,idx){
+  if (model.segments[idx].kind == type_line) {
+    var middle = splitLine(model.segments[idx - 1].p, model.segments[idx].p);
+    var end = Point(model.segments[idx].p.x, model.segments[idx].p.y);
+    model.segments[idx].p = middle
+    model.segments.splice(idx + 1, 0, Segment(type_line, end));
+    model.dirty = true;
+  } else if (model.segments[idx].kind == type_bezier) {
+    var to_split = model.segments[idx]
+    var splitted = splitBezier(model.segments[idx - 1].p, to_split.c1, to_split.c2, to_split.p);
+    model.segments[idx].c1 = splitted[0].c1;
+    model.segments[idx].c2 = splitted[0].c2;
+    model.segments[idx].p = splitted[0].p;
+    model.segments.splice(idx + 1, 0, Segment(type_bezier, splitted[1].p, splitted[1].c1, splitted[1].c2));
+    model.dirty = true;
   }
+}
+exports.delete_segment=function(model,parsed_idx){
+  model.segments = model.segments.filter(function (s, idx) { return idx != parsed_idx });
+  model.dirty = true;
+}
+exports.swap_segment=function(model,parsed_idx){
+  if (model.segments[parsed_idx].kind == type_line) {
+    var b = lineToBezier(model.segments[parsed_idx - 1].p, model.segments[parsed_idx].p);
+    model.segments[parsed_idx].c1 = b.c1;
+    model.segments[parsed_idx].c2 = b.c2;
+    model.segments[parsed_idx].kind = type_bezier;
+  } else {
+    model.segments[parsed_idx].kind = type_line;
+  }
+  model.dirty = true;
 }
 
 exports.render =function (model) {
-  move_point(model);
   if (model.dirty) {
     updateCanvas(model)
   }
