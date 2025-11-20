@@ -1,4 +1,4 @@
-var Slider = require("slider")
+var Slider = require("../widget/slider")
 
 exports.draw = function (props) {
   return [
@@ -19,4 +19,7 @@ exports.init=function(id){
     g:Slider.init(id+"color-g", "G"),
     b:Slider.init(id+"color-b", "B"),
   }
+}
+exports.export=function(model){
+  return {r:model.r.val,g:model.g.val,b:model.b.val,a:255}
 }
