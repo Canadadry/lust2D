@@ -36,7 +36,7 @@ exports.init=function(id,name){
   return {
     id:id,
     name:name,
-    val: 100,
+    val: 0,
     from: 0,
     to: 255,
     pos: 0,

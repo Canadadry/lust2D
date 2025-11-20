@@ -54,7 +54,7 @@ var Colors=function(props){
       <rectangle id="item-fill" class="grow-x" h={30} color={WColor.export(props.colors.fill)}></rectangle>
       <rectangle id="item-border" class="grow-x" h={30} color={WColor.export(props.colors.border)}></rectangle>
     </item>
-    {WColor.draw(props.colors.fill)}
+    {props.mode=="fill"?WColor.draw(props.colors.fill):WColor.draw(props.colors.border)}
   </item>
 }
 
@@ -86,13 +86,13 @@ var PathView=function(props){
 
 exports.build=function(props){
   return <item class="fit lv">
-    <Colors colors={props.colors}></Colors>
+    <Colors colors={props.colors} mode={props.mode}></Colors>
     <PathView segments={props.path.segments}></PathView>
   </item>
 }
 
 exports.init = function(){
-  return {
+  var model= {
     path: Path.init(),
     silder_width: 0,
     mode: "fill",
@@ -101,29 +101,42 @@ exports.init = function(){
       border: WColor.init("border")
     }
   }
+  model.path.fill = WColor.export(model.colors.fill);
+  model.path.border = WColor.export(model.colors.border);
+  return model;
 }
 
 exports.handle_click = function(model){
-  model.colors.fill = WColor.update(model.colors.fill);
-  if( model.colors.fill.r.pressed==true
-    ||model.colors.fill.g.pressed==true
-    ||model.colors.fill.b.pressed==true
-  ){
-    model.path.dirty = true;
-  }
-
-  model.colors.border = WColor.update(model.colors.border);
-  if( model.colors.border.r.pressed==true
-    ||model.colors.border.g.pressed==true
-    ||model.colors.border.b.pressed==true
-  ){
-    model.path.dirty = true;
+  if(model.mode=="fill"){
+    model.colors.fill = WColor.update(model.colors.fill);
+    if( model.colors.fill.r.pressed==true
+      ||model.colors.fill.g.pressed==true
+      ||model.colors.fill.b.pressed==true
+    ){
+      model.path.dirty = true;
+    }
+  }else{
+    model.colors.border = WColor.update(model.colors.border);
+    if( model.colors.border.r.pressed==true
+      ||model.colors.border.g.pressed==true
+      ||model.colors.border.b.pressed==true
+    ){
+      model.path.dirty = true;
+    }
   }
 
   var node = ui_pick(get_mouse_x(), get_mouse_y());
   if(is_mouse_button_released("left") && model.path.point_moved==null){
     if(node=="new"){
+      model.colors.fill= WColor.init("fill");
+      model.colors.border = WColor.init("border");
       Path.new_canvas(model.path);
+      model.path.fill = WColor.export(model.colors.fill);
+      model.path.border = WColor.export(model.colors.border);
+    }else if(node=="item-fill"){
+      model.mode = "fill";
+    }else if(node=="item-border"){
+      model.mode = "border";
     }else if(node=="load"){
       if(file_exist("backup.json")){
         model.path=JSON.parse(read("backup.json"));
