@@ -80,3 +80,22 @@ exports.build=function(props){
     <Path segments={props.segments}></Path>
   </item>
 }
+
+
+exports.handle_click = function(model,fn){
+  if(is_mouse_button_released("left")&& model.path.point_moved==null){
+    var node = ui_pick(get_mouse_x(), get_mouse_y());
+    if(node=="new"){
+      new_canvas();
+    }else if(node=="load"){
+      if(file_exist("backup.json")){
+        model.segments=JSON.parse(read("backup.json"));
+        model.dirty = true;
+      }
+    }else if(node=="save"){
+      write("backup.json", JSON.stringify(model.segments));
+    }else {
+      fn(model,node)
+    }
+  }
+}
