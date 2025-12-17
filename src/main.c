@@ -151,7 +151,9 @@ int main(int argc, char** argv){
 	}
 
 	Window window = get_window(J);
+	#ifndef BUILD_DEBUG
 	SetTraceLogLevel(LOG_ERROR);
+	#endif
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow((int)window.width, (int)window.height, window.title);
     SetTargetFPS(60);
