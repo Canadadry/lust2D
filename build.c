@@ -77,6 +77,12 @@ int main(int argc, char **argv) {
         }else{
             BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/widget/");
         }
+    }else if (build_has_arg(argc, argv,  "gradient")){
+        if(build_has_arg(argc, argv, "debug","test")){
+            BUILD_RUN_CMD("./build/"TARGET"d","-basedir","example/gradient/");
+        }else{
+            BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/gradient/");
+        }
     }
 
 
