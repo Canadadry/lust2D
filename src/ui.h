@@ -28,6 +28,32 @@ typedef union{
     int value;
 } UiColor;
 
+typedef struct{
+    UiColor color;
+    float at;
+}GradientStop;
+
+#define GRADIENT_MAX_POINTS 4
+typedef struct {
+    GradientStop stop[GRADIENT_MAX_POINTS];
+    int count;
+    Vector2 start;
+    Vector2 end;
+}Gradient;
+
+typedef enum{
+    COLOR_RAW,
+    COLOR_GRADIENT
+} ColorKind;
+
+typedef struct{
+    ColorKind kind;
+    union{
+        UiColor color;
+        Gradient gradient;
+    } value;
+} PaintPattern;
+
 typedef enum{
     LayoutHorizontal,
     LayoutVertical,
@@ -78,7 +104,7 @@ CREATE_VECTOR2_TYPE(Align)
 CREATE_RECTANGLE_TYPE(int)
 
 typedef struct{
-    UiColor color;
+    PaintPattern fill;
     UiColor border_color;
     int boder_width;
     float radius;

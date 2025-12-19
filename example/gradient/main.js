@@ -8,30 +8,6 @@ var size = 25;
 var points = [ { at: a, color: color_a },{ at: b, color: color_b },  ];
 var point_moved = 0;
 
-function project(x,y){
-  var ab = { x: b.x - a.x, y: b.y - a.y };
-  var ap = { x: x - a.x, y: y - a.y };
-  var s = ab.x * ap.x + ab.y * ap.y;
-  var n_ab_2 = ab.x * ab.x + ab.y * ab.y;
-  var p = s / n_ab_2;
-  if (p < 0) p = 0;
-  if (p > 1) p = 1;
-  return p;
-}
-
-function compute_color(x,y){
-  var p = project(x, y);
-  return {
-    r: color_b.r * p + color_a.r * (1 - p),
-    g: color_b.g * p + color_a.g * (1 - p),
-    b: color_b.b * p + color_a.b * (1 - p)
-  };
-}
-
-function close_enough(p1,p2,dist){
-  return ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) < (dist * dist);
-}
-
 function handle_click () {
   var dist = 10;
   var mx = get_mouse_x();
@@ -62,11 +38,7 @@ function init() {
 function render() {
   handle_click();
   ClearBackground({ r: 128, g: 128, b: 128 });
-  for (var x = size/2; x <= window.width-size/2; x+=size){
-    for (var y = size/2; y <= window.height-size/2; y+=size){
-      DrawRectangleRec({ x: x-size/2, y: y-size/2, w:size, h: size }, compute_color(x,y));
-    }
-  }
+  DrawRectangleRec({ x: 0, y: 0, w: window.width, h: window.height },{})
   for (var i = 0; i < points.length;i+=1){
     var size_p = 10;
     var x = points[i].at.x;

@@ -110,7 +110,16 @@ void clear_background(js_State *J) {
 }
 
 void draw_rectangle_rec(js_State *J) {
-	DrawRectangleRec(get_rectangle(J, 1), get_color(J, 2));
+    DrawRectangleRoundedGradient((RectangleDrawOption){
+       .rec=get_rectangle(J, 1),
+       .roundness=0.5,
+       .segments=10,
+       .start=(Vector2){0,0},
+       .end=(Vector2){800,600},
+       .left=RED,
+       .right=GREEN
+   });
+
 }
 
 void draw_image_pro(js_State *J) {

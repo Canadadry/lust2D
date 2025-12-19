@@ -87,6 +87,18 @@ static UiColor get_color_property(js_State *J, int idx,const char* name)  {
 	return c;
 }
 
+static PaintPattern get_paint_pattern_property(js_State *J, int idx,const char* name){
+ PaintPattern pp={0};
+if( js_hasproperty(J, idx, "color") == 0 && js_hasproperty(J, idx, "gradient") != 0) {
+    pp.kind = COLOR_RAW;
+    // pp.value.gradient = get_gradient_property(J,idx,"gradient");
+}else{
+    pp.kind = COLOR_RAW;
+    pp.value.color = get_color_property(J,idx,"color");
+}
+ return pp;
+}
+
 static inline Size get_property_size(js_State *J, int idx,const char* name){
    	if( js_hasproperty(J, idx, name) == 0) {
 		return (Size){0};
@@ -258,7 +270,7 @@ static void js_ui_create(js_State *J) {
 		if(strncmp(title,"rectangle",9)==0){
 			node.painter.kind=PAINTER_RECT;
 			node.painter.value.rect = (PainterRect){
-				.color = get_color_property(J, props,"color"),
+				.fill = get_paint_pattern_property(J, props,"color"),
 				.border_color = get_color_property(J, props,"border_color"),
 				.boder_width = get_property_int_or(J, props, "border", 0),
 				.radius = get_property_number_or(J, props, "radius", 0),
@@ -414,12 +426,13 @@ void draw(Tree tree){
     	    break;
     	case PAINTER_RECT:
             if(p.value.rect.radius>0 && p.value.rect.segment>0){
-                DrawRectangleRounded(rect,  p.value.rect.radius, p.value.rect.segment, p.value.rect.color.rgba);
+
+                DrawRectangleRounded(rect,  p.value.rect.radius, p.value.rect.segment, p.value.rect.fill.value.color.rgba);
                 if(p.value.rect.boder_width){
                     DrawRectangleRoundedLinesEx(rect, p.value.rect.radius, p.value.rect.segment, p.value.rect.boder_width, p.value.rect.border_color.rgba);
                 }
             }else{
-                DrawRectangleRec(rect, p.value.rect.color.rgba);
+                DrawRectangleRec(rect, p.value.rect.fill.value.color.rgba);
                 if(p.value.rect.boder_width){
                     DrawRectangleLinesEx(rect,  p.value.rect.boder_width, p.value.rect.border_color.rgba);                            // Draw rectangle outline with extended parameters
                 }
@@ -509,7 +522,12 @@ void dump_ui_command(Tree tree){
             printf("painter none\n");
     	    break;
     	case PAINTER_RECT:
-            printf("painter rect : color r %d g %d b %d a %d\n",p.value.rect.color.rgba.r,p.value.rect.color.rgba.g,p.value.rect.color.rgba.b,p.value.rect.color.rgba.a);
+            printf("painter rect : color r %d g %d b %d a %d\n",
+                p.value.rect.fill.value.color.rgba.r,
+                p.value.rect.fill.value.color.rgba.g,
+                p.value.rect.fill.value.color.rgba.b,
+                p.value.rect.fill.value.color.rgba.a
+            );
             break;
         case PAINTER_IMG:
             printf("painter img src : '%s'\n",p.value.img.source);
@@ -557,7 +575,11 @@ void dump_ui_nodes(Tree tree){
             printf("painter none\n");
     	    break;
     	case PAINTER_RECT:
-            printf("painter rect : color #%2x%2x%2x%2x\n",p.value.rect.color.rgba.r,p.value.rect.color.rgba.g,p.value.rect.color.rgba.b,p.value.rect.color.rgba.a);
+            printf("painter rect : color #%2x%2x%2x%2x\n",
+                p.value.rect.fill.value.color.rgba.r,
+                p.value.rect.fill.value.color.rgba.g,
+                p.value.rect.fill.value.color.rgba.b,
+                p.value.rect.fill.value.color.rgba.a);
             break;
         case PAINTER_IMG:
             printf("painter img src : '%s'\n",p.value.img.source);
