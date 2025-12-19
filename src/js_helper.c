@@ -372,3 +372,19 @@ int __get_property_string_enum(js_State *J, int idx,const char* name, ...) {
     va_end(args);
     return 0;
 }
+
+
+int __has_property(js_State *J, int idx, ...){
+    va_list args;
+    va_start(args, idx);
+    const char *arg;
+    while ((arg = va_arg(args, const char*))) {
+        int len =strlen(arg);
+        if(len>0 && js_hasproperty(J,idx,arg)==0){
+            va_end(args);
+            return 0;
+        }
+    }
+    va_end(args);
+    return 1;
+}

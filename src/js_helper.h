@@ -21,6 +21,11 @@ int get_property_int_or(js_State *J, int idx,const char* name, int def);
 OPTIONAL(string) get_property_string(js_State *J, int idx,const char* name);
 const char*  get_property_string_or(js_State *J, int idx,const char* name, const char*  def);
 
+#define has_property(J,idx,...) __has_property((J),(idx),__VA_ARGS__, NULL)
+int __has_property(js_State *J,int idx,...);
+
 #define get_property_string_enum(J,idx,name,...) __get_property_string_enum((J),(idx),(name),__VA_ARGS__, NULL)
 int __get_property_string_enum(js_State *J,int idx,const char* name,...);
+
+
 #endif //_JS_HELPER_

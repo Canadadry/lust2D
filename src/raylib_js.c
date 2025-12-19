@@ -5,7 +5,10 @@
 #include "js_helper.h"
 #include <stdio.h>
 #include <string.h>
+#include "ui.h"
 #include "ui_js.h"
+#include "rectangle.h"
+#include "../vendor/raylib/rlgl.h"
 
 extern HASHMAP(Texture)* hmap_texture;
 extern HASHMAP(Sound)* hmap_sound;
@@ -49,20 +52,87 @@ Rectangle get_rectangle(js_State *J, int idx)  {
     return get_rectangle_or(J,idx,(Rectangle){.width = 100, .height = 100});
 }
 
+Vector2 get_vector2_or(js_State *J, int idx,Vector2 def)  {
+    if (js_isobject(J, idx) == 0) {
+        return def;
+	}
+	return (Vector2){
+		.x =      (float)get_property_number_or(J, idx, "x", 0),
+		.y =      (float)get_property_number_or(J, idx, "y", 0),
+	};
+}
+
+Vector2 get_vector2(js_State *J, int idx)  {
+    return get_vector2_or(J,idx,(Vector2){.x = 0, .y = 0});
+}
+
+Vector2 get_property_vector2(js_State *J, int idx,const char* name)  {
+    int top =js_gettop(J);
+   	if( js_hasproperty(J, idx, name) == 0) {
+		return (Vector2){.x = 0, .y = 0};
+	}
+    js_getproperty(J, idx, name);
+    Vector2 ret = get_vector2(J,top);
+	js_pop(J, 1);
+    return ret;
+}
+
 Color get_color(js_State *J, int idx)  {
     if(js_isstring(J,idx)==1){
         UiColor color = hex_to_rgba(J,js_tostring(J,idx));
-        return color.rgba;
+        return  color.rgba;
+    }
+	if (js_isobject(J, idx) == 0||has_property(J,idx,"r","g","b")==0) {
+	    return  WHITE;
+	};
+    return(Color){
+        .r = (unsigned char)get_property_number_or(J, idx, "r", 255),
+        .g = (unsigned char)get_property_number_or(J, idx, "g", 255),
+        .b = (unsigned char)get_property_number_or(J, idx, "b", 255),
+        .a = (unsigned char)get_property_number_or(J, idx, "a", 255),
+    };
+}
+
+
+ColorPattern get_color_pattern(js_State *J, int idx)  {
+    if(js_isstring(J,idx)==1){
+        UiColor color = hex_to_rgba(J,js_tostring(J,idx));
+        ColorPattern cp = {0};
+        cp.kind=COLOR_PATTERN_SOLID;
+        cp.value.color = color.rgba;
+        return cp;
     }
 	if (js_isobject(J, idx) == 0) {
-		return WHITE;
+	    ColorPattern cp = {0};
+        cp.kind=COLOR_PATTERN_SOLID;
+        cp.value.color = WHITE;
+        return cp;
 	};
-	return (Color){
-  		.r = (unsigned char)get_property_number_or(J, idx, "r", 255),
-  		.g = (unsigned char)get_property_number_or(J, idx, "g", 255),
-  		.b = (unsigned char)get_property_number_or(J, idx, "b", 255),
-  		.a = (unsigned char)get_property_number_or(J, idx, "a", 255),
-   	};
+	if(has_property(J,idx,"r","g","b")==1){	    ColorPattern cp = {0};
+        cp.kind=COLOR_PATTERN_SOLID;
+        cp.value.color = (Color){
+            .r = (unsigned char)get_property_number_or(J, idx, "r", 255),
+            .g = (unsigned char)get_property_number_or(J, idx, "g", 255),
+            .b = (unsigned char)get_property_number_or(J, idx, "b", 255),
+            .a = (unsigned char)get_property_number_or(J, idx, "a", 255),
+        };
+        return cp;
+	}
+	if(has_property(J,idx,"start","end","from","to")==1){
+        ColorPattern pattern;
+        pattern.kind = COLOR_PATTERN_GRADIENT;
+        UiColor color = hex_to_rgba(J, get_property_string_or(J, idx, "from", "#fff"));;
+        pattern.value.stops[0].color = color.rgba;
+        pattern.value.stops[0].at = get_property_vector2(J, idx, "start");
+        color = hex_to_rgba(J, get_property_string_or(J, idx, "to", "#000"));;
+        pattern.value.stops[1].color = color.rgba;
+        pattern.value.stops[1].at = get_property_vector2(J, idx, "end");
+        return pattern;
+    }
+	ColorPattern cp = {0};
+    cp.kind=COLOR_PATTERN_SOLID;
+    cp.value.color = BLUE;
+    return cp;
 }
 
 static KeyboardKey key_from(const char* name){
@@ -110,15 +180,29 @@ void clear_background(js_State *J) {
 }
 
 void draw_rectangle_rec(js_State *J) {
+    Rectangle rect = get_rectangle(J, 1);
+    ColorPattern cp =  get_color_pattern(J, 2);
+    if(cp.kind==COLOR_PATTERN_SOLID){
+        DrawRectangleRoundedGradient((RectangleDrawOption){
+           .rec=rect,
+           .roundness=0.5,
+           .segments=10,
+           .start=(Vector2){.x=rect.x,.y=rect.y},
+           .end=(Vector2){.x=rect.x+rect.width,.y=rect.y+rect.height},
+           .left=cp.value.color,
+           .right=cp.value.color
+       });
+    }else{
     DrawRectangleRoundedGradient((RectangleDrawOption){
        .rec=get_rectangle(J, 1),
        .roundness=0.5,
        .segments=10,
-       .start=(Vector2){0,0},
-       .end=(Vector2){800,600},
-       .left=RED,
-       .right=GREEN
+       .start=cp.value.stops[0].at,
+       .end=cp.value.stops[1].at,
+       .left=cp.value.stops[0].color,
+       .right=cp.value.stops[1].color
    });
+    }
 
 }
 
