@@ -124,5 +124,20 @@ void DrawRectangleRoundedGradient(RectangleDrawOption opt)
     VertexGradient(&opt, p[3]);
     VertexGradient(&opt, p[2]);
 
+    Vector2 p2[4] = {
+        { rec.x             , rec.y + radius},
+        { rec.x + rec.width , rec.y + radius},
+        { rec.x + rec.width , rec.y + rec.height - radius },
+        { rec.x             , rec.y + rec.height - radius}
+    };
+
+    VertexGradient(&opt, p2[0]);
+    VertexGradient(&opt, p2[2]);
+    VertexGradient(&opt, p2[1]);
+
+    VertexGradient(&opt, p2[0]);
+    VertexGradient(&opt, p2[3]);
+    VertexGradient(&opt, p2[2]);
+
     rlEnd();
 }
