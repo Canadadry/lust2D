@@ -28,17 +28,11 @@ typedef union{
     int value;
 } UiColor;
 
-typedef struct{
-    UiColor color;
-    float at;
-}GradientStop;
-
-#define GRADIENT_MAX_POINTS 4
 typedef struct {
-    GradientStop stop[GRADIENT_MAX_POINTS];
-    int count;
     Vector2 start;
     Vector2 end;
+    UiColor from_color;
+    UiColor to_color;
 }Gradient;
 
 typedef enum{

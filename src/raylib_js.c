@@ -67,13 +67,8 @@ Vector2 get_vector2(js_State *J, int idx)  {
 }
 
 Vector2 get_property_vector2(js_State *J, int idx,const char* name)  {
-    int top =js_gettop(J);
-   	if( js_hasproperty(J, idx, name) == 0) {
-		return (Vector2){.x = 0, .y = 0};
-	}
-    js_getproperty(J, idx, name);
-    Vector2 ret = get_vector2(J,top);
-	js_pop(J, 1);
+    Vector2 ret = (Vector2){.x = 0, .y = 0};
+    read_property(J,idx,name,get_vector2,ret);
     return ret;
 }
 
@@ -108,7 +103,8 @@ ColorPattern get_color_pattern(js_State *J, int idx)  {
         cp.value.color = WHITE;
         return cp;
 	};
-	if(has_property(J,idx,"r","g","b")==1){	    ColorPattern cp = {0};
+	if(has_property(J,idx,"r","g","b")==1){
+	    ColorPattern cp = {0};
         cp.kind=COLOR_PATTERN_SOLID;
         cp.value.color = (Color){
             .r = (unsigned char)get_property_number_or(J, idx, "r", 255),

@@ -41,4 +41,14 @@ Vector2 get_vector2(js_State *J, int idx);
 Vector2 get_property_vector2(js_State *J, int idx,const char* name);
 void bind_raylib_func(js_State *J,Allocator alloc);
 
+#define read_property(J,idx,name,func,varname) \
+    do{\
+        int top =js_gettop((J));\
+       	if( js_hasproperty((J), (idx), (name)) != 0) {\
+            js_getproperty(J, idx, name);\
+            (varname) = (func)((J),(top));\
+           	js_pop((J), 1);\
+    	}\
+    }while(0)
+
 #endif //_JSX_CLASS_H

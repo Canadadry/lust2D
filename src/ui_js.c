@@ -87,18 +87,6 @@ static UiColor get_color_property(js_State *J, int idx,const char* name)  {
 	return c;
 }
 
-static PaintPattern get_paint_pattern_property(js_State *J, int idx,const char* name){
- PaintPattern pp={0};
-if( js_hasproperty(J, idx, "color") == 0 && js_hasproperty(J, idx, "gradient") != 0) {
-    pp.kind = COLOR_RAW;
-    // pp.value.gradient = get_gradient_property(J,idx,"gradient");
-}else{
-    pp.kind = COLOR_RAW;
-    pp.value.color = get_color_property(J,idx,"color");
-}
- return pp;
-}
-
 static inline Size get_property_size(js_State *J, int idx,const char* name){
    	if( js_hasproperty(J, idx, name) == 0) {
 		return (Size){0};
@@ -268,14 +256,28 @@ static void js_ui_create(js_State *J) {
 	if(js_isstring(J, name) != 0){
 		const char* title = js_tostring(J, name);
 		if(strncmp(title,"rectangle",9)==0){
+            ColorPattern fill = (ColorPattern){0};
+            fill.kind=COLOR_PATTERN_SOLID;
+            fill.value.color=WHITE;
+            read_property(J,props,"fill",get_color_pattern,fill);
+
 			node.painter.kind=PAINTER_RECT;
 			node.painter.value.rect = (PainterRect){
-				.fill = get_paint_pattern_property(J, props,"color"),
 				.border_color = get_color_property(J, props,"border_color"),
 				.boder_width = get_property_int_or(J, props, "border", 0),
 				.radius = get_property_number_or(J, props, "radius", 0),
 				.segment = get_property_number_or(J, props, "segment", 10),
 			};
+			if(COLOR_PATTERN_SOLID){
+			    node.painter.value.rect.fill.kind = COLOR_RAW;
+				node.painter.value.rect.fill.value.color.rgba = fill.value.color;
+			}else{
+			    node.painter.value.rect.fill.kind = COLOR_GRADIENT;
+				node.painter.value.rect.fill.value.gradient.start = fill.value.stops[0].at;
+				node.painter.value.rect.fill.value.gradient.from_color.rgba = fill.value.stops[0].color;
+				node.painter.value.rect.fill.value.gradient.end = fill.value.stops[1].at;
+				node.painter.value.rect.fill.value.gradient.to_color.rgba = fill.value.stops[1].color;
+			}
 		}else if(strncmp(title,"item",4)==0){
 			node.painter.kind=PAINTER_NONE;
 		}else if(strncmp(title,"img",3)==0){
