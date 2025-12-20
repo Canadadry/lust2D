@@ -37,7 +37,7 @@ function init() {
 function render() {
   handle_click();
   ClearBackground({ r: 128, g: 128, b: 128 });
-  DrawRectangleRec({ x: 0, y: 0, w: window.width, h: window.height },{
+  DrawRectangleRec({ x: 0, y: 0, w: window.width, h: window.height },1,{
     start:points[0].at,end:points[1].at,
     from:points[0].color,to:points[1].color,
   })
@@ -45,9 +45,9 @@ function render() {
     var size_p = 10;
     var x = points[i].at.x;
     var y = points[i].at.y;
-    DrawRectangleRec({ x: x-size_p/2, y: y-size_p/2, w:size_p, h: size_p }, "#000");
+    DrawRectangleRec({ x: x - size_p / 2, y: y - size_p / 2, w: size_p, h: size_p }, 0.25,"#000");
     size_p = 8;
-    DrawRectangleRec({ x: x-size_p/2, y: y-size_p/2, w:size_p, h: size_p }, points[i].color);
+    DrawRectangleRec({ x: x-size_p/2, y: y-size_p/2, w:size_p, h: size_p },  1,points[i].color);
   }
 
 }

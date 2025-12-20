@@ -181,7 +181,7 @@ void clear_background(js_State *J) {
 
 void draw_rectangle_rec(js_State *J) {
     Rectangle rect = get_rectangle(J, 1);
-    ColorPattern cp =  get_color_pattern(J, 2);
+    ColorPattern cp =  get_color_pattern(J, 3);
     if(cp.kind==COLOR_PATTERN_SOLID){
         DrawRectangleRoundedGradient(rect,0.5,
             (Vector2){.x=rect.x,.y=rect.y},
@@ -190,7 +190,7 @@ void draw_rectangle_rec(js_State *J) {
            cp.value.color
     );
     }else{
-    DrawRectangleRoundedGradient(get_rectangle(J, 1),0.5,
+    DrawRectangleRoundedGradient(get_rectangle(J, 1),js_tonumber(J, 2),
        cp.value.stops[0].at,
        cp.value.stops[1].at,
        cp.value.stops[0].color,
@@ -443,7 +443,7 @@ void bind_raylib_func(js_State *J,Allocator alloc){
     init_keyboard_key_hmap(alloc);
     js_newcfunction(J, clear_background, "ClearBackground", 1);
 	js_setglobal(J, "ClearBackground");
-	js_newcfunction(J, draw_rectangle_rec, "DrawRectangleRec", 2);
+	js_newcfunction(J, draw_rectangle_rec, "DrawRectangleRec", 3);
 	js_setglobal(J, "DrawRectangleRec");
 	js_newcfunction(J, draw_image_pro, "DrawImagePro", 3);
 	js_setglobal(J, "DrawImagePro");
