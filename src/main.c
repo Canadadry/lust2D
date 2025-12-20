@@ -15,6 +15,7 @@
 #include "text.h"
 #include "args.h"
 #include "allocator.h"
+#include "rectangle.h"
 
 HASHMAP(init_node_fn)* hmap_init_node_fn;
 ARRAY(InitNodeFn1)* array_init_node_fn1;

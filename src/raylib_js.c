@@ -183,25 +183,19 @@ void draw_rectangle_rec(js_State *J) {
     Rectangle rect = get_rectangle(J, 1);
     ColorPattern cp =  get_color_pattern(J, 2);
     if(cp.kind==COLOR_PATTERN_SOLID){
-        DrawRectangleRoundedGradient((RectangleDrawOption){
-           .rec=rect,
-           .roundness=0.5,
-           .segments=10,
-           .start=(Vector2){.x=rect.x,.y=rect.y},
-           .end=(Vector2){.x=rect.x+rect.width,.y=rect.y+rect.height},
-           .left=cp.value.color,
-           .right=cp.value.color
-       });
+        DrawRectangleRoundedGradient(rect,0.5,
+            (Vector2){.x=rect.x,.y=rect.y},
+           (Vector2){.x=rect.x+rect.width,.y=rect.y+rect.height},
+           cp.value.color,
+           cp.value.color
+    );
     }else{
-    DrawRectangleRoundedGradient((RectangleDrawOption){
-       .rec=get_rectangle(J, 1),
-       .roundness=0.5,
-       .segments=10,
-       .start=cp.value.stops[0].at,
-       .end=cp.value.stops[1].at,
-       .left=cp.value.stops[0].color,
-       .right=cp.value.stops[1].color
-   });
+    DrawRectangleRoundedGradient(get_rectangle(J, 1),0.5,
+       cp.value.stops[0].at,
+       cp.value.stops[1].at,
+       cp.value.stops[0].color,
+       cp.value.stops[1].color
+   );
     }
 
 }

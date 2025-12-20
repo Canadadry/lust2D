@@ -14,15 +14,6 @@
     } RECTANGLE(type);
 
 
-typedef struct{
-    Rectangle rec;
-    float roundness;
-    int segments;
-    Vector2 start;
-    Vector2 end;
-    Color left;
-    Color right;
-}RectangleDrawOption;
-void DrawRectangleRoundedGradient( RectangleDrawOption opt);
+void DrawRectangleRoundedGradient(Rectangle rec,float roundness,Vector2 start,Vector2 end,Color from,Color to);
 
 #endif // _RECTANGLE_H
