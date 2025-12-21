@@ -34,6 +34,7 @@ var Icon = function(props){
   return <tile
     id={props.id} at_x={props.at_x || 0} at_y={props.at_y || 0} src="spritesheet.png"
     w={32} h={32} tile_padding_x={2} tile_padding_y={2} tile_size_x={32} tile_size_y={32}
+    offset_x={-2} offset_y={-2}
   ></tile>;
 }
 

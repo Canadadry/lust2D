@@ -319,6 +319,10 @@ static void js_ui_create(js_State *J) {
     			.x=get_property_int_or(J,props,"at_x",0),
     			.y=get_property_int_or(J,props,"at_y",0),
 		    };
+			node.painter.value.tile.offset = (VECTOR2(int)){
+    			.x=get_property_int_or(J,props,"offset_x",0),
+    			.y=get_property_int_or(J,props,"offset_y",0),
+		    };
 			node.painter.value.tile.padding = (VECTOR2(int)){
     			.x=get_property_int_or(J,props,"tile_padding_x",0),
     			.y=get_property_int_or(J,props,"tile_padding_y",0),
@@ -498,8 +502,8 @@ void draw(Tree tree){
         case PAINTER_TILE:
             t = Texture_upsert(hmap_texture,p.value.tile.source , UpsertActionUpdate);
     		VECTOR2(int) pos = {
-    		    .x=(p.value.tile.padding.x+p.value.tile.size.x)*p.value.tile.at.x+p.value.tile.padding.x,
-    			.y=(p.value.tile.padding.y+p.value.tile.size.y)*p.value.tile.at.y+p.value.tile.padding.y
+    		    .x=p.value.tile.offset.x+(p.value.tile.padding.x+p.value.tile.size.x)*p.value.tile.at.x+p.value.tile.padding.x,
+    			.y=p.value.tile.offset.y+(p.value.tile.padding.y+p.value.tile.size.y)*p.value.tile.at.y+p.value.tile.padding.y
     		};
     		DrawTexturePro(
     			*t,

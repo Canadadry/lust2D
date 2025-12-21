@@ -135,6 +135,7 @@ typedef struct{
    	VECTOR2(int) at;
     VECTOR2(int) padding;
     VECTOR2(int) size;
+    VECTOR2(int) offset;
 }PainterTile;
 
 typedef struct{
