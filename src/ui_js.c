@@ -1,4 +1,5 @@
 #include "ui_js.h"
+#include "rectangle.h"
 #include "regexp.h"
 #include "text.h"
 #include "ui.h"
@@ -427,18 +428,36 @@ void draw(Tree tree){
     	case PAINTER_NONE:
     	    break;
     	case PAINTER_RECT:
-            if(p.value.rect.radius>0 && p.value.rect.segment>0){
-
-                DrawRectangleRounded(rect,  p.value.rect.radius, p.value.rect.segment, p.value.rect.fill.value.color.rgba);
-                if(p.value.rect.boder_width){
-                    DrawRectangleRoundedLinesEx(rect, p.value.rect.radius, p.value.rect.segment, p.value.rect.boder_width, p.value.rect.border_color.rgba);
-                }
+            if (p.value.rect.fill.kind == COLOR_RAW){
+                DrawRectangleRoundedGradient(
+                    rect,
+                    p.value.rect.radius,
+                    (Vector2){0}, (Vector2){0},
+                    p.value.rect.fill.value.color.rgba,
+                    p.value.rect.fill.value.color.rgba
+                );
             }else{
-                DrawRectangleRec(rect, p.value.rect.fill.value.color.rgba);
-                if(p.value.rect.boder_width){
-                    DrawRectangleLinesEx(rect,  p.value.rect.boder_width, p.value.rect.border_color.rgba);                            // Draw rectangle outline with extended parameters
-                }
+                DrawRectangleRoundedGradient(
+                    rect,
+                    p.value.rect.radius,
+                    p.value.rect.fill.value.gradient.start,
+                    p.value.rect.fill.value.gradient.end,
+                    p.value.rect.fill.value.gradient.from_color.rgba,
+                    p.value.rect.fill.value.gradient.to_color.rgba
+                );
             }
+            // if(p.value.rect.radius>0 && p.value.rect.segment>0){
+
+            //     DrawRectangleRounded(rect,  p.value.rect.radius, p.value.rect.segment, p.value.rect.fill.value.color.rgba);
+            //     if(p.value.rect.boder_width){
+            //         DrawRectangleRoundedLinesEx(rect, p.value.rect.radius, p.value.rect.segment, p.value.rect.boder_width, p.value.rect.border_color.rgba);
+            //     }
+            // }else{
+            //     DrawRectangleRec(rect, p.value.rect.fill.value.color.rgba);
+            //     if(p.value.rect.boder_width){
+            //         DrawRectangleLinesEx(rect,  p.value.rect.boder_width, p.value.rect.border_color.rgba);                            // Draw rectangle outline with extended parameters
+            //     }
+            // }
             break;
         case PAINTER_IMG:
             t = Texture_upsert(hmap_texture,p.value.img.source , UpsertActionUpdate);
