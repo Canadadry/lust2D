@@ -51,5 +51,14 @@ function render() {
     size_p = 8;
     DrawRectangleRec({ x: x-size_p/2, y: y-size_p/2, w:size_p, h: size_p },  1,points[i].color);
   }
+  ui_draw(ui_compute(
+    <rectangle x={200} y={300} w={300} h={50} fill={{
+      start: { x: 0, y: 0.5 },
+      end: { x: 1, y: 0.5 },
+      from: points[0].color,
+      to: points[1].color,
+    }}></rectangle>
+  ));
+
 
 }
