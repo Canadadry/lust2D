@@ -84,6 +84,10 @@ void DrawRectangleRoundedGradient(Rectangle rec,float roundness,Vector2 start,Ve
     if (roundness > 1.0f) roundness = 1.0f;
     float recSize = (rec.width < rec.height) ? rec.width : rec.height;
     float radius = (recSize * roundness) * 0.5f;
+    start.x = start.x*rec.width;
+    start.y = start.y*rec.height;
+    end.x = end.x*rec.width;
+    end.y = end.y*rec.height;
     SetShaderValue(shader, radiusLoc, &radius, SHADER_UNIFORM_FLOAT);
     SetShaderValue(shader, widthLoc, &rec.width, SHADER_UNIFORM_FLOAT);
     SetShaderValue(shader, heightLoc, &rec.height, SHADER_UNIFORM_FLOAT);

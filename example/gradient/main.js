@@ -1,7 +1,7 @@
 
 var size = 25;
 var points = [ { at: { x: 50, y :50 }, color: "#ff0" },{ at: { x: 750, y: 550 }, color: "#0ff" },  ];
-var point_moved = 0;
+var point_moved = null;
 
 function close_enough(p1,p2,dist){
   return ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y)) < (dist * dist);
@@ -37,9 +37,11 @@ function init() {
 function render() {
   handle_click();
   ClearBackground({ r: 128, g: 128, b: 128 });
-  DrawRectangleRec({ x: 0, y: 0, w: window.width, h: window.height },1,{
-    start:points[0].at,end:points[1].at,
-    from:points[0].color,to:points[1].color,
+  DrawRectangleRec({ x: 0, y: 0, w: window.width, h: window.height },0.5,{
+    start:{ x: points[0].at.x/window.width, y: points[0].at.y/window.height },
+    end:{   x: points[1].at.x/window.width, y: points[1].at.y/window.height },
+    from:points[0].color,
+    to:points[1].color,
   })
   for (var i = 0; i < points.length;i+=1){
     var size_p = 10;
