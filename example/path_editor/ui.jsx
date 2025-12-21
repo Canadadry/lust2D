@@ -38,10 +38,10 @@ var Icon = function(props){
 }
 
 var Slider = function(props){
-  return <rectangle class="fit-y grow-x lh p-1 m-1" color="#aa0">
+  return <rectangle class="fit-y grow-x lh p-1 m-1" fill="#aa0">
     <txt msg={props.name} class="grow max-bound-x" font_size={20} color="#000"></txt>
-    <rectangle id={props.id+"-box"} class="fit-y grow-x ls" radius={1} color="#00a">
-      <rectangle w={20} h={20} radius={1} color="#f0a">
+    <rectangle id={props.id+"-box"} class="fit-y grow-x ls" radius={1} fill="#00a">
+      <rectangle w={20} h={20} radius={1} fill="#f0a">
       </rectangle>
     </rectangle>
     <txt msg={""+props.val} class="grow max-bound-x" font_size={20} color="#000"></txt>
@@ -51,15 +51,15 @@ var Slider = function(props){
 var Colors=function(props){
   return <item id={props.id} class="fit-y grow-x lv">
     <item class="fit-y grow-x  lh">
-      <rectangle id="item-fill" class="grow-x" h={30} color={WColor.export(props.colors.fill)}></rectangle>
-      <rectangle id="item-border" class="grow-x" h={30} color={WColor.export(props.colors.border)}></rectangle>
+      <rectangle id="item-fill" class="grow-x" h={30} fill={WColor.export(props.colors.fill)}></rectangle>
+      <rectangle id="item-border" class="grow-x" h={30} fill={WColor.export(props.colors.border)}></rectangle>
     </item>
     {props.mode=="fill"?WColor.draw(props.colors.fill):WColor.draw(props.colors.border)}
   </item>
 }
 
 var PathView=function(props){
-  return (<rectangle class="fit m-2 p-2 lv" color="#aaa">
+  return (<rectangle class="fit m-2 p-2 lv" fill="#aaa">
     <item class="fit lh m-1">
       <Icon id="new" at_x={1} at_y={2}></Icon>
       <Icon id="load" at_x={0} at_y={3}></Icon>

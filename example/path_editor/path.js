@@ -178,7 +178,9 @@ exports.render =function (model) {
       if (model.point_moved == points[i].p) {
         c = "#f00";
       }
-      DrawRectangleRec({ x: points[i].p.x +model.canvas_offset- size / 2, y: points[i].p.y - size / 2, w: size, h: size }, c);
+      DrawRectangleRec(
+        { x: points[i].p.x +model.canvas_offset- size / 2, y: points[i].p.y - size / 2, w: size, h: size },
+        0,c);
     }
   }
 }
