@@ -33,7 +33,7 @@ function type_to_string(t){
 var Icon = function(props){
   return <tile
     id={props.id} at_x={props.at_x || 0} at_y={props.at_y || 0} src="spritesheet.png"
-    w={26} h={26} tile_padding_x={0} tile_padding_y={0} tile_size_x={26} tile_size_y={26}
+    w={32} h={32} tile_padding_x={2} tile_padding_y={2} tile_size_x={32} tile_size_y={32}
   ></tile>;
 }
 
@@ -61,9 +61,9 @@ var Colors=function(props){
 var PathView=function(props){
   return (<rectangle class="fit m-2 p-2 lv" fill="#aaa">
     <item class="fit lh m-1">
-      <Icon id="new" at_x={1} at_y={2}></Icon>
-      <Icon id="load" at_x={0} at_y={3}></Icon>
-      <Icon id="save" at_x={3} at_y={2}></Icon>
+      <Icon id="new" at_x={23} at_y={20}></Icon>
+      <Icon id="load" at_x={38} at_y={23}></Icon>
+      <Icon id="save" at_x={25} at_y={23}></Icon>
     </item>
     {props.segments.filter(function(s,id){
       return id > 0;
@@ -71,13 +71,13 @@ var PathView=function(props){
       return <item class="lh fit m-2">
         <txt msg={type_to_string(s.kind)} class="grow min-x-70" font_size={20} ></txt>;
         {(s.kind==type_bezier)?(
-          <Icon id={(id+1)+"-swap"} at_x={0} at_y={0}></Icon>
+          <Icon id={(id+1)+"-swap"} at_x={36} at_y={31}></Icon>
         ):(
-          <Icon id={(id+1)+"-swap"} at_x={0} at_y={1}></Icon>
+          <Icon id={(id+1)+"-swap"} at_x={45} at_y={4}></Icon>
         )}
-        <Icon id={(id+1)+"-split"} at_x={3} at_y={1}></Icon>
+        <Icon id={(id+1)+"-split"} at_x={36} at_y={35}></Icon>
         {props.segments.length>=2?(
-          <Icon id={(id+1)+"-delete"} at_x={3} at_y={4}></Icon>
+          <Icon id={(id+1)+"-delete"} at_x={9} at_y={42}></Icon>
         ):""}
       </item>
     })}
