@@ -351,15 +351,20 @@ static void js_ui_create(js_State *J) {
 			    strncpy(node.painter.value.text.font, font, SRC_LEN);
 			}
 			Font* f = Font_upsert(hmap_font,node.painter.value.text.font , UpsertActionCreate);
-			if(f!=NULL&&!IsFontValid(*f)){
-			    if(is_bmp){
-			        *f = LoadFont(node.painter.value.text.font);
-				}else{
-			        *f = LoadFontEx(
-							node.painter.value.text.font,
-							node.painter.value.text.font_size,
-						 0, 0);
-				}
+            if(f!=NULL&&!IsFontValid(*f)){
+                if(font== NULL){
+                    *f = GetFontDefault();
+                } else {
+                    if(is_bmp){
+                        *f = LoadFont(node.painter.value.text.font);
+                    }else{
+                        *f = LoadFontEx(
+                            node.painter.value.text.font,
+                            node.painter.value.text.font_size,
+                            0, 0
+                        );
+                    }
+                }
 			}
 		}else{
 			js_error(J, "unknown base ui tag '%s'", title);
