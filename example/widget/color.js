@@ -11,6 +11,7 @@ exports.update = function (model) {
   model.r = Slider.update(model.r);
   model.g = Slider.update(model.g);
   model.b = Slider.update(model.b);
+  // model.r.fill = "#fff";
   return model
 }
 exports.init=function(id){

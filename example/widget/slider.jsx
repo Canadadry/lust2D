@@ -1,7 +1,7 @@
 exports.draw = function (props) {
   return <rectangle class="fit-y grow-x lh p-1 m-1" fill="#aa0">
     <txt msg={props.name} class="grow max-bound-x" font_size={props.size} color="#000"></txt>
-    <rectangle id={props.id + "-box"} class="fit-y grow-x ls" radius={1} fill="#00a">
+    <rectangle id={props.id + "-box"} class="fit-y grow-x ls" radius={1} fill={props.fill}>
       <rectangle x={props.pos} w={props.size} h={props.size} radius={1} fill="#f0a">
       </rectangle>
     </rectangle>
@@ -42,5 +42,6 @@ exports.init=function(id,name){
     pos: 0,
     pressed: false,
     size: 20,
+    fill:"#00a",
   };
 }
