@@ -117,11 +117,9 @@ ColorPattern get_color_pattern(js_State *J, int idx)  {
 	if(has_property(J,idx,"start","end","from","to")==1){
         ColorPattern pattern;
         pattern.kind = COLOR_PATTERN_GRADIENT;
-        UiColor color = hex_to_rgba(J, get_property_string_or(J, idx, "from", "#fff"));;
-        pattern.value.stops[0].color = color.rgba;
+        read_property(J,idx,"from",get_color,pattern.value.stops[0].color);
         pattern.value.stops[0].at = get_property_vector2(J, idx, "start");
-        color = hex_to_rgba(J, get_property_string_or(J, idx, "to", "#000"));;
-        pattern.value.stops[1].color = color.rgba;
+        read_property(J,idx,"to",get_color,pattern.value.stops[1].color);
         pattern.value.stops[1].at = get_property_vector2(J, idx, "end");
         return pattern;
     }
