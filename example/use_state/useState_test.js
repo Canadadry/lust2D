@@ -41,6 +41,48 @@ global.createNode = createNode;
 global.render = render;
 global.clear_ui = clear_ui;
 
+function TodoApp(initialData) {
+  var state = useState(initialData);
+  var todos = state[0];
+  var setTodos = state[1];
+
+  return {
+    type: "container",
+    props: {},
+    children: [
+      {
+        type: "button",
+        props: {
+          value: "add",
+          onClick: function () {
+            setTodos(todos.concat(["task"]));
+          }
+        },
+        children: []
+      },
+      {
+        type: "button",
+        props: {
+          value: "remove",
+          onClick: function () {
+            setTodos(todos.slice(1));
+          }
+        },
+        children: []
+      }
+    ].concat(
+      todos.map(function (t) {
+        return {
+          type: "text",
+          props: { value: t },
+          children: []
+        };
+      })
+    )
+  };
+}
+
+
 var tests = {
   "counter_initial_and_increment": {
     init: function () {
@@ -217,48 +259,7 @@ var tests = {
   "todo_add_and_remove": {
     init: function () {
 
-      function TodoApp() {
-        var state = useState([]);
-        var todos = state[0];
-        var setTodos = state[1];
-
-        return {
-          type: "container",
-          props: {},
-          children: [
-            {
-              type: "button",
-              props: {
-                value: "add",
-                onClick: function () {
-                  setTodos(todos.concat(["task"]));
-                }
-              },
-              children: []
-            },
-            {
-              type: "button",
-              props: {
-                value: "remove",
-                onClick: function () {
-                  setTodos(todos.slice(1));
-                }
-              },
-              children: []
-            }
-          ].concat(
-            todos.map(function (t) {
-              return {
-                type: "text",
-                props: { value: t },
-                children: []
-              };
-            })
-          )
-        };
-      }
-
-      startApp(TodoApp);
+      startApp(TodoApp,[]);
     },
 
     update: function () {
@@ -296,42 +297,7 @@ var tests = {
   },
   "todo_insert_middle": {
     init: function () {
-
-      function TodoApp() {
-        var state = useState(["A", "B", "C"]);
-        var todos = state[0];
-        var setTodos = state[1];
-
-        return {
-          type: "container",
-          props: {},
-          children: [
-            {
-              type: "button",
-              props: {
-                value: "insert",
-                onClick: function () {
-                  var next = todos.slice(0, 1)
-                    .concat(["X"])
-                    .concat(todos.slice(1));
-                  setTodos(next);
-                }
-              },
-              children: []
-            }
-          ].concat(
-            todos.map(function (t) {
-              return {
-                type: "text",
-                props: { value: t },
-                children: []
-              };
-            })
-          )
-        };
-      }
-
-      startApp(TodoApp);
+      startApp(TodoApp,["A","B","C"]);
     },
 
     update: function () {
@@ -339,31 +305,35 @@ var tests = {
     },
 
     expected_callstack: [
-      "clear_ui",
-      "createNode:button:0:insert",
-      "createNode:text:1:A",
-      "createNode:text:2:B",
-      "createNode:text:3:C",
-      "createNode:container:4:undefined",
-      "render:container:undefined",
-      "render:button:insert",
-      "render:text:A",
-      "render:text:B",
-      "render:text:C",
+      'clear_ui',
+      'createNode:button:0:add',
+      'createNode:button:1:remove',
+      'createNode:text:2:A',
+      'createNode:text:3:B',
+      'createNode:text:4:C',
+      'createNode:container:5:undefined',
+      'render:container:undefined',
+      'render:button:add',
+      'render:button:remove',
+      'render:text:A',
+      'render:text:B',
+      'render:text:C',
 
-      "clear_ui",
-      "createNode:button:0:insert",
-      "createNode:text:1:A",
-      "createNode:text:2:X",
-      "createNode:text:3:B",
-      "createNode:text:4:C",
-      "createNode:container:5:undefined",
-      "render:container:undefined",
-      "render:button:insert",
-      "render:text:A",
-      "render:text:X",
-      "render:text:B",
-      "render:text:C"
+      'clear_ui',
+      'createNode:button:0:add',
+      'createNode:button:1:remove',
+      'createNode:text:2:A',
+      'createNode:text:3:B',
+      'createNode:text:4:C',
+      'createNode:text:5:task',
+      'createNode:container:6:undefined',
+      'render:container:undefined',
+      'render:button:add',
+      'render:button:remove',
+      'render:text:A',
+      'render:text:B',
+      'render:text:C',
+      'render:text:task'
     ]
   }
 
@@ -373,8 +343,6 @@ var tests = {
 };
 
 Object.keys(tests).forEach(function(name) {
-  console.log("=== Running test:", name, "===");
-
   nodes = {};
   nextNodeId = 0;
   instances.clear();

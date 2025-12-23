@@ -2,6 +2,7 @@ var nextInstanceId = 0;
 var instances = new Map();
 var currentInstance = null;
 var rootComponent = null;
+var rootProps = null;
 
 function useState(initialValue) {
   var instance = currentInstance;
@@ -61,12 +62,13 @@ function mountNode(desc) {
 function scheduleRender() {
   clear_ui();
   if (!rootComponent) return;
-  var rootNodeId = renderComponent(rootComponent);
+  var rootNodeId = renderComponent(rootComponent,rootProps);
   render(rootNodeId);
 }
 
-function startApp(App) {
+function startApp(App,props) {
   rootComponent = App;
+  rootProps = props;
   scheduleRender();
 }
 
