@@ -1,3 +1,4 @@
+var createNode = ui_create
 var ui = require('ui');
 var WColor = require('../widget/color');
 var Path = require('path');

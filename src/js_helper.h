@@ -5,6 +5,8 @@
 #include "optional.h"
 #include "allocator.h"
 
+#define JSX_CREATE_FUNC "createNode"
+
 typedef const char* string;
 
 CREATE_OPTIONAL_TYPE(double)

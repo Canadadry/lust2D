@@ -1,4 +1,4 @@
-
+var createNode = ui_create
 var size = 25;
 var points = [ { at: { x: 50, y :50 }, color: "#ff0" },{ at: { x: 750, y: 550 }, color: "#0ff" },  ];
 var point_moved = null;

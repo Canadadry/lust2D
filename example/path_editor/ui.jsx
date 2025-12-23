@@ -38,17 +38,6 @@ var Icon = function(props){
   ></tile>;
 }
 
-var Slider = function(props){
-  return <rectangle class="fit-y grow-x lh p-1 m-1" fill="#aa0">
-    <txt msg={props.name} class="grow max-bound-x" font_size={20} color="#000"></txt>
-    <rectangle id={props.id+"-box"} class="fit-y grow-x ls" radius={1} fill="#00a">
-      <rectangle w={20} h={20} radius={1} fill="#f0a">
-      </rectangle>
-    </rectangle>
-    <txt msg={""+props.val} class="grow max-bound-x" font_size={20} color="#000"></txt>
-</rectangle>
-}
-
 var Colors=function(props){
   return <item id={props.id} class="fit-y grow-x lv">
     <item class="fit-y grow-x  lh">

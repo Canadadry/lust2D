@@ -227,7 +227,7 @@ static void jsB_file_exist(js_State *J){
 
 void parse_jsx(js_State *J){
     const char* content = js_tostring(J, 1);
-	JSX_Compiler* compiler = jsx_new_compiler("ui_create(", (JSX_Allocator){
+	JSX_Compiler* compiler = jsx_new_compiler(JSX_CREATE_FUNC"(", (JSX_Allocator){
 		.realloc_fn = jsx_allocator.realloc_fn,
 		.free_fn = jsx_allocator.free_fn,
 	});

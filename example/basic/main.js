@@ -1,5 +1,5 @@
+var createNode = ui_create
 var ui = require("ui");
-
 var root_ui = -1;
 x = 10;
 y = 10;

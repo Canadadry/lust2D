@@ -1,3 +1,4 @@
+var createNode = ui_create
 var Game = require("game");
 
 var size = 10;
