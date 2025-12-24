@@ -1,6 +1,7 @@
 #include "build.h"
 
 #define TARGET "lust2D"
+#define TARGET_MUJS "mujs"
 
 #define MACOS_FLAGS "-framework CoreVideo -framework CoreAudio -framework IOKit -framework Cocoa -framework OpenGL"
 
@@ -14,12 +15,14 @@ void build_lib(int debug){
         build_set_cflags(&ctx, "-Wall -O2");
         build_set_ldflags(&ctx, "-Lvendor/raylib/macos -lraylib -Lvendor/mujs/macos -lmujs -Lvendor/jsx_parser/macos -ljsx_parser "MACOS_FLAGS);
         build_add_static_lib(&ctx, "lib"TARGET".a");
-        build_add_entry_point(&ctx, "main.c",TARGET);
+        build_add_entry_point(&ctx, "lust2d.c",TARGET);
+        build_add_entry_point(&ctx, "mujs.c",TARGET_MUJS);
     }else{
         build_set_cflags(&ctx, "-Wall -Werror -g -fsanitize=address -DBUILD_DEBUG");
         build_set_ldflags(&ctx, "-fsanitize=address -Lvendor/raylib/macos -lraylib -Lvendor/mujs/macos -lmujsd -Lvendor/jsx_parser/macos -ljsx_parserd "MACOS_FLAGS);
         build_add_static_lib(&ctx, "lib"TARGET"d.a");
-        build_add_entry_point(&ctx, "main.c",TARGET"d");
+        build_add_entry_point(&ctx, "lust2d.c",TARGET"d");
+        build_add_entry_point(&ctx, "mujs.c",TARGET_MUJS"d");
     }
 
     build_compile(&ctx, "*.c");
@@ -82,6 +85,16 @@ int main(int argc, char **argv) {
             BUILD_RUN_CMD("./build/"TARGET"d","-basedir","example/gradient/");
         }else{
             BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/gradient/");
+        }
+    }else if (build_has_arg(argc, argv,  "state")){
+        if(build_has_arg(argc, argv, "debug","test")){
+            BUILD_RUN_CMD("./build/"TARGET"d","-basedir","example/use_state/");
+        }else{
+            BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/use_state/");
+        }
+    }else if (build_has_arg(argc, argv,  "test-mustate")){
+        if(build_has_arg(argc, argv, "debug")){
+            BUILD_RUN_CMD("./build/"TARGET_MUJS"d","-basedir","example/use_state/","-i","useState.test.js");
         }
     }
 

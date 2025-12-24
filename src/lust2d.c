@@ -15,18 +15,17 @@
 #include "text.h"
 #include "args.h"
 #include "allocator.h"
-#include "rectangle.h"
 
-HASHMAP(init_node_fn)* hmap_init_node_fn;
-ARRAY(InitNodeFn1)* array_init_node_fn1;
-HASHMAP(Texture)* hmap_texture;
-HASHMAP(Image)* hmap_image;
-HASHMAP(Font)* hmap_font;
-HASHMAP(Sound)* hmap_sound;
+extern HASHMAP(init_node_fn)* hmap_init_node_fn;
+extern ARRAY(InitNodeFn1)* array_init_node_fn1;
+extern HASHMAP(Texture)* hmap_texture;
+extern HASHMAP(Image)* hmap_image;
+extern HASHMAP(Font)* hmap_font;
+extern HASHMAP(Sound)* hmap_sound;
 
 #define MOUSE_SCALE_MARK_SIZE   12
 
-Tree* ui_tree= NULL;
+extern Tree* ui_tree;
 
 static inline void* user_realloc(void* userdata,void* ptr, size_t size){
     return realloc(ptr,size);
@@ -34,66 +33,6 @@ static inline void* user_realloc(void* userdata,void* ptr, size_t size){
 
 static inline void user_free(void* userdata,void* ptr){
     free(ptr);
-}
-
-int has_suffix(char* txt,char* suf){
-    int len_txt = strlen(txt);
-    int len_suf = strlen(suf);
-
-    if(len_suf>len_txt){
-        return 0;
-    }
-    int ret = strcmp(txt+len_txt-len_suf, suf)==0;
-    return ret;
-}
-
-int run_main_file(js_State *J,Allocator alloc){
-    char *files[]={"main.jsx","main.js"};
-    int len = sizeof(files)/sizeof(files[0]);
-    for(int i=0;i<len;i+=1){
-        FILE *f = fopen(files[i], "rb");
-    	if (f==NULL) {
-            continue;
-    	}
-        fclose(f);
-        if(has_suffix(files[i],".jsx")){
-            char *content =NULL;
-            int ret = read_full_file(files[i],&content);
-           	if(ret!=0){
-           	    printf("cannot read %s %s %s\n",files[i], read_full_file_errno(ret),strerror(errno));
-          		return 1;
-           	}
-            JSX_Compiler* compiler = jsx_new_compiler("ui_create(", (JSX_Allocator){
-                .realloc_fn = alloc.realloc_fn,
-                .free_fn = alloc.free_fn,
-            });
-            bool ok = jsx_compile(compiler, content, 0);
-            if(!ok){
-                char * err = jsx_get_last_error(compiler);
-                printf("[%s] cannot compile jsx %s\n", files[i],err);
-                jsx_free_compiler(compiler);
-                return 1;
-            }
-            const char* compiled = jsx_get_output(compiler);
-           	#ifdef BUILD_DEBUG
-           	    printf("[%s] compiling jsx %s \n", files[i],compiled);
-           	#endif
-            js_loadstring(J,files[i],compiled);
-            js_pushundefined(J);
-           	js_call(J, 0);
-            jsx_free_compiler(compiler);
-            return 0;
-        }
-        if(has_suffix(files[i],".js")){
-            if(js_dofile(J, files[i]) !=0){
-                printf("failed while running %s\n",files[i]);
-                js_throw(J);
-                return 1;
-            }
-            return 0;
-        }
-    }
-    return 2;
 }
 
 int main(int argc, char** argv){
@@ -141,7 +80,7 @@ int main(int argc, char** argv){
 	    return ret;
 	}
 
-	if(run_main_file(J,alloc) !=0){
+	if(run_main_file(J,alloc,NULL) !=0){
 	    printf("failed while running main files\n");
 	    js_throw(J);
 	    return 1;

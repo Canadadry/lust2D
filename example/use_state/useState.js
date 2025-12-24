@@ -1,8 +1,11 @@
 var nextInstanceId = 0;
-var instances = new Map();
+var instances = {};
 var currentInstance = null;
 var rootComponent = null;
 var rootProps = null;
+var loc_createNode = null;
+var loc_render = null;
+var loc_clear_ui = null;
 
 function useState(initialValue) {
   var instance = currentInstance;
@@ -25,7 +28,7 @@ function useState(initialValue) {
 
 function getInstance(type, key) {
   var instanceKey = key != null ? key : type;
-  var instance = instances.get(instanceKey);
+  var instance = instances[instanceKey];
   if (!instance) {
     instance = {
       id: nextInstanceId++,
@@ -34,7 +37,7 @@ function getInstance(type, key) {
       hookIndex: 0,
       nodeId: null
     };
-    instances.set(instanceKey, instance);
+    instances[instanceKey] = instance;
   }
   return instance;
 }
@@ -56,14 +59,14 @@ function renderComponent(type, props, key) {
 
 function mountNode(desc) {
   var childIds = desc.children ? desc.children.map(mountNode) : [];
-  return createNode(desc.type, desc.props, childIds);
+  return loc_createNode(desc.type, desc.props, childIds);
 }
 
 function scheduleRender() {
-  clear_ui();
+  loc_clear_ui();
   if (!rootComponent) return;
   var rootNodeId = renderComponent(rootComponent,rootProps);
-  render(rootNodeId);
+  loc_render(rootNodeId);
 }
 
 function startApp(App,props) {
@@ -72,12 +75,17 @@ function startApp(App,props) {
   scheduleRender();
 }
 
-module.exports = {
-  useState: useState,
-  startApp: startApp,
-  renderComponent: renderComponent,
-  instances: instances,
-  scheduleRender:scheduleRender,
-  setCurrentInstance: function(instance) { currentInstance = instance; },
-  getCurrentInstance: function() { return currentInstance; }
-};
+function registerFunc(fn1,fn2,fn3){
+  loc_createNode = fn1;
+  loc_render = fn2;
+  loc_clear_ui = fn3;
+}
+
+exports.useState= useState;
+exports.startApp= startApp;
+exports.renderComponent= renderComponent;
+exports.instances= instances;
+exports.scheduleRender=scheduleRender;
+exports.registerFunc=registerFunc;
+exports.setCurrentInstance= function(instance) { currentInstance = instance; };
+exports.getCurrentInstance= function() { return currentInstance; };
