@@ -3,7 +3,7 @@ try {
   console.log(lib, JSON.stringify(lib));
   var useState = lib.useState;
   var startApp = lib.startApp;
-  var instances = lib.instances;
+  var setInstances = lib.setInstances;
   var registerFunc = lib.registerFunc;
 
   var nodes = {};
@@ -38,6 +38,20 @@ try {
     }
   }
   registerFunc(createNode, render, clear_ui);
+
+  Counter = function () {
+    var state = useState(0);
+    var count = state[0];
+    var setCount = state[1];
+    return {
+      type: "text",
+      props: {
+        value: "count = " + count,
+        onClick: function () { setCount(count + 1); }
+      },
+      children: []
+    };
+  };
 
   TodoApp=function (initialData) {
     var state = useState(initialData);
@@ -84,21 +98,6 @@ try {
   var tests = {
     "counter_initial_and_increment": {
       init: function () {
-
-        function Counter() {
-          var state = useState(0);
-          var count = state[0];
-          var setCount = state[1];
-          return {
-            type: "text",
-            props: {
-              value: "count = " + count,
-              onClick: function () { setCount(count + 1); }
-            },
-            children: []
-          };
-        }
-
         startApp(Counter);
       },
       update: function () {
@@ -115,21 +114,6 @@ try {
     },
     "counter_two_increments": {
       init: function () {
-
-        function Counter() {
-          var state = useState(0);
-          var count = state[0];
-          var setCount = state[1];
-          return {
-            type: "text",
-            props: {
-              value: "count = " + count,
-              onClick: function () { setCount(count + 1); }
-            },
-            children: []
-          };
-        }
-
         startApp(Counter);
       },
       update: function () {
@@ -342,7 +326,7 @@ try {
     var tt = tests[name];
     nodes = {};
     nextNodeId = 0;
-    instances = {};
+    setInstances({});
     rootComponent = null;
     callstack = [];
 

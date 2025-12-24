@@ -84,7 +84,9 @@ function registerFunc(fn1,fn2,fn3){
 exports.useState= useState;
 exports.startApp= startApp;
 exports.renderComponent= renderComponent;
-exports.instances= instances;
+exports.setInstances= function(i){
+  instances=i
+};
 exports.scheduleRender=scheduleRender;
 exports.registerFunc=registerFunc;
 exports.setCurrentInstance= function(instance) { currentInstance = instance; };
