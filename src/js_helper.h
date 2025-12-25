@@ -29,6 +29,9 @@ int __has_property(js_State *J,int idx,...);
 #define get_property_string_enum(J,idx,name,...) __get_property_string_enum((J),(idx),(name),__VA_ARGS__, NULL)
 int __get_property_string_enum(js_State *J,int idx,const char* name,...);
 
+#define js_check_args(J,prefix,...) _js_check_args((J),(prefix),__VA_ARGS__, NULL)
+int _js_check_args(js_State *J,const char * prefix,...);
+
 int run_main_file(js_State *J,Allocator alloc,const char* main);
 
 #endif //_JS_HELPER_

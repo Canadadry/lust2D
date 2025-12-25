@@ -57,8 +57,44 @@ function renderComponent(type, props, key) {
   return instance.nodeId;
 }
 
+function is_not_string(v){
+  return typeof v!=="string"
+}
+
+function flattenInfinity(arr) {
+  var result = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (Array.isArray(arr[i])) {
+      var flat = flattenInfinity(arr[i]);
+      for (var j = 0; j < flat.length; j++) {
+        result.push(flat[j]);
+      }
+    } else {
+      result.push(arr[i]);
+    }
+  }
+
+  return result;
+}
+
 function mountNode(desc) {
-  var childIds = desc.children ? desc.children.map(mountNode) : [];
+  var childIds = [];
+  if(desc.children){
+    // console.log("get children");
+    childIds = desc.children;
+    // console.log("reduce");
+    childIds = flattenInfinity(childIds)
+    // console.log("filter",typeof childIds,JSON.stringify(childIds));
+    childIds = childIds.filter(is_not_string);
+    // console.log("map");
+    childIds = childIds.map(mountNode);
+  }
+  if(desc.props===null){
+    desc.props = {};
+  }
+  // var childIds = desc.children ? desc.children.reduce(flatten).filter(is_not_string).map(mountNode) : [];
+  console.log("loc_createNode", desc.type, JSON.stringify(desc.props), JSON.stringify(childIds));//,"from",JSON.stringify(desc));
   return loc_createNode(desc.type, desc.props, childIds);
 }
 

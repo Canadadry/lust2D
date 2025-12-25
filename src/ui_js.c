@@ -12,6 +12,7 @@
 #include "vector2.h"
 #include "regex.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern HASHMAP(init_node_fn)* hmap_init_node_fn;
@@ -194,6 +195,11 @@ bool walk_children(js_State *J,int idx,int parent){
 }
 
 static void js_ui_create(js_State *J) {
+    // if(!js_check_args(J,"js_ui_create","string","object","array")){
+    //     js_dump_stack(J, "js_ui_create");
+    //     js_report(J,"invalid arg provided to js_ui_create");
+    //     exit(1);
+    // }
     const int name=1;
     const int props=2;
     const int children=3;

@@ -72,28 +72,46 @@ static const char *stacktrace_js =
 	"};\n"
 ;
 
+
+void print_multi_line(const char* str){
+    int line =0;
+    for (const char *p = str; *p != '\0'; p++) {
+        putchar(*p);
+        if (*p == '\n') {
+            line++;
+            printf("%d: ", line);
+        }
+    }
+    putchar('\n');
+}
+
+
+const char* js_inspect_stack_at(js_State *J,int i){
+    if(js_isundefined(J,i))          {return ("undefined");}
+    else if(js_isnull(J,i))          {return ("null");}
+    else if(js_isboolean(J,i))       {return ("boolean");}
+    else if(js_isnumber(J,i))        {return ("number");}
+    else if(js_isstring(J,i))        {return ("string");}
+    else if(js_isprimitive(J,i))     {return ("primitive");}
+    else if(js_isobject(J,i))        {return ("object");}
+    else if(js_isarray(J,i))         {return ("array");}
+    else if(js_isregexp(J,i))        {return ("regexp");}
+    else if(js_iscoercible(J,i))     {return ("coercible");}
+    else if(js_iscallable(J,i))      {return ("callable");}
+    else if(js_iserror(J,i))         {return ("error");}
+    else if(js_isnumberobject(J,i))  {return ("numberobject");}
+    else if(js_isstringobject(J,i))  {return ("stringobject");}
+    else if(js_isbooleanobject(J,i)) {return ("booleanobject");}
+    else if(js_isdateobject(J,i))    {return ("dateobject");}
+    return ("unknown");
+    //else if(js_isuserdata(J,i)){printf("[%s:%d] userdata\n",prefix,i);}
+
+}
+
 void js_dump_stack(js_State *J,const char * prefix){
     int top = js_gettop(J);
     for(int i=0;i<top;i++){
-        // if(js_isdefined(J,i)){printf("[%s:%d] defined\n",prefix,i);}
-        if(js_isundefined(J,i)){printf("[%s:%d] undefined\n",prefix,i);}
-        else if(js_isnull(J,i)){printf("[%s:%d] null\n",prefix,i);}
-        else if(js_isboolean(J,i)){printf("[%s:%d] boolean\n",prefix,i);}
-        else if(js_isnumber(J,i)){printf("[%s:%d] number\n",prefix,i);}
-        else if(js_isstring(J,i)){printf("[%s:%d] string\n",prefix,i);}
-        else if(js_isprimitive(J,i)){printf("[%s:%d] primitive\n",prefix,i);}
-        else if(js_isobject(J,i)){printf("[%s:%d] object\n",prefix,i);}
-        else if(js_isarray(J,i)){printf("[%s:%d] array\n",prefix,i);}
-        else if(js_isregexp(J,i)){printf("[%s:%d] regexp\n",prefix,i);}
-        else if(js_iscoercible(J,i)){printf("[%s:%d] coercible\n",prefix,i);}
-        else if(js_iscallable(J,i)){printf("[%s:%d] callable\n",prefix,i);}
-        //else if(js_isuserdata(J,i)){printf("[%s:%d] userdata\n",prefix,i);}
-        else if(js_iserror(J,i)){printf("[%s:%d] error\n",prefix,i);}
-        else if(js_isnumberobject(J,i)){printf("[%s:%d] numberobject\n",prefix,i);}
-        else if(js_isstringobject(J,i)){printf("[%s:%d] stringobject\n",prefix,i);}
-        else if(js_isbooleanobject(J,i)){printf("[%s:%d] booleanobject\n",prefix,i);}
-        else if(js_isdateobject(J,i)){printf("[%s:%d] dateobject\n",prefix,i);}
-        else{ printf("[%s:%d] unknown\n",prefix,i);}
+        printf("[%s:%d] %s\n",prefix,i,js_inspect_stack_at(J,i));
     }
 }
 
@@ -240,7 +258,8 @@ void parse_jsx(js_State *J){
 	}
 	const char* compiled = jsx_get_output(compiler);
 	#ifdef BUILD_DEBUG
-	printf("compiling jsx %s \n", compiled);
+	printf("compiling jsx\n");
+	print_multi_line(compiled);
 	#endif
 	js_pushstring(J, compiled);
 	jsx_free_compiler(compiler);
@@ -374,6 +393,39 @@ int __get_property_string_enum(js_State *J, int idx,const char* name, ...) {
 }
 
 
+#define JS_CHECK_ARGS_CASE(type,name) if(strcmp(arg,name)==0 && !js_is##type(J,i)){ \
+    printf("[%s:%d] expected a "name" got %s\n",prefix, i,js_inspect_stack_at(J,i));\
+    return 0; \
+}
+
+int _js_check_args(js_State *J,const char * prefix,...){
+    va_list args;
+    va_start(args, prefix);
+    const char *arg;
+    int i=1;
+    while ((arg = va_arg(args, const char*))) {
+        if(arg==NULL) break;
+        JS_CHECK_ARGS_CASE(boolean,"boolean")
+        JS_CHECK_ARGS_CASE(number,"number")
+        JS_CHECK_ARGS_CASE(string,"string")
+        JS_CHECK_ARGS_CASE(primitive,"primitive")
+        JS_CHECK_ARGS_CASE(object,"object")
+        JS_CHECK_ARGS_CASE(array,"array")
+        JS_CHECK_ARGS_CASE(regexp,"regexp")
+        JS_CHECK_ARGS_CASE(coercible,"coercible")
+        JS_CHECK_ARGS_CASE(callable,"callable")
+        JS_CHECK_ARGS_CASE(error,"error")
+        JS_CHECK_ARGS_CASE(numberobject,"numberobject")
+        JS_CHECK_ARGS_CASE(stringobject,"stringobject")
+        JS_CHECK_ARGS_CASE(booleanobject,"booleanobject")
+        JS_CHECK_ARGS_CASE(dateobject,"dateobject")
+    }
+    va_end(args);
+    return 1;
+}
+
+
+
 int __has_property(js_State *J, int idx, ...){
     va_list args;
     va_start(args, idx);
@@ -400,7 +452,6 @@ int has_suffix(const char* txt,const char* suf){
     return ret;
 }
 
-
 int run_main_file(js_State *J,Allocator alloc,const char* main){
     const char *files[]={main,"main.jsx","main.js"};
     int len = sizeof(files)/sizeof(files[0]);
@@ -420,7 +471,7 @@ int run_main_file(js_State *J,Allocator alloc,const char* main){
            	    printf("cannot read %s %s %s\n",files[i], read_full_file_errno(ret),strerror(errno));
           		return 1;
            	}
-            JSX_Compiler* compiler = jsx_new_compiler("ui_create(", (JSX_Allocator){
+            JSX_Compiler* compiler = jsx_new_compiler(JSX_CREATE_FUNC"(", (JSX_Allocator){
                 .realloc_fn = alloc.realloc_fn,
                 .free_fn = alloc.free_fn,
             });
@@ -433,15 +484,22 @@ int run_main_file(js_State *J,Allocator alloc,const char* main){
             }
             const char* compiled = jsx_get_output(compiler);
            	#ifdef BUILD_DEBUG
-           	    printf("[%s] compiling jsx %s \n", files[i],compiled);
+           	    printf("[%s] compiling jsx\n", files[i]);
+                print_multi_line(compiled);
            	#endif
+           	if (js_try(J)) {
+          		js_report(J, js_trystring(J, -1, "Error"));
+                return 1;
+           	}
             js_loadstring(J,files[i],compiled);
             js_pushundefined(J);
            	js_call(J, 0);
             jsx_free_compiler(compiler);
+            js_endtry(J);
             return 0;
         }
         if(has_suffix(files[i],".js")){
+
             if(js_dofile(J, files[i]) !=0){
                 printf("failed while running %s\n",files[i]);
                 js_throw(J);

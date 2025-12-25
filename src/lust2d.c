@@ -82,7 +82,6 @@ int main(int argc, char** argv){
 
 	if(run_main_file(J,alloc,NULL) !=0){
 	    printf("failed while running main files\n");
-	    js_throw(J);
 	    return 1;
 	}
 	if(js_dostring(J, "conf();") !=0){
