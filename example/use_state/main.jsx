@@ -2,9 +2,10 @@ var useStateLib = require('useState');
 var useState = useStateLib.useState;
 var startApp = useStateLib.startApp;
 useStateLib.registerFunc(ui_create, ui_draw, ui_clear);
-createNode = function(node_type,props,children){
-  return { "type": node_type, "props": props, "children":children };
-}
+createNode = useStateLib.renderComponent;
+// function(node_type,props,children){
+//   return { "type": node_type, "props": props, "children":children };
+// }
 
 Buton = function(props){
   return <txt msg={props.name} class="grow max-bound-x" font_size={props.size} color="#000"></txt>

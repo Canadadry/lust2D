@@ -8,6 +8,7 @@ var loc_render = null;
 var loc_clear_ui = null;
 
 function useState(initialValue) {
+  console.log("useState",initialValue)
   var instance = currentInstance;
   var index = instance.hookIndex;
 
@@ -42,17 +43,17 @@ function getInstance(type, key) {
   return instance;
 }
 
-function renderComponent(type, props, key) {
+function renderComponent(type, props, children) {
   if (props == null) props = {};
-  var instance = getInstance(type, key);
-
+  var instance = getInstance(type, props.key);
+  console.log("renderComponent",typeof type,'getInstance',JSON.stringify(instance))
   currentInstance = instance;
   instance.hookIndex = 0;
 
-  var nodeDescription = type(props);
-
-  currentInstance = null;
-
+  var nodeDescription = { type: type, props: props,children:children };
+  if (typeof type==="function"){
+    nodeDescription = type(props,children);
+  }
   instance.nodeId = mountNode(nodeDescription);
   return instance.nodeId;
 }
@@ -94,7 +95,7 @@ function mountNode(desc) {
     desc.props = {};
   }
   // var childIds = desc.children ? desc.children.reduce(flatten).filter(is_not_string).map(mountNode) : [];
-  console.log("loc_createNode", desc.type, JSON.stringify(desc.props), JSON.stringify(childIds));//,"from",JSON.stringify(desc));
+  // console.log("loc_createNode", desc.type, JSON.stringify(desc.props), JSON.stringify(childIds));//,"from",JSON.stringify(desc));
   return loc_createNode(desc.type, desc.props, childIds);
 }
 
@@ -102,7 +103,7 @@ function scheduleRender() {
   loc_clear_ui();
   if (!rootComponent) return;
   var rootNodeId = renderComponent(rootComponent,rootProps);
-  loc_render(rootNodeId);
+  // loc_render(rootNodeId);
 }
 
 function startApp(App,props) {
