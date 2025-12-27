@@ -402,8 +402,9 @@ int _js_check_args(js_State *J,const char * prefix,...){
     va_list args;
     va_start(args, prefix);
     const char *arg;
-    int i=1;
+    int i=0;
     while ((arg = va_arg(args, const char*))) {
+        i+=1;
         if(arg==NULL) break;
         JS_CHECK_ARGS_CASE(boolean,"boolean")
         JS_CHECK_ARGS_CASE(number,"number")
