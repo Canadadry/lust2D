@@ -1,12 +1,16 @@
 var useStateLib = require('useState');
 var useState = useStateLib.useState;
 var startApp = useStateLib.startApp;
-// var createNode = ui_create;
-// var createNode =  function(node_type,props,children){
-//   console.log("type", node_type, "props", props, "children",children );
-//   return ui_create(node_type, props, children);
-// }
-var createNode = useStateLib.renderComponent;
+// var createNode = ui_create//useStateLib.renderComponent;
+createNode = function(node,props,children){
+  if(typeof node==="function"){
+    console.log("cmpt found");
+    return node(props, children);
+  }
+  var id = ui_create(node,props,children)
+  console.log("id",id,"node", node, "props", JSON.stringify(props), "children",JSON.stringify(children) );
+  return id;
+}
 
 Label = function(props){
   return <txt msg={props.name} class="grow max-bound-x" font_size={24} color="#000"></txt>
@@ -16,8 +20,8 @@ Buton = function(props){
   return <txt msg={props.name} class="grow max-bound-x" font_size={24} color="#000"></txt>
 }
 
-TodoApp = function (initialState) {
-  var state = useState(initialState);
+TodoApp = function (props) {
+  var state = useState(props.init);
   var todos = state[0];
   var setTodos = state[1];
 
@@ -34,12 +38,14 @@ conf = function () {
 }
 
 init = function (){
-  // startApp(TodoApp, ["A", "B", "C"]);
-  // console.log(JSON.stringify(TodoApp(), null, 2));
 }
 
 render = function () {
   ClearBackground("#ff0");
   ui_clear();
-  startApp(<TodoApp></TodoApp>);
+  var root_id = <TodoApp init={["a","b","c"]}></TodoApp>
+  ui_compute(root_id);
+  ui_draw(root_id);
+
+  // startApp(<TodoApp></TodoApp>);
 }
