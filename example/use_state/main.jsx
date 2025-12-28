@@ -19,7 +19,7 @@ TodoApp = function (props) {
   return <item class="fit lv">
     <Buton name="add" onClick={function () {setTodos(todos.concat(["task"]));}}></Buton>
     <Buton name="remove" onClick={function () {setTodos(todos.slice(1));}}></Buton>
-    {todos ? todos.map(function(t){return <Label name={t}></Label>}):<Label name="empty"></Label>}
+    {todos ? todos.map(function (t) { return <Label key={t} name={t}></Label>}):<Label name="empty"></Label>}
   </item>
 };
 conf = function () {
