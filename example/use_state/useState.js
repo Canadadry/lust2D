@@ -7,30 +7,27 @@ exports.useState = function (initialValue) {
     throw "useState must be called inside a component";
   }
 
-  var cid = currentComponentPath;
-  var hooks = componentHooks[cid];
+  var hooks = componentHooks[currentComponentPath];
 
   if (!hooks) {
     hooks = [];
-    componentHooks[cid] = hooks;
+    componentHooks[currentComponentPath] = hooks;
   }
 
-  var index = hookIndex;
-
-  if (hooks[index] === undefined) {
-    hooks[index] = initialValue;
+  if (hooks[hookIndex] === undefined) {
+    hooks[hookIndex] = initialValue;
   }
 
   var setState = function (value) {
-    hooks[index] =
+    hooks[hookIndex] =
       typeof value === "function"
-        ? value(hooks[index])
+        ? value(hooks[hookIndex])
         : value;
   };
 
   hookIndex++;
 
-  return [hooks[index], setState];
+  return [hooks[hookIndex-1], setState];
 };
 
 exports.renderComponent = function (node, props, children) {
