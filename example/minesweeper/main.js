@@ -1,4 +1,10 @@
-var createNode = ui_create
+var createNode =  function (node, props, children) {
+  if (typeof node === "function") {
+    return node(props || {}, children);
+  }
+  return ui_create(node, props, children);
+};
+
 var Game = require("game");
 
 var size = 10;

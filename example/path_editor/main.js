@@ -1,4 +1,11 @@
-var createNode = ui_create
+var createNode =  function (node, props, children) {
+  if (typeof node === "function") {
+    return node(props || {}, children);
+  }
+  return ui_create(node, props, children);
+};
+
+
 var ui = require('ui');
 var WColor = require('../widget/color');
 var Path = require('path');

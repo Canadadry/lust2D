@@ -1,4 +1,10 @@
-var createNode = ui_create
+var createNode =  function (node, props, children) {
+  if (typeof node === "function") {
+    return node(props || {}, children);
+  }
+  return ui_create(node, props, children);
+};
+
 var size = 25;
 var points = [ { at: { x: 50, y :50 }, color: "#ff0" },{ at: { x: 750, y: 550 }, color: "#0ff" },  ];
 var point_moved = null;
