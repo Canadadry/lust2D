@@ -1,16 +1,7 @@
 var useStateLib = require('useState');
 var useState = useStateLib.useState;
 var startApp = useStateLib.startApp;
-// var createNode = ui_create//useStateLib.renderComponent;
-createNode = function(node,props,children){
-  if(typeof node==="function"){
-    console.log("cmpt found");
-    return node(props, children);
-  }
-  var id = ui_create(node,props,children)
-  console.log("id",id,"node", node, "props", JSON.stringify(props), "children",JSON.stringify(children) );
-  return id;
-}
+createNode = useStateLib.renderComponent;
 
 Label = function(props){
   return <txt msg={props.name} class="grow max-bound-x" font_size={24} color="#000"></txt>
@@ -42,10 +33,5 @@ init = function (){
 
 render = function () {
   ClearBackground("#ff0");
-  ui_clear();
-  var root_id = <TodoApp init={["a","b","c"]}></TodoApp>
-  ui_compute(root_id);
-  ui_draw(root_id);
-
-  // startApp(<TodoApp></TodoApp>);
+  startApp(<TodoApp init={["a", "b", "c"]}></TodoApp>);
 }
