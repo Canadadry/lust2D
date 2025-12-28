@@ -74,12 +74,13 @@ static const char *stacktrace_js =
 
 
 void print_multi_line(const char* str){
-    int line =0;
+    int line =1;
+    printf("% 3d: ", line);
     for (const char *p = str; *p != '\0'; p++) {
         putchar(*p);
         if (*p == '\n') {
             line++;
-            printf("%d: ", line);
+            printf("% 3d: ", line);
         }
     }
     putchar('\n');
