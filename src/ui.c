@@ -540,6 +540,7 @@ void compute_draw_command(Tree* tree, NodeIndex idx,NodeIndex command_idx)
     pc.w       = tree->nodes.data[idx].computed_box.w;
     pc.h       = tree->nodes.data[idx].computed_box.h;
     pc.painter = tree->nodes.data[idx].painter;
+    memcpy(pc.onClick,tree->nodes.data[idx].onClick,DATA_LEN);
     memcpy(pc.id,tree->nodes.data[idx].id,ID_LEN);
     if(array_append_PainterCommand(&tree->commands,pc)!=0){
         printf("failed to append to painter command\n");

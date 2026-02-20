@@ -92,10 +92,6 @@ int main(int argc, char **argv) {
         }else{
             BUILD_RUN_CMD("./build/"TARGET,"-basedir","example/use_state/");
         }
-    }else if (build_has_arg(argc, argv,  "test-mustate")){
-        if(build_has_arg(argc, argv, "debug")){
-            BUILD_RUN_CMD("./build/"TARGET_MUJS"d","-basedir","example/use_state/","-i","useState.test.js");
-        }
     }
 
 

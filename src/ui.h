@@ -11,6 +11,7 @@
 #define ID_LEN 32
 #define SRC_LEN 255
 #define MSG_LEN 255
+#define DATA_LEN 255
 
 typedef enum {
     PAINTER_NONE,
@@ -164,6 +165,7 @@ typedef struct {
 	NodeIndex       last_children;
 	NodeIndex       next;
 	int             children_count;
+	char            onClick[DATA_LEN];
 }Node;
 
 typedef struct {
@@ -173,6 +175,7 @@ typedef struct {
     int h;
     Painter	painter;
     char id[ID_LEN];
+    char onClick[DATA_LEN];
 } PainterCommand;
 
 typedef struct {

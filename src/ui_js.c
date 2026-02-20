@@ -262,6 +262,17 @@ static void js_ui_create(js_State *J) {
             }
         }
 	}
+	if(js_hasproperty(J, props,"onClick")){
+        js_getproperty(J, props , "onClick");
+        if(js_iscallable(J,-1)){
+            // js_copy(J, 1);
+            // js_dump_stack(J,"js_ref onClick");
+            strncpy(node.onClick,js_ref(J),DATA_LEN);
+            // printf("onclick %.*s\n",DATA_LEN,node.onClick);
+            js_pop(J, 1);
+        }
+        js_pop(J, 1);
+	}
 	if(js_isstring(J, name) != 0){
 		const char* title = js_tostring(J, name);
 		if(strncmp(title,"rectangle",9)==0){
@@ -554,6 +565,7 @@ void dump_ui_command(Tree tree){
 	    rect.height = tree.commands.data[i].h;
 		const char* id = tree.commands.data[i].id;
 		printf("command id '%s' %02d : x:%.1f , y:%.1f , w:%.1f , h:%.1f ",id,i,rect.x,rect.y,rect.width,rect.height);
+		printf("onClick id '%s' ",tree.commands.data[i].onClick);
 		Painter p =tree.commands.data[i].painter;
 	    switch(p.kind){
     	case PAINTER_NONE:
@@ -607,6 +619,7 @@ void dump_ui_nodes(Tree tree){
            	tree.nodes.data[i].size.y.bound.max,
            	tree.nodes.data[i].size.y.bound.pref_use
 		);
+		printf("onClick id '%s' ",tree.nodes.data[i].onClick);
 		Painter p = tree.nodes.data[i].painter;
 	    switch(p.kind){
     	case PAINTER_NONE:
@@ -655,9 +668,6 @@ static void js_ui_draw(js_State *J){
 }
 
 bool intersect(PainterCommand *pc, int x, int y){
-    if(pc->id[0]==0){
-        return false;
-    }
     return !(x < pc->x|| y < pc->y || x>(pc->x+pc->w) || y>(pc->y+pc->h)) ;
 }
 
@@ -679,10 +689,47 @@ static void js_pick_node(js_State *J){
     int x = js_tointeger(J, 1);
     int y = js_tointeger(J, 2);
     for(int i = ui_tree->commands.len-1;i>=0;i--){
+        if(&ui_tree->commands.data[i].id[0]==0){
+            continue;
+        }
         if(intersect(&ui_tree->commands.data[i],x,y)){
             js_pushstring(J, ui_tree->commands.data[i].id);
             return;
         }
+    }
+    js_pushnull(J);
+}
+
+static void js_click_node(js_State *J){
+    if(ui_tree->commands.len <= 0){
+        js_pushnull(J);
+		return;
+    }
+    if (js_isnumber(J, 1) == 0 ){
+		js_error(J, "first arg passed to ui_click should be a number (at.x)");
+		js_pushnull(J);
+		return;
+	}
+    if (js_isnumber(J, 2) == 0 ){
+		js_error(J, "second arg passed to ui_click should be a number (at.y)");
+		js_pushnull(J);
+		return;
+	}
+    int x = js_tointeger(J, 1);
+    int y = js_tointeger(J, 2);
+    int node_idx=-1;
+    for(int i = ui_tree->commands.len-1;i>=0;i--){
+        if(intersect(&ui_tree->commands.data[i],x,y)){
+            if(strlen(ui_tree->commands.data[i].onClick)>0){
+                node_idx=i;
+                break;
+            }
+        }
+    }
+    if(node_idx>0){
+        js_getregistry(J, ui_tree->commands.data[node_idx].onClick);
+        js_pushnull(J);
+        js_pcall(J, 0);
     }
     js_pushnull(J);
 }
@@ -717,6 +764,12 @@ static void js_bounding_box(js_State *J){
 }
 
 void js_ui_clear(js_State *J){
+    for(int i=0;i<ui_tree->commands.len;i++){
+        if(ui_tree->commands.data[i].onClick[0]>0){
+            // printf("cmd %d unref %.*s\n",i,DATA_LEN,ui_tree->commands.data[i].data);
+            js_unref(J,ui_tree->commands.data[i].onClick);
+        }
+    }
     ui_tree->nodes.len=0;
     ui_tree->commands.len=0;
     js_pushundefined(J);
@@ -733,6 +786,8 @@ void bind_ui_func(js_State *J){
 	js_setglobal(J, "ui_draw");
 	js_newcfunction(J, js_pick_node, "ui_pick", 2);
 	js_setglobal(J, "ui_pick");
+	js_newcfunction(J, js_click_node, "ui_click", 2);
+	js_setglobal(J, "ui_click");
 	js_newcfunction(J, js_bounding_box, "ui_bb", 2);
 	js_setglobal(J, "ui_bb");
 	js_newcfunction(J, js_dump_ui_command, "ui_dump_command", 0);

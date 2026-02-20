@@ -94,11 +94,11 @@ const char* js_inspect_stack_at(js_State *J,int i){
     else if(js_isnumber(J,i))        {return ("number");}
     else if(js_isstring(J,i))        {return ("string");}
     else if(js_isprimitive(J,i))     {return ("primitive");}
+    else if(js_iscallable(J,i))      {return ("callable");}
     else if(js_isobject(J,i))        {return ("object");}
     else if(js_isarray(J,i))         {return ("array");}
     else if(js_isregexp(J,i))        {return ("regexp");}
     else if(js_iscoercible(J,i))     {return ("coercible");}
-    else if(js_iscallable(J,i))      {return ("callable");}
     else if(js_iserror(J,i))         {return ("error");}
     else if(js_isnumberobject(J,i))  {return ("numberobject");}
     else if(js_isstringobject(J,i))  {return ("stringobject");}

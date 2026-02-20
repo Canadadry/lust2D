@@ -31,6 +31,9 @@ exports.useState = function (initialValue) {
 };
 
 exports.renderComponent = function (node, props, children) {
+  if(currentComponentPath==""){
+    ui_clear();
+  }
   if (typeof node === "function") {
     var prevHookIndex = hookIndex;
     var previsousPath = currentComponentPath;
@@ -57,5 +60,4 @@ exports.renderComponent = function (node, props, children) {
 exports.startApp = function (root) {
   ui_compute(root);
   ui_draw(root);
-  ui_clear();
 }
