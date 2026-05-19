@@ -25,10 +25,10 @@ bool painter_match(const char* test_name,int i,Painter exp, Painter got){
     switch(exp.kind){
         case PAINTER_NONE: break;
         case PAINTER_RECT:
-        if(exp.value.rect.color.value != got.value.rect.color.value){
+        if(exp.value.rect.fill.value.color.value != got.value.rect.fill.value.color.value){
             TEST_ERRORF(test_name,
                 "failed command %d painter rect color dont match got %x want:%x\n",
-                i,got.value.rect.color.value,exp.value.rect.color.value
+                i,got.value.rect.fill.value.color.value,exp.value.rect.fill.value.color.value
             );
             return false;
         }
